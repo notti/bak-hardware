@@ -24,9 +24,6 @@ use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-library misc;
-use misc.procedures.all;
-
 entity align_fsm is
 generic(
         SYNC_PWR_ON_LEN     : integer := 4; -- pwr_on_cnt len
@@ -73,15 +70,15 @@ begin
     next_state <= state;
     case state is
         when RESET      =>  next_state <= POWERON;
-        when POWERON    =>  if(and_many(pwr_on_cnt_r) = '1') then
+        when POWERON    =>  if(pwr_on_cnt_r = (pwr_on_cnt_r'range => '1')) then
                                 next_state <= BLANK_CLK;
                             end if;
-        when BLANK_CLK  =>  if(and_many(blank_cnt_r) = '1') then
+        when BLANK_CLK  =>  if(blank_cnt_r = (blank_cnt_r'range => '1')) then
                                 next_state <= WAIT_SYNC;
                             end if;
-        when WAIT_SYNC  =>  if(and_many(aligned_cnt_r) = '1') then
+        when WAIT_SYNC  =>  if(aligned_cnt_r = (aligned_cnt_r'range => '1')) then
                                 next_state <= SYNCED;
-                            elsif(and_many(wait_cnt_r) = '1') then
+                            elsif(wait_cnt_r = (wait_cnt_r'range => '1')) then
                                 next_state <= BLANK_CLK;
                             end if;
         when SYNCED     =>  if(aligned='0' or valid='0') then
