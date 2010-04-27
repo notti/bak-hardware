@@ -836,6 +836,7 @@ proc restore { { project_dir "" } } {
   } "A problem occured while restoring project settings."
 
   set user_files { 
+      "../../processor/system.xmp" 
       "../../ucf/ports.ucf" 
       "../../vhdl/inbuf/inbuf.vhd" 
       "../../vhdl/inbuf/reciever/alignfsm.vhd" 
@@ -843,10 +844,14 @@ proc restore { { project_dir "" } } {
       "../../vhdl/inbuf/reciever/reciever.vhd" 
       "../../vhdl/outbuf/outbuf.vhd" 
       "../../vhdl/outbuf/transmitter/transmitter.vhd" 
+      "../../vhdl/proc/flag.vhd" 
+      "../../vhdl/proc/status_reg.vhd" 
       "../../vhdl/procedures.vhd" 
       "../../vhdl/top.vhd" 
       "../../wizard/gtx.xco" 
-      "../../wizard/transmitter_pll.xaw"}
+      "../../wizard/inbuf_mem.xco" 
+      "../../wizard/transmitter_pll.xaw" 
+      "dcm.xaw"}
 
   HandleException {
     AddUserFiles $iProjHelper $user_files
@@ -856,6 +861,15 @@ proc restore { { project_dir "" } } {
       "../../wizard/gtx/example/instantiation_template.vho" 
       "../../wizard/gtx/src/gtx.vhd" 
       "../../wizard/gtx/src/gtx_tile.vhd" 
+      "../../wizard/inbuf_mem.asy" 
+      "../../wizard/inbuf_mem.ngc" 
+      "../../wizard/inbuf_mem.sym" 
+      "../../wizard/inbuf_mem.v" 
+      "../../wizard/inbuf_mem.veo" 
+      "../../wizard/inbuf_mem.vhd" 
+      "../../wizard/inbuf_mem.vho" 
+      "dcm_arwz.ucf" 
+      "system.ngc" 
       "top_guide.ncd" 
       "transmitter_pll_arwz.ucf"}
 
@@ -1469,10 +1483,10 @@ proc restore { { project_dir "" } } {
    set libraries {
       "inbuf"
       {
+       "../../vhdl/inbuf/inbuf.vhd"
        "../../vhdl/inbuf/reciever/descramble.vhd"
        "../../vhdl/inbuf/reciever/alignfsm.vhd"
        "../../vhdl/inbuf/reciever/reciever.vhd"
-       "../../vhdl/inbuf/inbuf.vhd"
        }
       "misc"
       {
@@ -1482,6 +1496,11 @@ proc restore { { project_dir "" } } {
       {
        "../../vhdl/outbuf/transmitter/transmitter.vhd"
        "../../vhdl/outbuf/outbuf.vhd"
+       }
+      "proc"
+      {
+       "../../vhdl/proc/flag.vhd"
+       "../../vhdl/proc/status_reg.vhd"
        }
    }
 
