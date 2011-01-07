@@ -69,9 +69,9 @@ begin
 
     dina_i <= (datai_avg & dataq_avg);
 
-    multiplexer: process(doutb_i, average)
+    multiplexer: process(doutb_i, width)
     begin
-        case average is
+        case width is
             when "01"   => douti <= doutb_i(16 downto 1); doutq <= doutb_i(35 downto 20);
             when "10"   => douti <= doutb_i(17 downto 2); doutq <= doutb_i(36 downto 21);
             when "11"   => douti <= doutb_i(18 downto 3); doutq <= doutb_i(37 downto 22);
@@ -79,7 +79,7 @@ begin
         end case;
     end process multiplexer;
 
-inbuf_mem_i: entity inbuf_mem
+inbuf_mem_i: inbuf_mem
 port map(
 	clka  => clk2x,
 	dina  => dina_i,
