@@ -32,6 +32,7 @@ port(
 
 -- clk
         clk                 : out std_logic;
+        rst_out             : out std_logic;
         data                : out t_data_array(2 downto 0);
 
 -- settings
@@ -396,6 +397,7 @@ syncs: for i in 0 to 2 generate
 end generate syncs;
 
 clk     <= usrclk_i;
+rst_out <= and_many(resetdone_i);
 
 end Structural;
 
