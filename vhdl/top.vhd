@@ -141,6 +141,14 @@ architecture Structural of top is
         signal inbuf_data_valid_i   : std_logic_vector(2 downto 0);
         signal inbuf_refclk_i       : std_logic;
         signal inbuf_reciever_clk_i : std_logic;
+        signal inbuf_depth_i        : std_logic_vector(15 downto 0);
+        signal inbuf_width_i        : std_logic_vector(1 downto 0);
+        signal inbuf_start_i        : std_logic;
+        signal inbuf_done_i         : std_logic;
+        signal inbuf_clk_data_i     : std_logic;
+        signal inbuf_addr_data_i    : std_logic_vector(15 downto 0);
+        signal inbuf_datai_i        : std_logic_vector(15 downto 0);
+        signal inbuf_dataq_i        : std_logic_vector(15 downto 0);
 --outbuf
         signal outbuf_tx            : std_logic_vector(7 downto 0);
         signal outbuf_txclk         : std_logic;
@@ -180,13 +188,21 @@ port map(
         rxp                 => gtx_rxp,
         txn                 => gtx_txn,
         txp                 => gtx_txp,
-        input_select        => inbuf_input_select_i,
-        polarity            => inbuf_polarity_i,
-        descramble          => inbuf_descramble_i,
-        rxeqmix             => inbuf_rxeqmix_i,
-        data_valid          => inbuf_data_valid_i,
-        data_clk            => inbuf_reciever_clk_i,
-        enable              => inbuf_enable_i
+        rec_polarity        => inbuf_polarity_i,
+        rec_descramble      => inbuf_descramble_i,
+        rec_rxeqmix         => inbuf_rxeqmix_i,
+        rec_data_valid      => inbuf_data_valid_i,
+        rec_enable          => inbuf_enable_i
+        rec_input_select    => inbuf_input_select_i,
+        rec_clk_out         => inbuf_reciever_clk_i,
+        inbuf_depth         => inbuf_depth_i,
+        inbuf_width         => inbuf_width_i,
+        inbuf_start         => inbuf_start_i,
+        inbuf_done          => inbuf_done_i,
+        inbuf_clk_data      => inbuf_clk_data_i,
+        inbuf_addr_data     => inbuf_addr_data_i,
+        inbuf_datai         => inbuf_datai_i,
+        inbuf_dataq         => inbuf_dataq_i
 );
 
 outbuf_i: entity outbuf.outbuf
