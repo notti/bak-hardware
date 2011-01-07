@@ -53,7 +53,7 @@ port(
 end inbuf;
 
 architecture Structural of inbuf is
-	COMPONENT dcm
+	COMPONENT dcm_inbuf
 	PORT(
 		CLKIN_IN : IN std_logic;
 		RST_IN : IN std_logic;          
@@ -74,6 +74,7 @@ architecture Structural of inbuf is
         signal rec_data_valid_i : std_logic_vector(2 downto 0);
         signal data_valid_i     : std_logic;
         signal iqdata_valid_i   : std_logic;
+        signal iqdata_valid_locked_i : std_logic;
         signal pos_i            : std_logic_vector(15 downto 0);
         signal sample_i         : std_logic;
 begin
@@ -93,7 +94,7 @@ port map(
         descramble          => rec_descramble,
         rxeqmix             => rec_rxeqmix,
         data_valid          => rec_data_valid_i,
-        enable              => enable
+        enable              => rec_enable
 );
 
 datamux_i: entity inbuf.datamux
@@ -122,20 +123,22 @@ port map(
         rst                 => rst,
         depth               => inbuf_depth,
         width               => inbuf_width,
-        data_valid          => iqdata_valid_i,
+        data_valid          => iqdata_valid_locked_i,
         start               => inbuf_start,
         sample              => sample_i,
         pos                 => pos_i,
         done                => inbuf_done
 );
 
-Inst_dcm: dcm PORT MAP(
+Inst_dcm: dcm_inbuf PORT MAP(
     CLKIN_IN => clk_i,
     RST_IN => rst_out_i,
     CLK0_OUT => open,
     CLK2X_OUT => clk2x_i,
     LOCKED_OUT => locked_i
 );
+
+    iqdata_valid_locked_i <= locked_i and iqdata_valid_i;
 
 average_mem_i: entity inbuf.average_mem
 port map(
@@ -146,13 +149,14 @@ port map(
         sample                  => sample_i,
         datai                   => datai_i,
         dataq                   => dataq_i,
-        clk_data                => clk_data,
-        addr                    => addr_data,
+        clk_data                => inbuf_clk_data,
+        addr                    => inbuf_addr_data,
         douti                   => inbuf_datai,
         doutq                   => inbuf_dataq
 );
 
     rec_data_valid <= rec_data_valid_i;
+    rec_clk_out <= clk_i;
 
 end Structural;
 
