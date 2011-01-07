@@ -106,7 +106,7 @@ begin
     if not(state=POWERON) then
         pwr_on_cnt_r <= (others => '0');
     elsif clk'event and clk='1' then
-       pwr_on_cnt_r <= pwr_on_cnt_r + 1;
+        pwr_on_cnt_r <= pwr_on_cnt_r + 1;
     end if;
 end process pwr_on_cnt_r_process;
 
@@ -115,7 +115,7 @@ begin
     if not(state=BLANK_CLK) then
         blank_cnt_r <= (others => '0');
     elsif clk'event and clk='1' then
-       blank_cnt_r <= blank_cnt_r + 1;
+        blank_cnt_r <= blank_cnt_r + 1;
     end if;
 end process blank_cnt_r_process;
 
@@ -124,7 +124,7 @@ begin
     if (not(state=WAIT_SYNC)) or aligned = '0' or valid = '0' then
         aligned_cnt_r <= (others => '0');
     elsif clk'event and clk='1' then
-       aligned_cnt_r <= aligned_cnt_r + 1;
+        aligned_cnt_r <= aligned_cnt_r + 1;
     end if;
 end process aligned_cnt_r_process;
 
@@ -133,7 +133,7 @@ begin
     if not(state=WAIT_SYNC) then
         wait_cnt_r <= (others => '0');
     elsif clk'event and clk='1' then
-       wait_cnt_r <= wait_cnt_r + 1;
+        wait_cnt_r <= wait_cnt_r + 1;
     end if;
 end process wait_cnt_r_process;
 
