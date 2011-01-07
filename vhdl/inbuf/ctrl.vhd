@@ -4,7 +4,6 @@
 -- Author			: Gernot Vormayr
 -- created			: Jan, 7th 2011
 -- contents			: ctrl
--- TODO : 2 counter + check
 -----------------------------------------------------------
 library IEEE;
         use IEEE.STD_LOGIC_1164.ALL;
@@ -37,12 +36,12 @@ architecture Structural of ctrl is
         type average_state is (RESET, WAIT_START, AVERAGE, DONE);
         signal state        : average_state;
         signal pos_cnt_r    : std_logic_vector(15 downto 0);
-        signal width_cnt_r  : std_logic_vector(1 downto 0);
+        signal width_cnt_r  : std_logic_vector(2 downto 0);
         signal depth_r      : std_logic_vector(15 downto 0);
         signal width_r      : std_logic_vector(1 downto 0);
 begin
 
-state_process: process(clk, rst, data_valid, start, depth, width)
+state_process: process(clk, rst, data_valid, start, depth, width, width_r)
 begin
     if rst='1' or data_valid='0' then
         state <= RESET;
@@ -58,7 +57,9 @@ begin
                                     depth_r <= depth;
                                     width_r <= width;
                                 end if;
-            when AVERAGE    =>  
+            when AVERAGE    =>  if width_cnt_r > width_r then
+                                    state <= DONE;
+                                end if;
             when DONE       =>  if start = '1' then
                                     state <= AVERAGE;
                                     depth_r <= depth;
@@ -77,6 +78,22 @@ begin
         when DONE       => done <= '1'; sample <= '0';
     end case;
 end process output_function_process;
+
+cnt_r_process: process(clk, state, pos_cnt_r)
+begin
+    if not(state=AVERAGE) then
+        width_cnt_r <= (others => '0');
+        pos_cnt_r <= (others => '0');
+    elsif clk'event and clk='1' then
+        if pos_cnt_r = depth then
+            width_cnt_r <= width_cnt_r + 1;
+            pos_cnt_r <= '0';
+        else
+            pos_cnt_r <= pos_cnt_r + 1;
+        end if;
+    end if;
+end process cnt_r_process;
+
 
     pos <= pos_cnt_r;
 
