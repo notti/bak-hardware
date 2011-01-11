@@ -35,6 +35,7 @@ port(
         rec_data_valid      : out std_logic_vector(2 downto 0);
         rec_enable          : in std_logic_vector(2 downto 0);
         rec_input_select    : in std_logic_vector(1 downto 0);
+		rec_data_valid_locked : out std_logic;
         rec_clk_out         : out std_logic;
 
 -- control signals inbuf
@@ -46,9 +47,12 @@ port(
 
 -- data
         inbuf_clk_data      : in std_logic;
+		inbuf_web			: in std_logic;
         inbuf_addr_data     : in std_logic_vector(15 downto 0);
-        inbuf_datai         : out std_logic_vector(15 downto 0);
-        inbuf_dataq         : out std_logic_vector(15 downto 0)
+        inbuf_datai_out     : out std_logic_vector(15 downto 0);
+        inbuf_dataq_out     : out std_logic_vector(15 downto 0);
+        inbuf_datai_in      : in  std_logic_vector(15 downto 0);
+        inbuf_dataq_in      : in  std_logic_vector(15 downto 0)
 );
 end inbuf;
 
@@ -151,12 +155,16 @@ port map(
         dataq                   => dataq_i,
         clk_data                => inbuf_clk_data,
         addr                    => inbuf_addr_data,
-        douti                   => inbuf_datai,
-        doutq                   => inbuf_dataq
+		web						=> inbuf_web,
+        douti                   => inbuf_datai_out,
+        doutq                   => inbuf_dataq_out,
+		dini				    => inbuf_datai_in,
+		dinq					=> inbuf_dataq_in
 );
 
     rec_data_valid <= rec_data_valid_i;
     rec_clk_out <= clk_i;
+	rec_data_valid_locked <= iqdata_valid_locked_i;
 
 end Structural;
 

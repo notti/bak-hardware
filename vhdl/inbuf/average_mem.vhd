@@ -27,9 +27,12 @@ port(
     dataq   : in std_logic_vector(15 downto 0);
 
     clk_data: in std_logic;
+	web     : in std_logic;
     addr    : in std_logic_vector(15 downto 0);
     douti   : out std_logic_vector(15 downto 0);
-    doutq   : out std_logic_vector(15 downto 0)
+    doutq   : out std_logic_vector(15 downto 0);
+    dini    : in  std_logic_vector(15 downto 0);
+    dinq    : in  std_logic_vector(15 downto 0)
 );
 end average_mem;
 
@@ -55,21 +58,25 @@ END component;
     signal dina_i     : std_logic_vector(37 downto 0);
     signal douta_i    : std_logic_vector(37 downto 0);
     signal doutb_i    : std_logic_vector(37 downto 0);
+	signal dinb_i	  : std_logic_vector(37 downto 0);
+	signal web_i	  : std_logic_vector(0 downto 0);
 
 begin
+
+	web_i(0) <= web;
 
     -- read on negative edge and write on positive edge
     wea_i(0)   <=  (not clk) and sample;
 
     -- 01234567890123456789012345678901234567
-    -- <     datai    ><A><     datai    ><A>
+    -- <     dataq    ><A><     datai    ><A>
 
     datai_avg <= std_logic_vector(unsigned(douta_i(18 downto 0)) + unsigned("000" & datai(15 downto 0)));
     dataq_avg <= std_logic_vector(unsigned(douta_i(37 downto 19)) + unsigned("000" & dataq(15 downto 0)));
 
     dina_i <= (datai_avg & dataq_avg);
 
-    multiplexer: process(doutb_i, width)
+    multiplexer_out: process(doutb_i, width)
     begin
         case width is
             when "01"   => douti <= doutb_i(16 downto 1); doutq <= doutb_i(35 downto 20);
@@ -77,7 +84,17 @@ begin
             when "11"   => douti <= doutb_i(18 downto 3); doutq <= doutb_i(37 downto 22);
             when others => douti <= doutb_i(15 downto 0); doutq <= doutb_i(34 downto 19);
         end case;
-    end process multiplexer;
+    end process multiplexer_out;
+
+    multiplexer_in: process(dini, dinq, width)
+    begin
+        case width is
+            when "01"   => dinb_i <= ("00" & dinq & "000" & dini & "0");
+            when "10"   => dinb_i <= ("0" & dinq & "000" & dini & "00");
+            when "11"   => dinb_i <= (     dinq & "000" & dini & "000");
+            when others => dinb_i <= ("000" & dinq & "000" & dini     );
+        end case;
+    end process multiplexer_in;
 
 inbuf_mem_i: inbuf_mem
 port map(
@@ -87,9 +104,9 @@ port map(
 	wea   => (wea_i),
 	douta => douta_i,
 	clkb  => clk_data,
-	dinb  => (others => '0'),
+	dinb  => dinb_i,
 	addrb => addr,
-	web   => "0",
+	web   => (web_i),
 	doutb => doutb_i
 );
 
