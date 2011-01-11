@@ -147,6 +147,7 @@ architecture Structural of top is
         signal inbuf_rxeqmix_i      : t_cfg_array(2 downto 0);
         signal inbuf_enable_i       : std_logic_vector(2 downto 0);
         signal inbuf_data_valid_i   : std_logic_vector(2 downto 0);
+		signal inbuf_data_valid_locked_i : std_logic;
         signal inbuf_refclk_i       : std_logic;
         signal inbuf_reciever_clk_i : std_logic;
         signal inbuf_depth_i        : std_logic_vector(15 downto 0);
@@ -155,8 +156,11 @@ architecture Structural of top is
         signal inbuf_done_i         : std_logic;
         signal inbuf_clk_data_i     : std_logic;
         signal inbuf_addr_data_i    : std_logic_vector(15 downto 0);
-        signal inbuf_datai_i        : std_logic_vector(15 downto 0);
-        signal inbuf_dataq_i        : std_logic_vector(15 downto 0);
+        signal inbuf_web_i          : std_logic;
+        signal inbuf_datai_in_i     : std_logic_vector(15 downto 0);
+        signal inbuf_dataq_in_i     : std_logic_vector(15 downto 0);
+        signal inbuf_datai_out_i    : std_logic_vector(15 downto 0);
+        signal inbuf_dataq_out_i    : std_logic_vector(15 downto 0);
 --outbuf
         signal outbuf_tx            : std_logic_vector(7 downto 0);
         signal outbuf_txclk         : std_logic;
@@ -210,6 +214,7 @@ port map(
         rec_data_valid      => inbuf_data_valid_i,
         rec_enable          => inbuf_enable_i,
         rec_input_select    => inbuf_input_select_i,
+		rec_data_valid_locked => inbuf_data_valid_locked_i,
         rec_clk_out         => inbuf_reciever_clk_i,
         inbuf_depth         => inbuf_depth_i,
         inbuf_width         => inbuf_width_i,
@@ -217,8 +222,11 @@ port map(
         inbuf_done          => inbuf_done_i,
         inbuf_clk_data      => inbuf_clk_data_i,
         inbuf_addr_data     => inbuf_addr_data_i,
-        inbuf_datai         => inbuf_datai_i,
-        inbuf_dataq         => inbuf_dataq_i
+        inbuf_web           => inbuf_web_i,
+        inbuf_datai_out     => inbuf_datai_out_i,
+        inbuf_dataq_out     => inbuf_dataq_out_i,
+        inbuf_datai_in      => inbuf_datai_in_i,
+        inbuf_dataq_in      => inbuf_dataq_in_i
 );
 
 outbuf_i: entity outbuf.outbuf
@@ -311,33 +319,54 @@ Inst_system: system PORT MAP(
 inst_status_reg: entity proc.status_reg
 port map(
 ----- clk domain inbuf_reciever_clk_i
-    inbuf_input_select           => inbuf_input_select_i,
-    inbuf_polarity               => inbuf_polarity_i,
-    inbuf_descramble             => inbuf_descramble_i,
-    inbuf_rxeqmix                => inbuf_rxeqmix_i,
-    inbuf_enable                 => inbuf_enable_i,
-    inbuf_data_valid             => inbuf_data_valid_i,
-    inbuf_depth                  => inbuf_depth_i,
-    inbuf_width                  => inbuf_width_i,
-    inbuf_start                  => inbuf_start_i,
-    inbuf_done                   => inbuf_done_i,
-    fpga_clk                     => inbuf_reciever_clk_i,
+    inbuf_input_select             => inbuf_input_select_i,
+    inbuf_polarity                 => inbuf_polarity_i,
+    inbuf_descramble               => inbuf_descramble_i,
+    inbuf_rxeqmix                  => inbuf_rxeqmix_i,
+    inbuf_enable                   => inbuf_enable_i,
+    inbuf_data_valid               => inbuf_data_valid_i,
+	inbuf_data_valid_locked        => inbuf_data_valid_locked_i,
+    inbuf_depth                    => inbuf_depth_i,
+    inbuf_width                    => inbuf_width_i,
+    inbuf_start                    => inbuf_start_i,
+    inbuf_done                     => inbuf_done_i,
+    fpga_clk                       => inbuf_reciever_clk_i,
 
------ clk domain cpu
-    inbuf_clk_data               => inbuf_clk_data_i,
-    inbuf_addr_data              => inbuf_addr_data_i,
-    inbuf_datai                  => inbuf_datai_i,
-    inbuf_dataq                  => inbuf_dataq_i,
+    ----- clk domain cpu
 
------ proc interface
-    proc2fpga_0_intr_pin         => proc2fpga_0_intr_pin,
-    proc2fpga_0_reg_ip2bus_data_pin => proc2fpga_0_reg_ip2bus_data_pin,
-    proc2fpga_0_reg_bus2ip_data_pin => proc2fpga_0_reg_bus2ip_data_pin,
-    proc2fpga_0_reg_rd_pin       => proc2fpga_0_reg_rd_pin,
-    proc2fpga_0_reg_wr_pin       => proc2fpga_0_reg_wr_pin,
-    proc2fpga_0_bus_be_pin       => proc2fpga_0_bus_be_pin,
-    proc2fpga_0_bus_reset_pin    => proc2fpga_0_bus_reset_pin,
-    proc2fpga_0_bus_clk_pin      => proc2fpga_0_bus_clk_pin
+    ----- proc interface
+    intr                           => proc2fpga_0_intr_pin,
+    reg_ip2bus_data                => proc2fpga_0_reg_ip2bus_data_pin,
+    reg_bus2ip_data                => proc2fpga_0_reg_bus2ip_data_pin,
+    reg_rd                         => proc2fpga_0_reg_rd_pin,
+    reg_wr                         => proc2fpga_0_reg_wr_pin,
+    bus_be                         => proc2fpga_0_bus_be_pin,
+    bus_reset                      => proc2fpga_0_bus_reset_pin,
+    bus_clk                        => proc2fpga_0_bus_clk_pin
+    );
+
+inst_cpumem: entity proc.cpumem
+port map(
+    inbuf_clk_data                 => inbuf_clk_data_i,
+    inbuf_addr_data                => inbuf_addr_data_i,
+    inbuf_web                      => inbuf_web_i,
+    inbuf_datai_out                => inbuf_datai_out_i,
+    inbuf_dataq_out                => inbuf_dataq_out_i,
+    inbuf_datai_in                 => inbuf_datai_in_i,
+    inbuf_dataq_in                 => inbuf_dataq_in_i,
+
+    ----- proc interface
+    bus_error                      => proc2fpga_0_bus_error_pin,
+    bus_be                         => proc2fpga_0_bus_be_pin,
+    bus_reset                      => proc2fpga_0_bus_reset_pin,
+    bus_clk                        => proc2fpga_0_bus_clk_pin,
+    mem_bus2ip_data                => proc2fpga_0_mem_bus2ip_data_pin,
+    mem_ip2bus_data                => proc2fpga_0_mem_ip2bus_data_pin,
+    mem_address                    => proc2fpga_0_mem_address_pin,
+    mem_write_ack                  => proc2fpga_0_mem_write_ack_pin,
+    mem_read_ack                   => proc2fpga_0_mem_read_ack_pin,
+    mem_read_enable                => proc2fpga_0_mem_read_enable_pin,
+    mem_select                     => proc2fpga_0_mem_select_pin
 );
 
 end Structural;

@@ -28,174 +28,228 @@ port(
     inbuf_rxeqmix                : out t_cfg_array(2 downto 0);
     inbuf_enable                 : out std_logic_vector(2 downto 0);
     inbuf_data_valid             : in std_logic_vector(2 downto 0);
+	inbuf_data_valid_locked  	 : in std_logic;
+	inbuf_depth					 : out std_logic_vector(15 downto 0);
+    inbuf_width					 : out std_logic_vector(1 downto 0);
+    inbuf_start					 : out std_logic;
+	inbuf_done					 : in std_logic;
     fpga_clk                     : in std_logic;
 
-    proc2fpga_0_intr_pin         : OUT std_logic_vector(0 to 31);
-    proc2fpga_0_Reg2Bus_Data_pin : OUT std_logic_vector(0 to 31);
-    proc2fpga_0_Bus2Reg_Data_pin : IN std_logic_vector(0 to 31);
-    proc2fpga_0_Bus_RegRd_pin    : IN std_logic_vector(0 to 7);
-    proc2fpga_0_Bus_RegWr_pin    : IN std_logic_vector(0 to 7);
-    proc2fpga_0_Bus_BE_pin       : IN std_logic_vector(0 to 3);
-    proc2fpga_0_Bus_Reset_pin    : IN std_logic;
-    proc2fpga_0_Bus_Clk_pin      : IN std_logic
+    intr                         : out std_logic_vector(31 downto 0);
+    reg_ip2bus_data              : out std_logic_vector(31 downto 0);
+    reg_bus2ip_data              : in std_logic_vector(31 downto 0);
+    reg_rd                       : in std_logic_vector(7 downto 0);
+    reg_wr                       : in std_logic_vector(7 downto 0);
+    bus_be                       : in std_logic_vector(3 downto 0);
+    bus_reset                    : in std_logic;
+    bus_clk                      : in std_logic
 );
 end status_reg;
 
 architecture Structural of status_reg is
 
-        type t_recv_reg is array(integer range <>) of std_logic_vector(2 to 6);
+        type t_recv_reg is array(integer range <>) of std_logic_vector(4 downto 0);
         signal recv_reg             : t_recv_reg(2 downto 0);
 
-        signal slv_reg0             : std_logic_vector(0 to 31);
+        signal slv_reg0             : std_logic_vector(31 downto 0);
+        signal slv_reg1             : std_logic_vector(31 downto 0);
 
 --inbuf
         signal inbuf_input_select_i : std_logic_vector(1 downto 0);
         signal inbuf_data_valid_i   : std_logic_vector(2 downto 0);
+		signal inbuf_start_dly_i    : std_logic;
+		signal inbuf_start_i		: std_logic;
 begin
-    proc2fpga_0_intr_pin <= (others=>'0');
+    intr <= (others=>'0');   --TODO
 
+--reciever:
+--    x  enable      ASYNC    1 0
+--    x  polarity    SYNC_GTX 1 1
+--    x  descramble  SYNC_GTX 1 2
+--    x  rxeqmix[0]  ASYNC    0 3
+--    x  rxeqmix[0]  ASYNC    0 4
+--    r  data_valid  SYNC_PLB 0 5
+--    0  0                    0 6
+--    0  0                    0 7
+--MUX:
+--    x  select[0]   SYNC_GTX 0 0
+--    x  select[1]   SYNC_GTX 0 1
+--    r  data_valid  SYNC_PLB 0 2
+--    0  0                    0 3
+--    0  0                    0 4
+--    0  0                    0 5
+--    0  0                    0 6
+--    0  0                    0 7
+--MEM:
+--    t  start       SYNC_GTX 0 0
+--    r  done        SYNC_PLB 0 1
+--    0  0                    0 2
+--    0  0                    0 3
+--    0  0                    0 4
+--    0  0                    0 5
+--    0  0                    0 6
+--    0  0                    0 7
+--        <   3  ><   2  ><   1  ><   0  >
+--        76543210765432107654321076543210
+--  REG0: 00000vSE00vRXdpe00vRXdpe00vRXdpe   GTX
+--  REG1: 000000ds000000WI<     DEPTH    >   MEM
+--  REG2:                                    FFT
+--  REG3:                                    OUT
     
-    sync_gen: for i in 0 to 2 generate
+-- reciever:
+    reciever_gen: for i in 0 to 2 generate
         sync_enable_i: entity flag
         port map(
-            flag_in     => recv_reg(i)(6),
+            flag_in     => recv_reg(i)(0),
             flag_out    => inbuf_enable(i),
             clk         => fpga_clk
                 );
         sync_polarity_i: entity flag
         port map(
-            flag_in     => recv_reg(i)(5),
+            flag_in     => recv_reg(i)(1),
             flag_out    => inbuf_polarity(i),
             clk         => fpga_clk
                 );
         sync_descramble_i: entity flag
         port map(
-            flag_in     => recv_reg(i)(4),
+            flag_in     => recv_reg(i)(2),
             flag_out    => inbuf_descramble(i),
             clk         => fpga_clk
                 );
-        inbuf_rxeqmix(i)(0) <= recv_reg(i)(3);
-        inbuf_rxeqmix(i)(1) <= recv_reg(i)(2);
+        inbuf_rxeqmix(i) <= recv_reg(i)(4 downto 3);
         sync_data_valid_i: entity flag
         port map(
             flag_in     => inbuf_data_valid(i),
             flag_out    => inbuf_data_valid_i(i),
-            clk         => proc2fpga_0_Bus_Clk_pin 
+            clk         => bus_clk
                 );
-        recv_write_proc: process(proc2fpga_0_Bus_Clk_pin) is
+
+        recv_write_proc: process(bus_clk) is
         begin
-            if proc2fpga_0_Bus_Clk_pin'event and proc2fpga_0_Bus_Clk_pin = '1' then
-                if proc2fpga_0_Bus_Reset_pin = '1' then
-                    recv_reg(i) <= "00111";
-                else
-                    if proc2fpga_0_Bus_RegWr_pin = "10000000" and
-                        proc2fpga_0_Bus_BE_pin(i) = '1' then
-                        recv_reg(i) <= proc2fpga_0_Bus2Reg_Data_pin((3-i)*8+2 to (3-i)*8+6);
-                    end if;
-                end if;
+			if bus_clk'event and bus_clk = '1' then
+				if bus_reset = '1' then
+					recv_reg(i) <= "00111";
+				else
+					if reg_wr = "10000000" and bus_be(i) = '1' then
+						recv_reg(i) <= reg_bus2ip_data((i+1)*8-3 downto i*8);
+					end if;
+				end if;
             end if;
         end process recv_write_proc;
+		slv_reg0((i+1)*8-1 downto i*8) <= "00" & inbuf_data_valid_i(i) & recv_reg(i);
     end generate;
 
-    slv_reg0 <= inbuf_data_valid_i(0) & recv_reg(0) & "00" &
-                inbuf_data_valid_i(1) & recv_reg(1) & "00" &
-                inbuf_data_valid_i(2) & recv_reg(2) & "00" &
-                "00000000";
+-- MUX:
+	sync_select_i: entity value
+	generic map(
+		C_WIDTH => 2
+			   )
+	port map(
+		value_in     => slv_reg0(25 downto 24),
+		value_out    => inbuf_input_select,
+		clk         => fpga_clk
+			);
+	sync_data_valid_i: entity flag
+	port map(
+		flag_in     => inbuf_data_valid_locked,
+		flag_out    => slv_reg0(26),
+		clk         => bus_clk
+			);
+	slv_reg0(31 downto 27) <= "00000";
+	mux_write_proc: process(bus_clk) is
+	begin
+		if bus_clk'event and bus_clk = '1' then
+			if bus_reset = '1' then
+				slv_reg0(25 downto 24) <= "00";
+			else
+				if reg_wr = "10000000" and bus_be(3) = '1' then
+					slv_reg0(25 downto 24) <= reg_bus2ip_data(25 downto 24);
+				end if;
+			end if;
+		end if;
+	end process mux_write_proc;
+--MEM:
+	sync_depth_i: entity value
+	generic map(
+		C_WIDTH => 16
+			   )
+	port map(
+		value_in     => slv_reg1(15 downto 0),
+		value_out    => inbuf_depth,
+		clk         => fpga_clk
+			);
+	sync_width_i: entity value
+	generic map(
+		C_WIDTH => 2
+			   )
+	port map(
+		value_in     => slv_reg1(17 downto 16),
+		value_out    => inbuf_width,
+		clk         => fpga_clk
+			);
+	sync_start_i: entity flag
+	port map(
+		flag_in     => slv_reg0(24),
+		flag_out    => inbuf_start_i,
+		clk         => fpga_clk
+			);
+	-- generate start pulse
+	inbuf_start_dly_p: process(fpga_clk, bus_reset, inbuf_start_i)
+	begin
+		if fpga_clk'event and fpga_clk = '1' then
+			if bus_reset = '1' then
+				inbuf_start_dly_i <= '0';
+			else
+				inbuf_start_dly_i <= inbuf_start_i;
+			end if;
+		end if;
+	end process inbuf_start_dly_p;
+	inbuf_start <= inbuf_start_i and not inbuf_start_dly_i;
+	sync_done_i: entity flag
+	port map(
+		flag_in     => inbuf_done,
+		flag_out    => slv_reg1(25),
+		clk         => bus_clk
+			);
+	slv_reg1(23 downto 18) <= "000000";
+	slv_reg1(31 downto 26) <= "000000";
+	mem_write_proc: process(bus_clk) is
+	begin
+		if bus_clk'event and bus_clk = '1' then
+			if bus_reset = '1' then
+				slv_reg1(24 downto 24) <= (others => '0');
+				slv_reg1(17 downto 0) <= (others => '0');
+			else
+				if reg_wr = "01000000" then
+					if bus_be(0) = '1' then
+						slv_reg1(7 downto 0) <= reg_bus2ip_data(7 downto 0);
+					end if;
+					if bus_be(1) = '1' then
+						slv_reg1(15 downto 8) <= reg_bus2ip_data(15 downto 8);
+					end if;
+					if bus_be(2) = '1' then
+						slv_reg1(17 downto 16) <= reg_bus2ip_data(17 downto 16);
+					end if;
+					if bus_be(3) = '1' then
+						slv_reg1(24 downto 24) <= reg_bus2ip_data(24 downto 24);
+					end if;
+				end if;
+			end if;
+		end if;
+	end process mem_write_proc;
 
-
---reciever:
---    r 1 data_valid   SYNC_PLB
---    x 1 enable       ASYNC
---    x 1 polarity     SYNC_GTX
---    x 1 descramble   SYNC_GTX
---    x 2 rxeqmix      ASYNC
---   vepdrr  vepdrr  vepdrr  
---   765432107654321076543210
-  -- implement slave model software accessible register(s)
---  SLAVE_REG_WRITE_PROC : process( Bus2IP_Clk ) is
---  begin
---
---    if Bus2IP_Clk'event and Bus2IP_Clk = '1' then
---      if Bus2IP_Reset = '1' then
---        slv_reg0 <= (others => '0');
---        slv_reg1 <= (others => '0');
---        slv_reg2 <= (others => '0');
---        slv_reg3 <= (others => '0');
---        slv_reg4 <= (others => '0');
---        slv_reg5 <= (others => '0');
---        slv_reg6 <= (others => '0');
---        slv_reg7 <= (others => '0');
---      else
---        case slv_reg_write_sel is
---          when "10000000" =>
---            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
---              if ( Bus2IP_BE(byte_index) = '1' ) then
---                slv_reg0(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
---              end if;
---            end loop;
---          when "01000000" =>
---            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
---              if ( Bus2IP_BE(byte_index) = '1' ) then
---                slv_reg1(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
---              end if;
---            end loop;
---          when "00100000" =>
---            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
---              if ( Bus2IP_BE(byte_index) = '1' ) then
---                slv_reg2(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
---              end if;
---            end loop;
---          when "00010000" =>
---            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
---              if ( Bus2IP_BE(byte_index) = '1' ) then
---                slv_reg3(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
---              end if;
---            end loop;
---          when "00001000" =>
---            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
---              if ( Bus2IP_BE(byte_index) = '1' ) then
---                slv_reg4(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
---              end if;
---            end loop;
---          when "00000100" =>
---            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
---              if ( Bus2IP_BE(byte_index) = '1' ) then
---                slv_reg5(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
---              end if;
---            end loop;
---          when "00000010" =>
---            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
---              if ( Bus2IP_BE(byte_index) = '1' ) then
---                slv_reg6(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
---              end if;
---            end loop;
---          when "00000001" =>
---            for byte_index in 0 to (C_SLV_DWIDTH/8)-1 loop
---              if ( Bus2IP_BE(byte_index) = '1' ) then
---                slv_reg7(byte_index*8 to byte_index*8+7) <= Bus2IP_Data(byte_index*8 to byte_index*8+7);
---              end if;
---            end loop;
---          when others => null;
---        end case;
---      end if;
---    end if;
---
---  end process SLAVE_REG_WRITE_PROC;
---
---  -- implement slave model software accessible register(s) read mux
-  SLAVE_REG_READ_PROC : process(proc2fpga_0_Bus_RegRd_pin, slv_reg0) is
+  SLAVE_REG_READ_PROC : process(reg_rd, slv_reg0) is
   begin
-
-    case proc2fpga_0_Bus_RegRd_pin is
-      when "10000000" => proc2fpga_0_Reg2Bus_Data_pin <= slv_reg0;
---      when "01000000" => proc2fpga_0_Reg2Bus_Data_pin <= slv_reg1;
---      when "00100000" => proc2fpga_0_Reg2Bus_Data_pin <= slv_reg2;
---      when "00010000" => proc2fpga_0_Reg2Bus_Data_pin <= slv_reg3;
---      when "00001000" => proc2fpga_0_Reg2Bus_Data_pin <= slv_reg4;
---      when "00000100" => proc2fpga_0_Reg2Bus_Data_pin <= slv_reg5;
---      when "00000010" => proc2fpga_0_Reg2Bus_Data_pin <= slv_reg6;
---      when "00000001" => proc2fpga_0_Reg2Bus_Data_pin <= slv_reg7;
-      when others => proc2fpga_0_Reg2Bus_Data_pin <= (others => '0');
+    case reg_rd is
+      when "10000000" => reg_ip2bus_data <= slv_reg0;
+      when "01000000" => reg_ip2bus_data <= slv_reg1;
+--      when "00100000" => reg_ip2bus_data <= slv_reg2;
+--      when "00010000" => reg_ip2bus_data <= slv_reg3;
+--      when "00001000" => reg_ip2bus_data <= slv_reg4;
+--      when "00000100" => reg_ip2bus_data <= slv_reg5;
+--      when "00000010" => reg_ip2bus_data <= slv_reg6;
+--      when "00000001" => reg_ip2bus_data <= slv_reg7;
+      when others => reg_ip2bus_data <= (others => '0');
     end case;
 
   end process SLAVE_REG_READ_PROC;
