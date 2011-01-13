@@ -58,9 +58,9 @@ begin
 
 next_state_process: process(clk, rst, enable)
 begin
-    if(rst='1' or enable='0') then
+    if rst='1' or enable='0' then
         state <= RESET;
-    elsif(clk'event and clk='1') then
+    elsif clk'event and clk='1' then
         state <= next_state;
     end if;
 end process next_state_process;
@@ -70,18 +70,18 @@ begin
     next_state <= state;
     case state is
         when RESET      =>  next_state <= POWERON;
-        when POWERON    =>  if(pwr_on_cnt_r = (pwr_on_cnt_r'range => '1')) then
+        when POWERON    =>  if and_many(pwr_on_cnt_r) = '1' then
                                 next_state <= BLANK_CLK;
                             end if;
-        when BLANK_CLK  =>  if(blank_cnt_r = (blank_cnt_r'range => '1')) then
+        when BLANK_CLK  =>  if and_many(blank_cnt_r) = '1' then
                                 next_state <= WAIT_SYNC;
                             end if;
-        when WAIT_SYNC  =>  if(aligned_cnt_r = (aligned_cnt_r'range => '1')) then
+        when WAIT_SYNC  =>  if and_many(aligned_cnt_r) = '1' then
                                 next_state <= SYNCED;
-                            elsif(wait_cnt_r = (wait_cnt_r'range => '1')) then
+                            elsif and_many(wait_cnt_r) = '1' then
                                 next_state <= BLANK_CLK;
                             end if;
-        when SYNCED     =>  if(aligned='0' or valid='0') then
+        when SYNCED     =>  if aligned='0' or valid='0' then
                                 next_state <= BLANK_CLK;
                             end if;
     end case;
@@ -100,37 +100,37 @@ end process output_function_process;
 
 pwr_on_cnt_r_process: process(clk, state)
 begin
-    if(not(state=POWERON)) then
+    if not(state=POWERON) then
         pwr_on_cnt_r <= (others => '0');
-    elsif(clk'event and clk='1') then
-       pwr_on_cnt_r <= pwr_on_cnt_r + 1;
+    elsif clk'event and clk='1' then
+        pwr_on_cnt_r <= pwr_on_cnt_r + 1;
     end if;
 end process pwr_on_cnt_r_process;
 
 blank_cnt_r_process: process(clk, state)
 begin
-    if(not(state=BLANK_CLK)) then
+    if not(state=BLANK_CLK) then
         blank_cnt_r <= (others => '0');
-    elsif(clk'event and clk='1') then
-       blank_cnt_r <= blank_cnt_r + 1;
+    elsif clk'event and clk='1' then
+        blank_cnt_r <= blank_cnt_r + 1;
     end if;
 end process blank_cnt_r_process;
 
 aligned_cnt_r_process: process(clk, rst, state, aligned, valid)
 begin
-    if(not(state=WAIT_SYNC) or aligned = '0' or valid = '0') then
+    if (not(state=WAIT_SYNC)) or aligned = '0' or valid = '0' then
         aligned_cnt_r <= (others => '0');
-    elsif(clk'event and clk='1') then
-       aligned_cnt_r <= aligned_cnt_r + 1;
+    elsif clk'event and clk='1' then
+        aligned_cnt_r <= aligned_cnt_r + 1;
     end if;
 end process aligned_cnt_r_process;
 
 wait_cnt_r_process: process(clk, rst, state)
 begin
-    if(not(state=WAIT_SYNC)) then
+    if not(state=WAIT_SYNC) then
         wait_cnt_r <= (others => '0');
-    elsif(clk'event and clk='1') then
-       wait_cnt_r <= wait_cnt_r + 1;
+    elsif clk'event and clk='1' then
+        wait_cnt_r <= wait_cnt_r + 1;
     end if;
 end process wait_cnt_r_process;
 

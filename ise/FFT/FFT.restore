@@ -836,16 +836,27 @@ proc restore { { project_dir "" } } {
   } "A problem occured while restoring project settings."
 
   set user_files { 
+      "../../processor/system.xmp" 
       "../../ucf/ports.ucf" 
+      "../../vhdl/inbuf/average_mem.vhd" 
+      "../../vhdl/inbuf/ctrl.vhd" 
+      "../../vhdl/inbuf/datamux.vhd" 
       "../../vhdl/inbuf/inbuf.vhd" 
+      "../../vhdl/inbuf/iqdemux.vhd" 
       "../../vhdl/inbuf/reciever/alignfsm.vhd" 
       "../../vhdl/inbuf/reciever/descramble.vhd" 
       "../../vhdl/inbuf/reciever/reciever.vhd" 
       "../../vhdl/outbuf/outbuf.vhd" 
       "../../vhdl/outbuf/transmitter/transmitter.vhd" 
+      "../../vhdl/proc/cpumem.vhd" 
+      "../../vhdl/proc/flag.vhd" 
+      "../../vhdl/proc/status_reg.vhd" 
+      "../../vhdl/proc/value.vhd" 
       "../../vhdl/procedures.vhd" 
       "../../vhdl/top.vhd" 
+      "../../wizard/dcm_inbuf.xaw" 
       "../../wizard/gtx.xco" 
+      "../../wizard/inbuf_mem.xco" 
       "../../wizard/transmitter_pll.xaw"}
 
   HandleException {
@@ -856,6 +867,18 @@ proc restore { { project_dir "" } } {
       "../../wizard/gtx/example/instantiation_template.vho" 
       "../../wizard/gtx/src/gtx.vhd" 
       "../../wizard/gtx/src/gtx_tile.vhd" 
+      "../../wizard/inbuf_mem.asy" 
+      "../../wizard/inbuf_mem.ngc" 
+      "../../wizard/inbuf_mem.sym" 
+      "../../wizard/inbuf_mem.v" 
+      "../../wizard/inbuf_mem.veo" 
+      "../../wizard/inbuf_mem.vhd" 
+      "../../wizard/inbuf_mem.vho" 
+      "average_mem.ngc" 
+      "dcm_arwz.ucf" 
+      "dcm_inbuf_arwz.ucf" 
+      "inbuf_guide.ncd" 
+      "system.ngc" 
       "top_guide.ncd" 
       "transmitter_pll_arwz.ucf"}
 
@@ -1469,10 +1492,14 @@ proc restore { { project_dir "" } } {
    set libraries {
       "inbuf"
       {
+       "../../vhdl/inbuf/inbuf.vhd"
        "../../vhdl/inbuf/reciever/descramble.vhd"
        "../../vhdl/inbuf/reciever/alignfsm.vhd"
        "../../vhdl/inbuf/reciever/reciever.vhd"
-       "../../vhdl/inbuf/inbuf.vhd"
+       "../../vhdl/inbuf/datamux.vhd"
+       "../../vhdl/inbuf/ctrl.vhd"
+       "../../vhdl/inbuf/iqdemux.vhd"
+       "../../vhdl/inbuf/average_mem.vhd"
        }
       "misc"
       {
@@ -1482,6 +1509,13 @@ proc restore { { project_dir "" } } {
       {
        "../../vhdl/outbuf/transmitter/transmitter.vhd"
        "../../vhdl/outbuf/outbuf.vhd"
+       }
+      "proc"
+      {
+       "../../vhdl/proc/cpumem.vhd"
+       "../../vhdl/proc/flag.vhd"
+       "../../vhdl/proc/status_reg.vhd"
+       "../../vhdl/proc/value.vhd"
        }
    }
 
