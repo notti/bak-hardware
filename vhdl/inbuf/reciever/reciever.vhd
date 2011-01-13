@@ -29,19 +29,17 @@ port(
         rxp                 : in  std_logic_vector(3 downto 0);
         txn                 : out std_logic_vector(3 downto 0);
         txp                 : out std_logic_vector(3 downto 0);
+
 -- clk
         clk                 : out std_logic;
--- data
-        data                : out t_data_array;
-        data_valid          : out std_logic_vector(2 downto 0);
-
--- control signals
         rst_out             : out std_logic;
+        data                : out t_data_array(2 downto 0);
 
+-- settings
         polarity            : in std_logic_vector(2 downto 0);
         descramble          : in std_logic_vector(2 downto 0);
-
-        rxeqmix             : in t_cfg_array;
+        rxeqmix             : in t_cfg_array(2 downto 0);
+        data_valid          : out std_logic_vector(2 downto 0);
         enable              : in std_logic_vector(2 downto 0)
 );
 end reciever;
@@ -344,12 +342,12 @@ syncs: for i in 0 to 2 generate
 	-- reset delay
 	reset_delay_process: process(usrclk_i, resetdone_i(i))
 	begin
-	    if(resetdone_i(i) = '0') then
-		resetdone_r(i)  <= '0';
-		resetdone_r2(i) <= '0';
-	    elsif(usrclk_i'event and usrclk_i = '1') then
-		resetdone_r(i)  <= resetdone_i(i);
-		resetdone_r2(i) <= resetdone_r(i);
+	    if resetdone_i(i) = '0' then
+            resetdone_r(i)  <= '0';
+            resetdone_r2(i) <= '0';
+	    elsif usrclk_i'event and usrclk_i = '1' then
+            resetdone_r(i)  <= resetdone_i(i);
+            resetdone_r2(i) <= resetdone_r(i);
 	    end if;
 	end process;
 
@@ -386,9 +384,9 @@ syncs: for i in 0 to 2 generate
 	datavalidaligned_r_process: process(usrclk_i, resetdone_i(i))
 	begin
 	    if resetdone_i(i) = '0' then
-		datavalidaligned_r(i) <= '0';
-	    elsif (usrclk_i'event and usrclk_i='1') then
-		datavalidaligned_r(i) <= datavalidaligned_i(i);
+		    datavalidaligned_r(i) <= '0';
+	    elsif usrclk_i'event and usrclk_i='1' then
+		    datavalidaligned_r(i) <= datavalidaligned_i(i);
 	    end if;
 	end process;
 
@@ -398,8 +396,8 @@ syncs: for i in 0 to 2 generate
 
 end generate syncs;
 
-clk                 <= usrclk_i;
-rst_out		    <= or_many(resetdone_r2);
+clk     <= usrclk_i;
+rst_out <= and_many(resetdone_i);
 
 end Structural;
 
