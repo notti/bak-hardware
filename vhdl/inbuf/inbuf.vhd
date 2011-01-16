@@ -35,53 +35,40 @@ port(
         rec_data_valid      : out std_logic_vector(2 downto 0);
         rec_enable          : in std_logic_vector(2 downto 0);
         rec_input_select    : in std_logic_vector(1 downto 0);
-		rec_data_valid_locked : out std_logic;
+		rec_stream_valid    : out std_logic;
         rec_clk_out         : out std_logic;
 
 -- control signals inbuf
         inbuf_depth         : in std_logic_vector(15 downto 0);
         inbuf_width         : in std_logic_vector(1 downto 0);
 
-        inbuf_start         : in std_logic;
+        inbuf_arm           : in std_logic;
+        inbuf_trigger       : in std_logic;
         inbuf_done          : out std_logic;
+        inbuf_frame_clk     : out std_logic;
+        inbuf_rst           : in std_logic;
+        inbuf_locked        : out std_logic;
 
 -- data
         inbuf_clk_data      : in std_logic;
 		inbuf_web			: in std_logic;
         inbuf_addr_data     : in std_logic_vector(15 downto 0);
-        inbuf_datai_out     : out std_logic_vector(15 downto 0);
-        inbuf_dataq_out     : out std_logic_vector(15 downto 0);
-        inbuf_datai_in      : in  std_logic_vector(15 downto 0);
-        inbuf_dataq_in      : in  std_logic_vector(15 downto 0)
+        inbuf_data_out     : out std_logic_vector(15 downto 0);
+        inbuf_data_in      : in  std_logic_vector(15 downto 0)
 );
 end inbuf;
 
 architecture Structural of inbuf is
-	COMPONENT dcm_inbuf
-	PORT(
-		CLKIN_IN : IN std_logic;
-		RST_IN : IN std_logic;          
-		CLK0_OUT : OUT std_logic;
-		CLK2X_OUT : OUT std_logic;
-		LOCKED_OUT : OUT std_logic
-		);
-	END COMPONENT;
-
         signal clk_i            : std_logic;
         signal rst_out_i        : std_logic;
         signal rec_data_i       : t_data_array(2 downto 0);
         signal data_i           : t_data;
-        signal datai_i          : std_logic_vector(15 downto 0);
-        signal dataq_i          : std_logic_vector(15 downto 0);
-        signal locked_i         : std_logic;
-        signal clk2x_i          : std_logic;
         signal rec_data_valid_i : std_logic_vector(2 downto 0);
-        signal data_valid_i     : std_logic;
-        signal iqdata_valid_i   : std_logic;
-        signal iqdata_valid_locked_i : std_logic;
-        signal pos_i            : std_logic_vector(15 downto 0);
-        signal sample_i         : std_logic;
+        signal stream_valid_i   : std_logic;
+        signal rst_i            : std_logic;
 begin
+
+    rst_i <= rst_out_i or inbuf_rst;
 
 reciever_i: entity inbuf.reciever
 port map(
@@ -107,64 +94,33 @@ port map(
         data_in             => rec_data_i,
         data_valid_in       => rec_data_valid_i,
         data_out            => data_i,
-        data_valid_out      => data_valid_i,
+        data_valid_out      => stream_valid_i,
         which               => rec_input_select
 );
-
-iqdemux_i: entity inbuf.iqdemux
-port map(
-        clk                 => clk_i,
-        data_in             => data_i,
-        data_valid          => data_valid_i,
-        datai_out           => datai_i,
-        dataq_out           => dataq_i,
-        data_valid_out      => iqdata_valid_i
-);
-
-ctrl_i: entity inbuf.ctrl
-port map(
-        clk                 => clk_i,
-        rst                 => rst,
-        depth               => inbuf_depth,
-        width               => inbuf_width,
-        data_valid          => iqdata_valid_locked_i,
-        start               => inbuf_start,
-        sample              => sample_i,
-        pos                 => pos_i,
-        done                => inbuf_done
-);
-
-Inst_dcm: dcm_inbuf PORT MAP(
-    CLKIN_IN => clk_i,
-    RST_IN => rst_out_i,
-    CLK0_OUT => open,
-    CLK2X_OUT => clk2x_i,
-    LOCKED_OUT => locked_i
-);
-
-    iqdata_valid_locked_i <= locked_i and iqdata_valid_i;
 
 average_mem_i: entity inbuf.average_mem
 port map(
         clk                     => clk_i,
-        clk2x                   => clk2x_i,
-        pos                     => pos_i,
         width                   => inbuf_width,
-        sample                  => sample_i,
-        datai                   => datai_i,
-        dataq                   => dataq_i,
+        depth                   => inbuf_depth,
+        arm                     => inbuf_arm,
+        done                    => inbuf_done,
+        trigger                 => inbuf_trigger,
+        frame_clk               => inbuf_frame_clk,
+        locked                  => inbuf_locked,
+        rst                     => rst_i,
+        data                    => data_i,
+        stream_valid            => stream_valid_i,
         clk_data                => inbuf_clk_data,
         addr                    => inbuf_addr_data,
 		web						=> inbuf_web,
-        douti                   => inbuf_datai_out,
-        doutq                   => inbuf_dataq_out,
-		dini				    => inbuf_datai_in,
-		dinq					=> inbuf_dataq_in
+        dout                    => inbuf_data_out,
+		din 				    => inbuf_data_in
 );
 
     rec_data_valid <= rec_data_valid_i;
     rec_clk_out <= clk_i;
-	rec_data_valid_locked <= iqdata_valid_locked_i;
+	rec_stream_valid <= stream_valid_i;
 
 end Structural;
 

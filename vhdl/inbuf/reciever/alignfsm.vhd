@@ -24,6 +24,9 @@ use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
+library misc;
+use misc.procedures.all;
+
 entity align_fsm is
 generic(
         SYNC_PWR_ON_LEN     : integer := 4; -- pwr_on_cnt len

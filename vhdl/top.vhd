@@ -33,6 +33,8 @@ port(
         gtx_rxp                 : in  std_logic_vector(3 downto 0);
         gtx_txn                 : out std_logic_vector(3 downto 0);
         gtx_txp                 : out std_logic_vector(3 downto 0);
+		inbuf_trigger			: in std_logic;
+		frame_clk				: out std_logic;
 -- signals for oserdes transmitter
         oserdes_txn             : out std_logic_vector(7 downto 0);
         oserdes_txp             : out std_logic_vector(7 downto 0);
@@ -147,20 +149,20 @@ architecture Structural of top is
         signal inbuf_rxeqmix_i      : t_cfg_array(2 downto 0);
         signal inbuf_enable_i       : std_logic_vector(2 downto 0);
         signal inbuf_data_valid_i   : std_logic_vector(2 downto 0);
-		signal inbuf_data_valid_locked_i : std_logic;
+		signal inbuf_stream_valid_i : std_logic;
         signal inbuf_refclk_i       : std_logic;
         signal inbuf_reciever_clk_i : std_logic;
         signal inbuf_depth_i        : std_logic_vector(15 downto 0);
         signal inbuf_width_i        : std_logic_vector(1 downto 0);
-        signal inbuf_start_i        : std_logic;
+        signal inbuf_arm_i          : std_logic;
+		signal inbuf_rst_i			: std_logic;
         signal inbuf_done_i         : std_logic;
+		signal inbuf_locked_i		: std_logic;
         signal inbuf_clk_data_i     : std_logic;
         signal inbuf_addr_data_i    : std_logic_vector(15 downto 0);
         signal inbuf_web_i          : std_logic;
-        signal inbuf_datai_in_i     : std_logic_vector(15 downto 0);
-        signal inbuf_dataq_in_i     : std_logic_vector(15 downto 0);
-        signal inbuf_datai_out_i    : std_logic_vector(15 downto 0);
-        signal inbuf_dataq_out_i    : std_logic_vector(15 downto 0);
+        signal inbuf_data_in_i      : std_logic_vector(15 downto 0);
+        signal inbuf_data_out_i     : std_logic_vector(15 downto 0);
 --outbuf
         signal outbuf_tx            : std_logic_vector(7 downto 0);
         signal outbuf_txclk         : std_logic;
@@ -214,19 +216,21 @@ port map(
         rec_data_valid      => inbuf_data_valid_i,
         rec_enable          => inbuf_enable_i,
         rec_input_select    => inbuf_input_select_i,
-		rec_data_valid_locked => inbuf_data_valid_locked_i,
+		rec_stream_valid    => inbuf_stream_valid_i,
         rec_clk_out         => inbuf_reciever_clk_i,
         inbuf_depth         => inbuf_depth_i,
         inbuf_width         => inbuf_width_i,
-        inbuf_start         => inbuf_start_i,
-        inbuf_done          => inbuf_done_i,
+        inbuf_arm           => inbuf_arm_i,
+        inbuf_trigger       => inbuf_trigger,
+		inbuf_done			=> inbuf_done_i,
+		inbuf_locked		=> inbuf_locked_i,
+		inbuf_frame_clk		=> frame_clk,
+		inbuf_rst			=> inbuf_rst_i,
         inbuf_clk_data      => inbuf_clk_data_i,
         inbuf_addr_data     => inbuf_addr_data_i,
         inbuf_web           => inbuf_web_i,
-        inbuf_datai_out     => inbuf_datai_out_i,
-        inbuf_dataq_out     => inbuf_dataq_out_i,
-        inbuf_datai_in      => inbuf_datai_in_i,
-        inbuf_dataq_in      => inbuf_dataq_in_i
+        inbuf_data_out      => inbuf_data_out_i,
+        inbuf_data_in       => inbuf_data_in_i
 );
 
 outbuf_i: entity outbuf.outbuf
@@ -325,11 +329,13 @@ port map(
     inbuf_rxeqmix                  => inbuf_rxeqmix_i,
     inbuf_enable                   => inbuf_enable_i,
     inbuf_data_valid               => inbuf_data_valid_i,
-	inbuf_data_valid_locked        => inbuf_data_valid_locked_i,
+	inbuf_stream_valid             => inbuf_stream_valid_i,
     inbuf_depth                    => inbuf_depth_i,
     inbuf_width                    => inbuf_width_i,
-    inbuf_start                    => inbuf_start_i,
+    inbuf_arm                      => inbuf_arm_i,
     inbuf_done                     => inbuf_done_i,
+	inbuf_locked				   => inbuf_locked_i,
+	inbuf_rst					   => inbuf_rst_i,
     fpga_clk                       => inbuf_reciever_clk_i,
 
     ----- clk domain cpu
@@ -350,10 +356,8 @@ port map(
     inbuf_clk_data                 => inbuf_clk_data_i,
     inbuf_addr_data                => inbuf_addr_data_i,
     inbuf_web                      => inbuf_web_i,
-    inbuf_datai_out                => inbuf_datai_out_i,
-    inbuf_dataq_out                => inbuf_dataq_out_i,
-    inbuf_datai_in                 => inbuf_datai_in_i,
-    inbuf_dataq_in                 => inbuf_dataq_in_i,
+    inbuf_data_out                 => inbuf_data_out_i,
+    inbuf_data_in                  => inbuf_data_in_i,
 
     ----- proc interface
     bus_error                      => proc2fpga_0_bus_error_pin,

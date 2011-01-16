@@ -25,10 +25,8 @@ port(
     inbuf_clk_data               : out std_logic;
     inbuf_addr_data              : out std_logic_vector(15 downto 0);
     inbuf_web                    : out std_logic;
-    inbuf_datai_out              : in std_logic_vector(15 downto 0);
-    inbuf_dataq_out              : in std_logic_vector(15 downto 0);
-    inbuf_datai_in               : out std_logic_vector(15 downto 0);
-    inbuf_dataq_in               : out std_logic_vector(15 downto 0);
+    inbuf_data_out               : in std_logic_vector(15 downto 0);
+    inbuf_data_in                : out std_logic_vector(15 downto 0);
 
     ----- proc interface
     bus_error                    : out std_logic;
@@ -55,10 +53,9 @@ begin
 	inbuf_web <= not mem_read_enable when mem_select = "001" else
 				 '0';
 	inbuf_clk_data <= bus_clk;
-	inbuf_datai_in <= mem_bus2ip_data(15 downto 0);
-	inbuf_dataq_in <= mem_bus2ip_data(31 downto 16);
+	inbuf_data_in <= mem_bus2ip_data(15 downto 0);
 
-	mem_ip2bus_data <= (inbuf_dataq_out & inbuf_datai_out) when mem_select = "001" and mem_read_enable = '0' else
+	mem_ip2bus_data <= ("0000000000000000" & inbuf_data_out) when mem_select = "001" and mem_read_enable = '0' else
 					   (others => '0');
 
 	mem_read_ack <= mem_read_ack_dly_i;
