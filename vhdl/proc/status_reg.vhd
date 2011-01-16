@@ -28,11 +28,13 @@ port(
     inbuf_rxeqmix                : out t_cfg_array(2 downto 0);
     inbuf_enable                 : out std_logic_vector(2 downto 0);
     inbuf_data_valid             : in std_logic_vector(2 downto 0);
-	inbuf_data_valid_locked  	 : in std_logic;
+	inbuf_stream_valid           : in std_logic;
 	inbuf_depth					 : out std_logic_vector(15 downto 0);
     inbuf_width					 : out std_logic_vector(1 downto 0);
-    inbuf_start					 : out std_logic;
+    inbuf_arm  					 : out std_logic;
 	inbuf_done					 : in std_logic;
+	inbuf_locked				 : in std_logic;
+	inbuf_rst					 : out std_logic;
     fpga_clk                     : in std_logic;
 
     intr                         : out std_logic_vector(31 downto 0);
@@ -55,10 +57,11 @@ architecture Structural of status_reg is
         signal slv_reg1             : std_logic_vector(31 downto 0);
 
 --inbuf
-        signal inbuf_input_select_i : std_logic_vector(1 downto 0);
         signal inbuf_data_valid_i   : std_logic_vector(2 downto 0);
-		signal inbuf_start_dly_i    : std_logic;
-		signal inbuf_start_i		: std_logic;
+		signal inbuf_arm_dly_i      : std_logic;
+		signal inbuf_arm_i	        : std_logic;
+		signal inbuf_rst_dly_i      : std_logic;
+		signal inbuf_rst_i	        : std_logic;
 begin
     intr <= (others=>'0');   --TODO
 
@@ -81,10 +84,10 @@ begin
 --    0  0                    0 6
 --    0  0                    0 7
 --MEM:
---    t  start       SYNC_GTX 0 0
+--    t  arm         SYNC_GTX 0 0
 --    r  done        SYNC_PLB 0 1
---    0  0                    0 2
---    0  0                    0 3
+--    t  rst         SYNC_GTX 0 2
+--    r  locked      SYNC_PLB 0 3
 --    0  0                    0 4
 --    0  0                    0 5
 --    0  0                    0 6
@@ -92,7 +95,7 @@ begin
 --        <   3  ><   2  ><   1  ><   0  >
 --        76543210765432107654321076543210
 --  REG0: 00000vSE00vRXdpe00vRXdpe00vRXdpe   GTX
---  REG1: 000000ds000000WI<     DEPTH    >   MEM
+--  REG1: 00000rds000000WI<     DEPTH    >   MEM
 --  REG2:                                    FFT
 --  REG3:                                    OUT
     
@@ -131,7 +134,7 @@ begin
 					recv_reg(i) <= "00111";
 				else
 					if reg_wr = "10000000" and bus_be(i) = '1' then
-						recv_reg(i) <= reg_bus2ip_data((i+1)*8-3 downto i*8);
+						recv_reg(i) <= reg_bus2ip_data((i+1)*8-4 downto i*8);
 					end if;
 				end if;
             end if;
@@ -149,9 +152,9 @@ begin
 		value_out    => inbuf_input_select,
 		clk         => fpga_clk
 			);
-	sync_data_valid_i: entity flag
+	sync_stream_valid_i: entity flag
 	port map(
-		flag_in     => inbuf_data_valid_locked,
+		flag_in     => inbuf_stream_valid,
 		flag_out    => slv_reg0(26),
 		clk         => bus_clk
 			);
@@ -187,37 +190,62 @@ begin
 		value_out    => inbuf_width,
 		clk         => fpga_clk
 			);
-	sync_start_i: entity flag
+	sync_arm_i: entity flag
 	port map(
-		flag_in     => slv_reg0(24),
-		flag_out    => inbuf_start_i,
+		flag_in     => slv_reg1(24),
+		flag_out    => inbuf_arm_i,
 		clk         => fpga_clk
 			);
-	-- generate start pulse
-	inbuf_start_dly_p: process(fpga_clk, bus_reset, inbuf_start_i)
+	-- generate arm pulse
+	inbuf_arm_dly_p: process(fpga_clk, bus_reset, inbuf_arm_i)
 	begin
 		if fpga_clk'event and fpga_clk = '1' then
 			if bus_reset = '1' then
-				inbuf_start_dly_i <= '0';
+				inbuf_arm_dly_i <= '0';
 			else
-				inbuf_start_dly_i <= inbuf_start_i;
+				inbuf_arm_dly_i <= inbuf_arm_i;
 			end if;
 		end if;
-	end process inbuf_start_dly_p;
-	inbuf_start <= inbuf_start_i and not inbuf_start_dly_i;
+	end process inbuf_arm_dly_p;
+	inbuf_arm <= inbuf_arm_i and not inbuf_arm_dly_i;
 	sync_done_i: entity flag
 	port map(
 		flag_in     => inbuf_done,
 		flag_out    => slv_reg1(25),
 		clk         => bus_clk
 			);
+	sync_rst_i: entity flag
+	port map(
+		flag_in     => slv_reg1(26),
+		flag_out    => inbuf_rst_i,
+		clk         => fpga_clk
+			);
+	-- generate rst pulse
+	inbuf_rst_dly_p: process(fpga_clk, bus_reset, inbuf_rst_i)
+	begin
+		if fpga_clk'event and fpga_clk = '1' then
+			if bus_reset = '1' then
+				inbuf_rst_dly_i <= '0';
+			else
+				inbuf_rst_dly_i <= inbuf_rst_i;
+			end if;
+		end if;
+	end process inbuf_rst_dly_p;
+	inbuf_rst <= inbuf_rst_i and not inbuf_rst_dly_i;
+	sync_locked_i: entity flag
+	port map(
+		flag_in     => inbuf_locked,
+		flag_out    => slv_reg1(27),
+		clk         => bus_clk
+			);
 	slv_reg1(23 downto 18) <= "000000";
-	slv_reg1(31 downto 26) <= "000000";
+	slv_reg1(31 downto 28) <= "0000";
 	mem_write_proc: process(bus_clk) is
 	begin
 		if bus_clk'event and bus_clk = '1' then
 			if bus_reset = '1' then
 				slv_reg1(24 downto 24) <= (others => '0');
+				slv_reg1(26 downto 26) <= (others => '0');
 				slv_reg1(17 downto 0) <= (others => '0');
 			else
 				if reg_wr = "01000000" then
@@ -232,13 +260,14 @@ begin
 					end if;
 					if bus_be(3) = '1' then
 						slv_reg1(24 downto 24) <= reg_bus2ip_data(24 downto 24);
+						slv_reg1(26 downto 26) <= reg_bus2ip_data(26 downto 26);
 					end if;
 				end if;
 			end if;
 		end if;
 	end process mem_write_proc;
 
-  SLAVE_REG_READ_PROC : process(reg_rd, slv_reg0) is
+  SLAVE_REG_READ_PROC : process(reg_rd, slv_reg0, slv_reg1) is
   begin
     case reg_rd is
       when "10000000" => reg_ip2bus_data <= slv_reg0;
