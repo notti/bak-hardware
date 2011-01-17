@@ -17,30 +17,26 @@ library UNISIM;
 library inbuf;
         use inbuf.all;
 
-library misc;
-	use misc.procedures.all;
-
 entity inbuf_ctrl is
 port(
         clk                 : in  std_logic;
         rst                 : in  std_logic;
 		stream_valid		: in  std_logic;
 
-		rst_out				: out std_logic;
-
         depth               : in  std_logic_vector(15 downto 0);
         width               : in  std_logic_vector(1 downto 0);
-        depth_r             : out std_logic_vector(15 downto 0);
-        width_r             : out std_logic_vector(1 downto 0);
 
 		arm					: in  std_logic;
 		trigger				: in  std_logic;
 
 		frame_clk			: out std_logic;
 		locked				: out std_logic;
-
-		run					: out std_logic;
-		done				: in  std_logic
+        done                : out std_logic;
+        
+        addra               : out std_logic_vector(15 downto 0);
+        addrb               : out std_logic_vector(15 downto 0);
+        we                  : out std_logic;
+        add                 : out std_logic
 );
 end inbuf_ctrl;
 
@@ -48,16 +44,22 @@ architecture Structural of inbuf_ctrl is
         type inbuf_state is (RESET, EXT_TRIG, WRITE, FINISHED, INT_TRIG);
         signal state         : inbuf_state;
         signal next_state    : inbuf_state;
-        signal depth_r_i     : std_logic_vector(15 downto 0);
-        signal width_r_i     : std_logic_vector(1 downto 0);
+        signal depth_r       : std_logic_vector(15 downto 0);
+        signal width_r       : std_logic_vector(1 downto 0);
         signal rst_i         : std_logic;
         signal frame_clk_i   : std_logic;
         signal frame_clk_cnt : std_logic_vector(15 downto 0);
 		signal locked_i		 : std_logic;
+		signal width_cnt	 : std_logic_vector(3 downto 0);
+		signal width_max	 : std_logic_vector(3 downto 0);
+        signal addrb_cnt     : std_logic_vector(15 downto 0);
 begin
+	width_max <= "0111" when width = "11" else
+				 "0011" when width = "10" else
+				 "0001" when width = "01" else
+				 "0000";
 
 	rst_i     <= rst and not stream_valid;
-	rst_out   <= rst_i;
 	frame_clk <= frame_clk_i;
 
 state_process: process(clk, rst_i, depth, width)
@@ -72,15 +74,15 @@ end process state_process;
 reg_process: process(clk, state, depth, width, rst_i)
 begin
 	if rst_i = '1' then
-		depth_r_i <= (others => '0');
-		width_r_i <= (others => '0');
+		depth_r <= (others => '0');
+		width_r <= (others => '0');
 	elsif clk'event and clk = '1' and state = RESET then
-		depth_r_i <= depth;
-		width_r_i <= width;
+		depth_r <= depth - 1;
+		width_r <= width;
 	end if;
 end process reg_process;
 
-next_state_process: process(clk, state, arm, trigger, done, frame_clk_i)
+next_state_process: process(clk, state, arm, trigger, frame_clk_i)
 begin
 	next_state <= state;
 	case state is
@@ -90,7 +92,7 @@ begin
 		when EXT_TRIG =>	if trigger = '1' then
 								next_state <= WRITE;
 							end if;
-		when WRITE    =>	if done = '1' then
+		when WRITE    =>	if frame_clk_cnt = depth_r and width_cnt = width_max then
 								next_state <= FINISHED;
 							end if;
 		when FINISHED =>	if arm = '1' then
@@ -102,23 +104,24 @@ begin
 	end case;
 end process next_state_process;
 
-output_function_process: process(state)
+output_function_process: process(state, frame_clk_i)
 begin
     case state is
-		when RESET    => locked_i <= '0'; run <= '0';
-		when EXT_TRIG => locked_i <= '0'; run <= '0';
-		when WRITE    => locked_i <= '1'; run <= '1';
-		when FINISHED => locked_i <= '1'; run <= '0';
-		when INT_TRIG => locked_i <= '1'; run <= '0';
+		when RESET    => locked_i <= '0'; we <= '0'; done <= '0';
+		when EXT_TRIG => locked_i <= '0'; we <= '0'; done <= '0';
+		when WRITE    => locked_i <= '1'; we <= '1'; done <= '0';
+		when FINISHED => locked_i <= '1'; we <= '0'; done <= '1';
+		when INT_TRIG => locked_i <= '1'; we <= '0' or frame_clk_i; done <= '0';
     end case;
 end process output_function_process;
 
-frame_clk_cnt_process: process(clk, locked_i, depth_r_i)
+frame_clk_cnt_process: process(clk, locked_i, depth_r, state)
 begin
 	if locked_i = '0' then 
 		frame_clk_cnt <= (others => '0');
+        frame_clk_i <= '0';
     elsif clk'event and clk='1' then
-		if frame_clk_cnt = depth_r_i then
+		if frame_clk_cnt = depth_r then
 			frame_clk_cnt <= (others => '0');
 			frame_clk_i <= '1';
 		else
@@ -128,9 +131,35 @@ begin
     end if;
 end process frame_clk_cnt_process;
 
-depth_r <= depth_r_i;
-width_r <= width_r_i;
+addrb_cnt_process: process(clk, rst_i, locked_i, depth_r)
+begin
+    if locked_i = '0' then
+        addrb_cnt <= depth_r - 2;
+    elsif clk'event and clk='1' then
+        if addrb_cnt = depth_r then
+            addrb_cnt <= (others => '0');
+        else
+            addrb_cnt <= addrb_cnt + 1;
+        end if;
+    end if;
+end process addrb_cnt_process;
+
+width_cnt_process: process(clk, state, frame_clk_cnt)
+begin
+    if not(state = WRITE) then
+        width_cnt <= (others => '0');
+    elsif clk'event and clk='1' then
+		if frame_clk_cnt = depth_r then
+            width_cnt <= width_cnt + 1;
+        end if;
+    end if;
+end process width_cnt_process;
+
 locked  <= locked_i;
+addra   <= frame_clk_cnt;
+add     <= '1' when width_cnt > "0000" else
+	       '0';
+addrb   <= addrb_cnt;
 
 end Structural;
 

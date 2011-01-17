@@ -7,7 +7,6 @@
 -----------------------------------------------------------
 library IEEE;
         use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.STD_LOGIC_ARITH.ALL;
         use IEEE.STD_LOGIC_UNSIGNED.ALL;
         use IEEE.NUMERIC_STD.ALL;
 
@@ -56,8 +55,6 @@ component inbuf_mem IS
 	doutb: OUT std_logic_VECTOR(18 downto 0));
 END component;
 
-    signal data1_i  : std_logic_vector(15 downto 0);
-    signal data2_i  : std_logic_vector(15 downto 0);
     signal dina_i   : std_logic_vector(18 downto 0);
     signal dinb_i   : std_logic_vector(18 downto 0);
     signal douta_i  : std_logic_vector(18 downto 0);
@@ -65,82 +62,56 @@ END component;
     signal web_i    : std_logic_vector(0 downto 0);
     signal wea_i    : std_logic_vector(0 downto 0);
     signal add_i    : std_logic;
-    signal run_i    : std_logic;
-    signal rst_i    : std_logic;
+    signal start_i  : std_logic;
     signal addra_i  : std_logic_vector(15 downto 0);
-    signal depth_r  : std_logic_vector(15 downto 0);
-    signal width_r  : std_logic_vector(1 downto 0);
-    signal done_i   : std_logic;
+    signal addrb_i  : std_logic_vector(15 downto 0);
 
 begin
-    done <= done_i;
-
     inbuf_ctrl: entity inbuf.inbuf_ctrl
     port map(
         clk          => clk,
         rst          => rst,
         stream_valid => stream_valid,
-        rst_out      => rst_i,
         depth        => depth,
         width        => width,
-        depth_r      => depth_r,
-        width_r      => width_r,
         arm          => arm,
         trigger      => trigger,
         frame_clk    => frame_clk,
         locked       => locked,
-        run          => run_i,
-        done         => done_i
-    );
-
-    mem_ctrl: entity mem_ctrl
-    port map(
-        clk          => clk,
-        rst          => rst_i,
-        depth        => depth_r,
-        width        => width_r,
-        run          => run_i,
-        done         => done_i,
-        addr         => addra_i,
+        done         => done,
+        addra        => addra_i,
+        addrb        => addrb_i,
         we           => wea_i(0),
         add          => add_i
     );
 
-    data_slow_p: process(clk, data1_i, data2_i, rst_i)
-    begin
-        if rst_i = '0' then
-            data1_i <= (others => '0');
-            data2_i <= (others => '0');
-        elsif clk'event and clk = '1' then
-            data1_i <= data;
-            data2_i <= data1_i;
-        end if;
-    end process data_slow_p;
+    dina_i <= ("000" & data) + doutb_i when add_i = '1' else
+              ("000" & data);
 
-    dina_i <= ("000" & data2_i) + douta_i when add_i = '1' else
-              ("000" & data2_i);
+--    multiplexer_out: process(doutb_i, width)
+--    begin
+--        case width is
+--            when "01"   => dout <= doutb_i(16 downto 1);
+--            when "10"   => dout <= doutb_i(17 downto 2);
+--            when "11"   => dout <= doutb_i(18 downto 3);
+--            when others => dout <= doutb_i(15 downto 0);
+--        end case;
+--    end process multiplexer_out;
+--
+--    multiplexer_in: process(din, width)
+--    begin
+--        case width is
+--            when "01"   => dinb_i <= ("00" & din & "0");
+--            when "10"   => dinb_i <= ("0" & din & "00");
+--            when "11"   => dinb_i <= (din & "000");
+--            when others => dinb_i <= ("000" & din);
+--        end case;
+--    end process multiplexer_in;
+--
+--    web_i(0) <= web;
 
-    multiplexer_out: process(doutb_i, width)
-    begin
-        case width is
-            when "01"   => dout <= doutb_i(16 downto 1);
-            when "10"   => dout <= doutb_i(17 downto 2);
-            when "11"   => dout <= doutb_i(18 downto 3);
-            when others => dout <= doutb_i(15 downto 0);
-        end case;
-    end process multiplexer_out;
-
-    multiplexer_in: process(din, width)
-    begin
-        case width is
-            when "01"   => dinb_i <= ("00" & din & "0");
-            when "10"   => dinb_i <= ("0" & din & "00");
-            when "11"   => dinb_i <= (din & "000");
-            when others => dinb_i <= ("000" & din);
-        end case;
-    end process multiplexer_in;
-
-    web_i(0) <= web;
+    web_i(0) <= '0';
+    dinb_i <= (others => '0');
 
 inbuf_mem_i: inbuf_mem
 port map(
@@ -149,9 +120,9 @@ port map(
 	addra => addra_i,
 	wea   => wea_i,
 	douta => douta_i,
-	clkb  => clk_data,
+	clkb  => clk,
 	dinb  => dinb_i,
-	addrb => addr,
+	addrb => addrb_i,
 	web   => web_i,
 	doutb => doutb_i
 );
