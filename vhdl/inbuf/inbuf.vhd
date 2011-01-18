@@ -7,7 +7,6 @@
 -----------------------------------------------------------
 library IEEE;
         use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.NUMERIC_STD.ALL;
 
 library UNISIM;
         use UNISIM.VComponents.all;
@@ -50,8 +49,11 @@ port(
         inbuf_locked        : out std_logic;
 
 -- data
+        clk_bus             : in std_logic;
+        inbuf_read_req      : in std_logic;
+        inbuf_read_ack      : out std_logic;
         inbuf_clk_data      : in std_logic;
-		inbuf_web			: in std_logic;
+		inbuf_we 			: in std_logic;
         inbuf_addr_data     : in std_logic_vector(15 downto 0);
         inbuf_data_out     : out std_logic_vector(15 downto 0);
         inbuf_data_in      : in  std_logic_vector(15 downto 0)
@@ -111,9 +113,12 @@ port map(
         rst                     => rst_i,
         data                    => data_i,
         stream_valid            => stream_valid_i,
+        clk_bus                 => clk_bus,
+        read_req                => inbuf_read_req,
+        read_ack                => inbuf_read_ack,
         clk_data                => inbuf_clk_data,
         addr                    => inbuf_addr_data,
-		web						=> inbuf_web,
+		we 						=> inbuf_we,
         dout                    => inbuf_data_out,
 		din 				    => inbuf_data_in
 );

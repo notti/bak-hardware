@@ -24,7 +24,7 @@ entity cpumem is
 port(
     inbuf_clk_data               : out std_logic;
     inbuf_addr_data              : out std_logic_vector(15 downto 0);
-    inbuf_web                    : out std_logic;
+    inbuf_we                     : out std_logic;
     inbuf_data_out               : in std_logic_vector(15 downto 0);
     inbuf_data_in                : out std_logic_vector(15 downto 0);
 
@@ -50,7 +50,7 @@ begin
 
 	inbuf_addr_data <= mem_address when mem_select = "001" else
 					   (others => '0');
-	inbuf_web <= not mem_read_enable when mem_select = "001" else
+	inbuf_we <= not mem_read_enable when mem_select = "001" else
 				 '0';
 	inbuf_clk_data <= bus_clk;
 	inbuf_data_in <= mem_bus2ip_data(15 downto 0);

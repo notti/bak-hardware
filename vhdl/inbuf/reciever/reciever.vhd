@@ -170,7 +170,6 @@ port
 end component;
 
 -- clocks
-        signal refclk_i                 : std_logic;
         signal refclkout_i              : std_logic;
         signal usrclk_i                 : std_logic;
 
@@ -203,14 +202,6 @@ end component;
 
 begin
     
-refclk_bufg_i : BUFG
-port map
-(
-	I                   =>      refclk,
-	O                   =>      refclk_i
-);
-
-
 gtx_i : GTX
 port map
 (
@@ -252,7 +243,7 @@ port map
     TILE0_RXPOLARITY0_IN            =>      polarity(0),
     TILE0_RXPOLARITY1_IN            =>      polarity(1),
     --------------------- Shared Ports - Tile and PLL Ports --------------------
-    TILE0_CLKIN_IN                  =>      refclk_i,
+    TILE0_CLKIN_IN                  =>      refclk,
     TILE0_GTXRESET_IN               =>      rst,
     TILE0_PLLLKDET_OUT              =>      open,
     TILE0_REFCLKOUT_OUT             =>      refclkout_i,
@@ -310,7 +301,7 @@ port map
     TILE1_RXPOLARITY0_IN            =>      '0',
     TILE1_RXPOLARITY1_IN            =>      polarity(2),
     --------------------- Shared Ports - Tile and PLL Ports --------------------
-    TILE1_CLKIN_IN                  =>      refclk_i,
+    TILE1_CLKIN_IN                  =>      refclk,
     TILE1_GTXRESET_IN               =>      rst,
     TILE1_PLLLKDET_OUT              =>      open,
     TILE1_REFCLKOUT_OUT             =>      open,

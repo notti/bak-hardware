@@ -841,9 +841,8 @@ proc restore { { project_dir "" } } {
       "../../vhdl/inbuf/average_mem.vhd" 
       "../../vhdl/inbuf/datamux.vhd" 
       "../../vhdl/inbuf/inbuf.vhd" 
+      "../../vhdl/inbuf/inbuf_arb.vhd" 
       "../../vhdl/inbuf/inbuf_ctrl.vhd" 
-      "../../vhdl/inbuf/iqdemux.vhd" 
-      "../../vhdl/inbuf/mem_ctrl.vhd" 
       "../../vhdl/inbuf/reciever/alignfsm.vhd" 
       "../../vhdl/inbuf/reciever/descramble.vhd" 
       "../../vhdl/inbuf/reciever/reciever.vhd" 
@@ -1505,10 +1504,9 @@ proc restore { { project_dir "" } } {
        "../../vhdl/inbuf/reciever/alignfsm.vhd"
        "../../vhdl/inbuf/reciever/reciever.vhd"
        "../../vhdl/inbuf/datamux.vhd"
-       "../../vhdl/inbuf/iqdemux.vhd"
        "../../vhdl/inbuf/average_mem.vhd"
        "../../vhdl/inbuf/inbuf_ctrl.vhd"
-       "../../vhdl/inbuf/mem_ctrl.vhd"
+       "../../vhdl/inbuf/inbuf_arb.vhd"
        }
       "misc"
       {

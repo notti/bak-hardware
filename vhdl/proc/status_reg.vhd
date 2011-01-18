@@ -9,7 +9,6 @@
 -----------------------------------------------------------
 library IEEE;
         use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.NUMERIC_STD.ALL;
 
 library UNISIM;
         use UNISIM.VComponents.all;
@@ -34,6 +33,8 @@ port(
     inbuf_arm  					 : out std_logic;
 	inbuf_done					 : in std_logic;
 	inbuf_locked				 : in std_logic;
+    inbuf_read_req               : out std_logic;
+    inbuf_read_ack               : in std_logic;
 	inbuf_rst					 : out std_logic;
     fpga_clk                     : in std_logic;
 
@@ -88,14 +89,14 @@ begin
 --    r  done        SYNC_PLB 0 1
 --    t  rst         SYNC_GTX 0 2
 --    r  locked      SYNC_PLB 0 3
---    0  0                    0 4
---    0  0                    0 5
+--    x  read_req             0 4
+--    r  read_ack             0 5
 --    0  0                    0 6
 --    0  0                    0 7
 --        <   3  ><   2  ><   1  ><   0  >
 --        76543210765432107654321076543210
 --  REG0: 00000vSE00vRXdpe00vRXdpe00vRXdpe   GTX
---  REG1: 00000rds000000WI<     DEPTH    >   MEM
+--  REG1: 00aqlrds000000WI<     DEPTH    >   MEM
 --  REG2:                                    FFT
 --  REG3:                                    OUT
     
@@ -238,14 +239,17 @@ begin
 		flag_out    => slv_reg1(27),
 		clk         => bus_clk
 			);
+    inbuf_read_req <= slv_reg1(28);
+    slv_reg1(29) <= inbuf_read_ack;
 	slv_reg1(23 downto 18) <= "000000";
-	slv_reg1(31 downto 28) <= "0000";
+	slv_reg1(31 downto 30) <= "00";
 	mem_write_proc: process(bus_clk) is
 	begin
 		if bus_clk'event and bus_clk = '1' then
 			if bus_reset = '1' then
 				slv_reg1(24 downto 24) <= (others => '0');
 				slv_reg1(26 downto 26) <= (others => '0');
+				slv_reg1(28 downto 28) <= (others => '0');
 				slv_reg1(17 downto 0) <= (others => '0');
 			else
 				if reg_wr = "01000000" then
@@ -261,6 +265,7 @@ begin
 					if bus_be(3) = '1' then
 						slv_reg1(24 downto 24) <= reg_bus2ip_data(24 downto 24);
 						slv_reg1(26 downto 26) <= reg_bus2ip_data(26 downto 26);
+						slv_reg1(28 downto 28) <= reg_bus2ip_data(28 downto 28);
 					end if;
 				end if;
 			end if;
