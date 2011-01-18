@@ -12,7 +12,7 @@ tb_inbuf_mem: xilinx
 tb_inbuf_mem.vcd: tb_inbuf_mem
 	./tb_inbuf_mem --vcd=tb_inbuf_mem.vcd
 tb_average_mem: xilinx
-	ghdl -c --ieee=synopsys -fexplicit --work=inbuf ../vhdl/inbuf/inbuf_ctrl.vhd ../vhdl/inbuf/average_mem.vhd ../wizard/inbuf_mem.vhd tb_average_mem.vhd -e tb_average_mem
+	ghdl -c --ieee=synopsys -fexplicit --work=inbuf ../vhdl/inbuf/inbuf_arb.vhd ../vhdl/inbuf/inbuf_ctrl.vhd ../vhdl/inbuf/average_mem.vhd ../wizard/inbuf_mem.vhd tb_average_mem.vhd -e tb_average_mem
 tb_average_mem.vcd: tb_average_mem
 	./tb_average_mem --vcd=tb_average_mem.vcd --stop-time=10000ns
 

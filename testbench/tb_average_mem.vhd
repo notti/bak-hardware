@@ -25,8 +25,10 @@ architecture behav of tb_average_mem is
     signal data         : std_logic_vector(15 downto 0);
     signal stream_valid : std_logic;
     signal locked       : std_logic;
+    signal read_req     : std_logic;
+    signal read_ack     : std_logic;
     signal clk_data     : std_logic;
-	signal web          : std_logic;
+	signal we           : std_logic;
     signal addr         : std_logic_vector(15 downto 0);
     signal dout         : std_logic_vector(15 downto 0);
     signal din          : std_logic_vector(15 downto 0);
@@ -35,7 +37,7 @@ begin
     width <= "10";
     depth <= X"0005";
     clk_data <= '0';
-    web <= '0';
+    we <= '0';
     addr <= (others => '0');
     addr <= (others => '0');
     din <= (others => '0');
@@ -62,6 +64,7 @@ begin
         trigger <= '0';
         rst <= '1';
         stream_valid <= '0';
+        read_req <= '0';
         
         wait for 5 ns;
 
@@ -114,7 +117,10 @@ begin
     stream_valid => stream_valid,
     locked       => locked,
     clk_data     => clk_data,
-	web          =>	web,
+    read_req     => read_req,
+    read_ack     => read_ack,
+    clk_bus      => clk,
+	we          =>	we,
     addr         => addr,
     dout         => dout,
     din          => din

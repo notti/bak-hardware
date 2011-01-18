@@ -36,6 +36,7 @@ port(
         addra               : out std_logic_vector(15 downto 0);
         addrb               : out std_logic_vector(15 downto 0);
         we                  : out std_logic;
+        active              : out std_logic;
         add                 : out std_logic
 );
 end inbuf_ctrl;
@@ -107,11 +108,11 @@ end process next_state_process;
 output_function_process: process(state, frame_clk_i)
 begin
     case state is
-		when RESET    => locked_i <= '0'; we <= '0'; done <= '0';
-		when EXT_TRIG => locked_i <= '0'; we <= '0'; done <= '0';
-		when WRITE    => locked_i <= '1'; we <= '1'; done <= '0';
-		when FINISHED => locked_i <= '1'; we <= '0'; done <= '1';
-		when INT_TRIG => locked_i <= '1'; we <= '0' or frame_clk_i; done <= '0';
+		when RESET    => locked_i <= '0'; we <= '0'; done <= '0'; active <= '0';
+		when EXT_TRIG => locked_i <= '0'; we <= '0'; done <= '0'; active <= '1';
+		when WRITE    => locked_i <= '1'; we <= '1'; done <= '0'; active <= '1';
+		when FINISHED => locked_i <= '1'; we <= '0'; done <= '1'; active <= '0';
+		when INT_TRIG => locked_i <= '1'; we <= '0' or frame_clk_i; done <= '0'; active <= '1';
     end case;
 end process output_function_process;
 

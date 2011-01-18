@@ -156,11 +156,13 @@ architecture Structural of top is
         signal inbuf_width_i        : std_logic_vector(1 downto 0);
         signal inbuf_arm_i          : std_logic;
 		signal inbuf_rst_i			: std_logic;
+	    signal inbuf_read_req_i     : std_logic;
+	    signal inbuf_read_ack_i     : std_logic;
         signal inbuf_done_i         : std_logic;
 		signal inbuf_locked_i		: std_logic;
         signal inbuf_clk_data_i     : std_logic;
         signal inbuf_addr_data_i    : std_logic_vector(15 downto 0);
-        signal inbuf_web_i          : std_logic;
+        signal inbuf_we_i           : std_logic;
         signal inbuf_data_in_i      : std_logic_vector(15 downto 0);
         signal inbuf_data_out_i     : std_logic_vector(15 downto 0);
 --outbuf
@@ -218,6 +220,7 @@ port map(
         rec_input_select    => inbuf_input_select_i,
 		rec_stream_valid    => inbuf_stream_valid_i,
         rec_clk_out         => inbuf_reciever_clk_i,
+		clk_bus				=> inbuf_clk_data_i,
         inbuf_depth         => inbuf_depth_i,
         inbuf_width         => inbuf_width_i,
         inbuf_arm           => inbuf_arm_i,
@@ -226,9 +229,11 @@ port map(
 		inbuf_locked		=> inbuf_locked_i,
 		inbuf_frame_clk		=> frame_clk,
 		inbuf_rst			=> inbuf_rst_i,
+	    inbuf_read_req      => inbuf_read_req_i,
+	    inbuf_read_ack		=> inbuf_read_ack_i,
         inbuf_clk_data      => inbuf_clk_data_i,
         inbuf_addr_data     => inbuf_addr_data_i,
-        inbuf_web           => inbuf_web_i,
+        inbuf_we            => inbuf_we_i,
         inbuf_data_out      => inbuf_data_out_i,
         inbuf_data_in       => inbuf_data_in_i
 );
@@ -336,6 +341,8 @@ port map(
     inbuf_done                     => inbuf_done_i,
 	inbuf_locked				   => inbuf_locked_i,
 	inbuf_rst					   => inbuf_rst_i,
+	inbuf_read_req				   => inbuf_read_req_i,
+	inbuf_read_ack				   => inbuf_read_ack_i,
     fpga_clk                       => inbuf_reciever_clk_i,
 
     ----- clk domain cpu
@@ -355,7 +362,7 @@ inst_cpumem: entity proc.cpumem
 port map(
     inbuf_clk_data                 => inbuf_clk_data_i,
     inbuf_addr_data                => inbuf_addr_data_i,
-    inbuf_web                      => inbuf_web_i,
+    inbuf_we                       => inbuf_we_i,
     inbuf_data_out                 => inbuf_data_out_i,
     inbuf_data_in                  => inbuf_data_in_i,
 
