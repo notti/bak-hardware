@@ -59,10 +59,6 @@ architecture Structural of status_reg is
 
 --inbuf
         signal inbuf_data_valid_i   : std_logic_vector(2 downto 0);
-		signal inbuf_arm_dly_i      : std_logic;
-		signal inbuf_arm_i	        : std_logic;
-		signal inbuf_rst_dly_i      : std_logic;
-		signal inbuf_rst_i	        : std_logic;
 begin
     intr <= (others=>'0');   --TODO
 
@@ -76,8 +72,8 @@ begin
 --    0  0                    0 6
 --    0  0                    0 7
 --MUX:
---    x  select[0]   SYNC_GTX 0 0
---    x  select[1]   SYNC_GTX 0 1
+--    x  select[0]   ASYNC    0 0
+--    x  select[1]   ASYNC    0 1
 --    r  data_valid  SYNC_PLB 0 2
 --    0  0                    0 3
 --    0  0                    0 4
@@ -93,6 +89,7 @@ begin
 --    r  read_ack             0 5
 --    0  0                    0 6
 --    0  0                    0 7
+--    WI,DEPTH       ASYNC
 --        <   3  ><   2  ><   1  ><   0  >
 --        76543210765432107654321076543210
 --  REG0: 00000vSE00vRXdpe00vRXdpe00vRXdpe   GTX
@@ -102,26 +99,26 @@ begin
     
 -- reciever:
     reciever_gen: for i in 0 to 2 generate
-        sync_enable_i: entity flag
+        sync_enable_i: entity proc.flag
         port map(
             flag_in     => recv_reg(i)(0),
             flag_out    => inbuf_enable(i),
             clk         => fpga_clk
                 );
-        sync_polarity_i: entity flag
+        sync_polarity_i: entity proc.flag
         port map(
             flag_in     => recv_reg(i)(1),
             flag_out    => inbuf_polarity(i),
             clk         => fpga_clk
                 );
-        sync_descramble_i: entity flag
+        sync_descramble_i: entity proc.flag
         port map(
             flag_in     => recv_reg(i)(2),
             flag_out    => inbuf_descramble(i),
             clk         => fpga_clk
                 );
         inbuf_rxeqmix(i) <= recv_reg(i)(4 downto 3);
-        sync_data_valid_i: entity flag
+        sync_data_valid_i: entity proc.flag
         port map(
             flag_in     => inbuf_data_valid(i),
             flag_out    => inbuf_data_valid_i(i),
@@ -144,16 +141,8 @@ begin
     end generate;
 
 -- MUX:
-	sync_select_i: entity value
-	generic map(
-		C_WIDTH => 2
-			   )
-	port map(
-		value_in     => slv_reg0(25 downto 24),
-		value_out    => inbuf_input_select,
-		clk         => fpga_clk
-			);
-	sync_stream_valid_i: entity flag
+    inbuf_input_select <= slv_reg0(25 downto 24);
+	sync_stream_valid_i: entity proc.flag
 	port map(
 		flag_in     => inbuf_stream_valid,
 		flag_out    => slv_reg0(26),
@@ -173,67 +162,31 @@ begin
 		end if;
 	end process mux_write_proc;
 --MEM:
-	sync_depth_i: entity value
-	generic map(
-		C_WIDTH => 16
-			   )
+    inbuf_depth <= slv_reg1(15 downto 0);
+    inbuf_width <= slv_reg1(17 downto 16);
+	sync_arm_i: entity proc.toggle
 	port map(
-		value_in     => slv_reg1(15 downto 0),
-		value_out    => inbuf_depth,
-		clk         => fpga_clk
-			);
-	sync_width_i: entity value
-	generic map(
-		C_WIDTH => 2
-			   )
-	port map(
-		value_in     => slv_reg1(17 downto 16),
-		value_out    => inbuf_width,
-		clk         => fpga_clk
-			);
-	sync_arm_i: entity flag
-	port map(
-		flag_in     => slv_reg1(24),
-		flag_out    => inbuf_arm_i,
-		clk         => fpga_clk
-			);
-	-- generate arm pulse
-	inbuf_arm_dly_p: process(fpga_clk, bus_reset, inbuf_arm_i)
-	begin
-		if fpga_clk'event and fpga_clk = '1' then
-			if bus_reset = '1' then
-				inbuf_arm_dly_i <= '0';
-			else
-				inbuf_arm_dly_i <= inbuf_arm_i;
-			end if;
-		end if;
-	end process inbuf_arm_dly_p;
-	inbuf_arm <= inbuf_arm_i and not inbuf_arm_dly_i;
-	sync_done_i: entity flag
+        rst           => bus_reset,
+		toggle_in     => slv_reg1(24),
+		toggle_out    => inbuf_arm,
+		clk_to        => fpga_clk,
+		clk_from      => bus_clk
+	);
+	sync_done_i: entity proc.flag
 	port map(
 		flag_in     => inbuf_done,
 		flag_out    => slv_reg1(25),
 		clk         => bus_clk
 			);
-	sync_rst_i: entity flag
+	sync_rst_i: entity proc.toggle
 	port map(
-		flag_in     => slv_reg1(26),
-		flag_out    => inbuf_rst_i,
-		clk         => fpga_clk
+        rst           => bus_reset,
+		toggle_in     => slv_reg1(26),
+		toggle_out    => inbuf_rst,
+        clk_from      => bus_clk,
+		clk_to        => fpga_clk
 			);
-	-- generate rst pulse
-	inbuf_rst_dly_p: process(fpga_clk, bus_reset, inbuf_rst_i)
-	begin
-		if fpga_clk'event and fpga_clk = '1' then
-			if bus_reset = '1' then
-				inbuf_rst_dly_i <= '0';
-			else
-				inbuf_rst_dly_i <= inbuf_rst_i;
-			end if;
-		end if;
-	end process inbuf_rst_dly_p;
-	inbuf_rst <= inbuf_rst_i and not inbuf_rst_dly_i;
-	sync_locked_i: entity flag
+	sync_locked_i: entity proc.flag
 	port map(
 		flag_in     => inbuf_locked,
 		flag_out    => slv_reg1(27),

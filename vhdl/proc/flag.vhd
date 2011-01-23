@@ -11,6 +11,8 @@ library IEEE;
         use IEEE.STD_LOGIC_1164.ALL;
         use IEEE.NUMERIC_STD.ALL;
 
+library proc;
+
 entity flag is
 port(
     flag_in  : in std_logic;

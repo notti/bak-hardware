@@ -33,6 +33,7 @@ port(
     read_req     : in std_logic;
     read_ack     : out std_logic;
     clk_bus      : in std_logic;
+    rst_arb      : in std_logic;
 
     clk_data     : in std_logic;
 	we           : in std_logic;
@@ -65,14 +66,22 @@ END component;
     signal doutb_i  : std_logic_vector(18 downto 0);
     signal wea_i    : std_logic_vector(0 downto 0);
     signal add_i    : std_logic;
-    signal start_i  : std_logic;
     signal active_i : std_logic;
     signal addra_i  : std_logic_vector(15 downto 0);
+    signal addra    : std_logic_vector(15 downto 0);
     signal addrb_i  : std_logic_vector(15 downto 0);
     signal clka     : std_logic;
     signal read_ack_i : std_logic;
     signal we_i     : std_logic;
     signal arm_i    : std_logic;
+    component average_test
+  port (
+    CLK : in STD_LOGIC := 'X'; 
+    CONTROL : inout STD_LOGIC_VECTOR ( 35 downto 0 ); 
+    TRIG0 : in STD_LOGIC_VECTOR ( 8 downto 0 ) 
+  );
+    end component;
+    signal TRIG0 : STD_LOGIC_VECTOR ( 8 downto 0 ) ;
 
 begin
 
@@ -87,7 +96,7 @@ begin
     inbuf_arb: entity inbuf.inbuf_arb
     port map(
         clk         => clk_bus,
-        rst         => rst,
+        rst         => rst_arb,
 
         read_req    => read_req,
         read_ack    => read_ack_i,
@@ -121,7 +130,7 @@ begin
     davg_i <= SXT(data,19) + doutb_i when add_i = '1' else
               SXT(data,19);
 
-    multiplexer_out: process(doutb_i, width)
+    multiplexer_out: process(doutb_i, width, douta_i)
     begin
         case width is
             when "01"   => dout <= douta_i(16 downto 1);
@@ -143,12 +152,14 @@ begin
 
     dina_i <= davg_i when read_ack_i = '0' else
               din_i;
+    addra <= addra_i when read_ack_i = '0' else
+             addr;
 
 inbuf_mem_i: inbuf_mem
 port map(
 	clka  => clka,
 	dina  => dina_i,
-	addra => addra_i,
+	addra => addra,
 	wea   => wea_i,
 	douta => douta_i,
 	clkb  => clk,

@@ -93,6 +93,7 @@ port map(
 datamux_i: entity inbuf.datamux
 port map(
         clk                 => clk_i,
+        rst                 => inbuf_rst,
         data_in             => rec_data_i,
         data_valid_in       => rec_data_valid_i,
         data_out            => data_i,
@@ -114,6 +115,7 @@ port map(
         data                    => data_i,
         stream_valid            => stream_valid_i,
         clk_bus                 => clk_bus,
+        rst_arb                 => inbuf_rst,
         read_req                => inbuf_read_req,
         read_ack                => inbuf_read_ack,
         clk_data                => inbuf_clk_data,
