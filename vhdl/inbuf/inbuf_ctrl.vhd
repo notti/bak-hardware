@@ -55,9 +55,9 @@ architecture Structural of inbuf_ctrl is
 		signal width_max	 : std_logic_vector(3 downto 0);
         signal addrb_cnt     : std_logic_vector(15 downto 0);
 begin
-	width_max <= "0111" when width = "11" else
-				 "0011" when width = "10" else
-				 "0001" when width = "01" else
+	width_max <= "0111" when width_r = "11" else
+				 "0011" when width_r = "10" else
+				 "0001" when width_r = "01" else
 				 "0000";
 
 	rst_i     <= rst and not stream_valid;
@@ -83,7 +83,7 @@ begin
 	end if;
 end process reg_process;
 
-next_state_process: process(clk, state, arm, trigger, frame_clk_i)
+next_state_process: process(clk, state, arm, trigger, frame_clk_i, frame_clk_cnt, depth_r, width_cnt, width_max)
 begin
 	next_state <= state;
 	case state is
