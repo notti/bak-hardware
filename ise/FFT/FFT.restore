@@ -982,7 +982,7 @@ proc restore { { project_dir "" } } {
       "A" "" "" "" "PROP_OverwriteSym" "false" 
       "A" "" "" "" "PROP_Parse_Edif_Module" "false" 
       "A" "" "" "" "PROP_Parse_Target" "synthesis" 
-      "A" "" "" "" "PROP_PartitionCreateDelete" "Mon Jul  6 00:38:26 2009
+      "A" "" "" "" "PROP_PartitionCreateDelete" "Mon Jan 24 16:38:14 2011
 " 
       "A" "" "" "" "PROP_PartitionForcePlacement" "" 
       "A" "" "" "" "PROP_PartitionForceSynth" "" 
