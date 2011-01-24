@@ -78,9 +78,10 @@ begin
         end if;
     end process mem_low_word_p;
 
-	inbuf_addr_data <= mem_address when mem_select = "100" and (mem_read_cycle = "001" or mem_write_cycle = "00001" or mem_write_cycle = "11111") else
-                       mem_address + 1 when mem_select = "100" and (mem_read_cycle = "011" or mem_write_cycle = "00011" or mem_write_cycle = "01111") else
-					   (others => '0');
+    inbuf_addr_data(15 downto 1) <= mem_address(14 downto 0) when mem_select = "100" else
+                                    (others => '0');
+	inbuf_addr_data(0) <= '1' when mem_select = "100" and (mem_read_cycle = "011" or mem_write_cycle = "00011" or mem_write_cycle = "01111") else
+					      '0';
 
 	mem_ip2bus_data <= (inbuf_data_out & mem_low_word_r) when mem_select = "100" and mem_read_cycle = "111" else
 					   (others => '0');
