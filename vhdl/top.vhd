@@ -166,9 +166,6 @@ architecture Structural of top is
         signal inbuf_data_in_i      : std_logic_vector(15 downto 0);
         signal inbuf_data_out_i     : std_logic_vector(15 downto 0);
 --outbuf
-        signal outbuf_tx            : std_logic_vector(7 downto 0);
-        signal outbuf_txclk         : std_logic;
-        signal outbuf_clk_i         : std_logic;
 --processor 
 		signal proc2fpga_0_mem_ip2bus_data_pin : std_logic_vector(31 downto 0);
 		signal proc2fpga_0_mem_write_ack_pin   : std_logic;
@@ -194,13 +191,6 @@ port map
         O                   => inbuf_refclk_i,
         I                   => gtx_refclk_p,
         IB                  => gtx_refclk_n
-);
-
-inbuf_refclk_bufg_i: BUFG
-port map
-(
-        I                   => inbuf_refclk_i,
-        O                   => outbuf_clk_i
 );
 
 
@@ -240,32 +230,12 @@ port map(
 
 outbuf_i: entity outbuf.outbuf
 port map(
-        clk                 => outbuf_clk_i,
+        clk                 => inbuf_reciever_clk_i,
         rst                 => proc2fpga_0_Bus_Reset_pin,
-        tx                  => outbuf_tx,
-        txclk               => outbuf_txclk,
-        bal                 => '0',
-        ds_opt              => '0'
-);
-
-oserdes_tx_gen: for i in 0 to 7 generate
-    oserdes_tx_obufds_i: OBUFDS
-    generic map (
-            IOSTANDARD  => "DEFAULT")
-    port map(
-            O           => oserdes_txp(i),
-            OB          => oserdes_txn(i),
-            I           => outbuf_tx(i)
-    );
-end generate;
-
-oserdes_txclk_obufds_i: OBUFDS
-generic map (
-        IOSTANDARD  => "DEFAULT")
-port map (
-        O           => oserdes_txclkp,
-        OB          => oserdes_txclkn,
-        I           => outbuf_txclk
+        tx                  => oserdes_txn,
+        tx                  => oserdes_txp,
+        txclkn              => oserdes_txclkn,
+        txclkp              => oserdes_txclkp,
 );
 
 Inst_system: system PORT MAP(

@@ -1,8 +1,6 @@
-xilinx: unisim-obj93.cf xilinxcorelib-obj93.cf
-unisim-obj93.cf:
+xilinx: unisim-obj93.cf
+unisim-obj93.cf: unisims/*vhd
 	ghdl -i --work=unisim /opt/Xilinx/10.1/ISE/vhdl/src/unisims/*vhd
-xilinxcorelib-obj93.cf:
-	ghdl -i --work=XilinxCoreLib /opt/Xilinx/10.1/ISE/vhdl/src/XilinxCoreLib/*vhd
 clean:
 	ghdl --clean
 	rm -rf *cf
@@ -19,5 +17,10 @@ tb_toggle: xilinx
 	ghdl -c --ieee=synopsys -fexplicit --work=proc ../vhdl/proc/flag.vhd ../vhdl/proc/toggle.vhd tb_toggle.vhd -e tb_toggle
 tb_toggle.vcd: tb_toggle
 	./tb_toggle --vcd=tb_toggle.vcd --stop-time=10000ns
+tb_transmitter: xilinx
+	ghdl -c --ieee=synopsys -fexplicit --work=outbuf ../vhdl/outbuf/transmitter/balance.vhd ../vhdl/outbuf/transmitter/transmitter.vhd tb_transmitter.vhd -e tb_transmitter
+tb_transmitter.vcd: tb_transmitter
+	./tb_transmitter --vcd=tb_transmitter.vcd --stop-time=10000ns
+
 
 .PHONY: clean

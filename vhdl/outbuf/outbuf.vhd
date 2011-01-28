@@ -26,12 +26,10 @@ port(
         rst                 : in  std_logic;
 
 -- signals for selectio oserdes transmitter
-        tx                  : out std_logic_vector(7 downto 0);
-        txclk               : out std_logic;
-
--- control signals
-        bal                 : in std_logic;
-        ds_opt              : in std_logic
+        txn                 : out std_ulogic_vector(7 downto 0);
+        txp                 : out std_ulogic_vector(7 downto 0);
+        txclkn              : out std_ulogic;
+        txclkp              : out std_ulogic;
 );
 end outbuf;
 
@@ -42,10 +40,13 @@ transmitter_i: entity outbuf.transmitter
 port map(
         clk                 => clk,
         rst                 => rst,
-        tx                  => tx,
-        txclk               => txclk,
-        bal                 => bal,
-        ds_opt              => ds_opt
+		e1                  => (others => '0'),
+		e2					=> (others => '0'),
+        txn                 => txn,
+        txp                 => txp,
+        txclkn              => txclkn,
+        txclkp              => txclkp,
+        deskew              => '0'
 );
 
 end Structural;
