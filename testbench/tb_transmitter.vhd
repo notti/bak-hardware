@@ -21,7 +21,8 @@ architecture behav of tb_transmitter is
     signal deskew  : std_logic := '0';
     signal txn: std_ulogic_vector(7 downto 0);
     signal txp: std_ulogic_vector(7 downto 0);
-    signal txclk : std_ulogic;
+    signal txclkn : std_ulogic;
+    signal txclkp : std_ulogic;
 begin
     
     clk_p: process
@@ -39,7 +40,8 @@ begin
     begin
         wait for 100 ns;
         rst <= '0';
-
+        wait for 41500 ns;
+        deskew <= '1', '0' after 20 ns;
         wait;
     end process;
     
@@ -52,7 +54,8 @@ begin
     deskew => deskew,
     txn => txn,
     txp => txp,
-    txclk => txclk
+    txclkn => txclkn,
+    txclkp => txclkp
     );
 
 end behav;

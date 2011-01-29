@@ -47,6 +47,9 @@ library UNISIM;
 library outbuf;
     use outbuf.all;
 
+library misc;
+    use misc.procedures.all;
+
 entity transmitter is
 port(
         clk                 : in  std_logic;
@@ -65,7 +68,9 @@ end transmitter;
 
 architecture Structural of transmitter is
         type ubal_arr is array(7 downto 0) of std_logic_vector(5 downto 0);
+        type deskew_states is (RESET, OUT_DESKEW, OUT_DATA, DESKEW_SYNC);
 
+        signal txclk            : std_ulogic;
         signal locked_i         : std_logic;
         signal nlocked_i        : std_logic;
         signal reset_i          : std_logic;
@@ -83,6 +88,11 @@ architecture Structural of transmitter is
         signal out_en           : std_logic;
         signal nout_en          : std_logic;
         signal outdata_unbalanced : ubal_arr;
+        signal deskew_cnt       : std_logic_vector(11 downto 0);
+        signal deskew_out       : std_logic;
+        signal deskew_state     : deskew_states;
+        signal frame_sync       : std_logic;
+        signal ckf_dly          : std_logic;
         
         function reverse(a: in std_logic_vector) return std_logic_vector is
             variable result: std_logic_vector(a'length - 1 downto 0);
@@ -109,6 +119,15 @@ begin
             frame_scan <= '1';
         end if;
     end process;
+    frame_sync_p: process(clk, ckf, rst)
+    begin
+        if rst = '1' then
+            ckf_dly <= '0';
+        elsif clk'event and clk = '1' then
+            ckf_dly <= ckf;
+        end if;
+    end process;
+    frame_sync <= ckf and not ckf_dly;
     buf_cycle_p: process(clk, in_start)
     begin
         if in_start = '0' then
@@ -141,6 +160,40 @@ begin
             out_en <= out_run;
         end if;
     end process;
+    deskew_p: process(clk, frame_scan, deskew_cnt, deskew, deskew_state, in_start)
+    begin
+        if rst = '1' then
+            deskew_state <= RESET;
+            deskew_cnt <= (others => '0');
+        elsif clk'event and clk = '1' then
+            case deskew_state is
+                when RESET =>
+                    if in_start = '1' then
+                        deskew_state <= OUT_DESKEW;
+                    end if;
+                    deskew_cnt <= (others => '0');
+                    deskew_out <= '0';
+                when OUT_DESKEW =>
+                    if and_many(deskew_cnt) = '1' then
+                        deskew_state <= OUT_DATA;
+                    end if;
+                    deskew_cnt <= deskew_cnt + 1;
+                    deskew_out <= '1';
+                when OUT_DATA =>
+                    if deskew = '1' then
+                        deskew_state <= DESKEW_SYNC;
+                    end if;
+                    deskew_cnt <= (others => '0');
+                    deskew_out <= '0';
+                when DESKEW_SYNC =>
+                    if frame_sync = '1' then
+                        deskew_state <= OUT_DESKEW;
+                    end if;
+                    deskew_cnt <= (others => '0');
+                    deskew_out <= '0';
+            end case;
+        end if;
+    end process;
 
     outdata_unbalanced(0) <= reverse(e2( 5 downto  0));
     outdata_unbalanced(1) <= reverse(e2(13 downto  8));
@@ -157,21 +210,35 @@ begin
         signal outdata_long     : data_arr;
         signal outdata_short    : std_logic_vector(3 downto 0);
         signal outdata_balanced : std_logic_vector(6 downto 0);
+        signal outdata_final    : std_logic_vector(6 downto 0);
+        signal out0             : std_logic_vector(6 downto 0);
+        signal out1             : std_logic_vector(6 downto 0);
+        signal out2             : std_logic_vector(6 downto 0);
+        signal out3             : std_logic_vector(6 downto 0);
         signal tx               : std_ulogic;
         signal tq               : std_ulogic;
+        signal en_balance       : std_logic;
     begin
+        out0 <= outdata_long(0);
+        out1 <= outdata_long(1);
+        out2 <= outdata_long(2);
+        out3 <= outdata_long(3);
+        en_balance <= frame_scan and not deskew_out;
         balance_i: entity outbuf.balance
         port map(
             clk => clk,
             rst => rst,
-            en => frame_scan,
+            en => en_balance,
             unbalanced => outdata_unbalanced(i),
             balanced => outdata_balanced
         );
+        outdata_final <= "1111000" when deskew_out = '1' and buf_cycle(0) = '1' else
+                         "1110000" when deskew_out = '1' and buf_cycle(0) = '0' else
+                         outdata_balanced;
         long_buf_p: process(clk, buf_cycle, frame_scan, outdata_balanced)
         begin
             if clk'event and clk = '1' and frame_scan = '1' then
-                outdata_long(conv_integer(buf_cycle)) <= outdata_balanced;
+                outdata_long(conv_integer(buf_cycle)) <= outdata_final;
             end if;
         end process long_buf_p;
 
@@ -317,6 +384,9 @@ port map(
       T4                => '0',   -- 1-bit parallel 3-state input
       TCE               => '0'  -- 1-bit 3-state signal clock enable input
 );
+        --outdata_final <= "1111100" when deskew_out = '1' and buf_cycle(0) = '1' else
+        --                 "1100000" when deskew_out = '1' and buf_cycle(0) = '0' else
+        --                 outdata_balanced;
 
 outclk_short_i <= "1100";
 
