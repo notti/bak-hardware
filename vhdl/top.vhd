@@ -36,10 +36,10 @@ port(
 		inbuf_trigger			: in std_logic;
 		frame_clk				: out std_logic;
 -- signals for oserdes transmitter
-        oserdes_txn             : out std_logic_vector(7 downto 0);
-        oserdes_txp             : out std_logic_vector(7 downto 0);
-        oserdes_txclkn          : out std_logic;
-        oserdes_txclkp          : out std_logic;
+        oserdes_txn             : out std_ulogic_vector(7 downto 0);
+        oserdes_txp             : out std_ulogic_vector(7 downto 0);
+        oserdes_txclkn          : out std_ulogic;
+        oserdes_txclkp          : out std_ulogic;
 -- signals for processor
         fpga_0_Hard_Ethernet_MAC_PHY_MII_INT        : IN std_logic;
         fpga_0_RS232_Uart_1_sin_pin                 : IN std_logic;
@@ -232,10 +232,10 @@ outbuf_i: entity outbuf.outbuf
 port map(
         clk                 => inbuf_reciever_clk_i,
         rst                 => proc2fpga_0_Bus_Reset_pin,
-        tx                  => oserdes_txn,
-        tx                  => oserdes_txp,
+        txn                 => oserdes_txn,
+        txp                 => oserdes_txp,
         txclkn              => oserdes_txclkn,
-        txclkp              => oserdes_txclkp,
+        txclkp              => oserdes_txclkp
 );
 
 Inst_system: system PORT MAP(
