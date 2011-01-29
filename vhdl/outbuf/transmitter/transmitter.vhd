@@ -67,6 +67,7 @@ port(
 end transmitter;
 
 architecture Structural of transmitter is
+        type data_arr is array (3 downto 0) of std_logic_vector(6 downto 0);
         type ubal_arr is array(7 downto 0) of std_logic_vector(5 downto 0);
         type deskew_states is (RESET, OUT_DESKEW, OUT_DATA, DESKEW_SYNC);
 
@@ -93,6 +94,7 @@ architecture Structural of transmitter is
         signal deskew_state     : deskew_states;
         signal frame_sync       : std_logic;
         signal ckf_dly          : std_logic;
+        signal en_balance       : std_logic;
         
         function reverse(a: in std_logic_vector) return std_logic_vector is
             variable result: std_logic_vector(a'length - 1 downto 0);
@@ -204,26 +206,16 @@ begin
     outdata_unbalanced(6) <= reverse(e1(21 downto 16));
     outdata_unbalanced(7) <= reverse(e1(23 downto 22) & e1(15 downto 14) & e1(7 downto 6));
     nout_en <= not out_en;
+    en_balance <= frame_scan and not deskew_out;
 
     outputs_generate: for i in 0 to 7 generate
-        type data_arr is array (3 downto 0) of std_logic_vector(6 downto 0);
         signal outdata_long     : data_arr;
         signal outdata_short    : std_logic_vector(3 downto 0);
         signal outdata_balanced : std_logic_vector(6 downto 0);
         signal outdata_final    : std_logic_vector(6 downto 0);
-        signal out0             : std_logic_vector(6 downto 0);
-        signal out1             : std_logic_vector(6 downto 0);
-        signal out2             : std_logic_vector(6 downto 0);
-        signal out3             : std_logic_vector(6 downto 0);
         signal tx               : std_ulogic;
         signal tq               : std_ulogic;
-        signal en_balance       : std_logic;
     begin
-        out0 <= outdata_long(0);
-        out1 <= outdata_long(1);
-        out2 <= outdata_long(2);
-        out3 <= outdata_long(3);
-        en_balance <= frame_scan and not deskew_out;
         balance_i: entity outbuf.balance
         port map(
             clk => clk,
@@ -235,7 +227,7 @@ begin
         outdata_final <= "1111000" when deskew_out = '1' and buf_cycle(0) = '1' else
                          "1110000" when deskew_out = '1' and buf_cycle(0) = '0' else
                          outdata_balanced;
-        long_buf_p: process(clk, buf_cycle, frame_scan, outdata_balanced)
+        long_buf_p: process(clk, buf_cycle, frame_scan, outdata_final)
         begin
             if clk'event and clk = '1' and frame_scan = '1' then
                 outdata_long(conv_integer(buf_cycle)) <= outdata_final;
@@ -344,52 +336,89 @@ begin
 
     nlocked_i <= not locked_i;
 
+    clk_generate: if 1 = 1 generate
+        signal outdata_long     : data_arr;
+        signal outdata_short    : std_logic_vector(3 downto 0);
+        signal outdata_final    : std_logic_vector(6 downto 0);
+        signal tx               : std_ulogic;
+        signal tq               : std_ulogic;
+    begin
+        outdata_final <= "1111100" when deskew_out = '1' and buf_cycle(0) = '1' else
+                         "1100000" when deskew_out = '1' and buf_cycle(0) = '0' else
+                         "1100011" when deskew_out = '0' and buf_cycle(0) = '1' else
+                         "1000011";
+        long_buf_p: process(clk, buf_cycle, frame_scan, outdata_final)
+        begin
+            if clk'event and clk = '1' and frame_scan = '1' then
+                outdata_long(conv_integer(buf_cycle)) <= outdata_final;
+            end if;
+        end process long_buf_p;
 
-txclk_oserdes_inst_i : OSERDES
-generic map(
-      DATA_RATE_OQ      => "DDR", -- Specify data rate to "DDR" or "SDR" 
-      DATA_RATE_TQ      => "BUF", -- Specify data rate to "DDR", "SDR", or "BUF" 
-      DATA_WIDTH        => 4, -- Specify data width - For DDR: 4,6,8, or 10 
-                       -- For SDR or BUF: 2,3,4,5,6,7, or 8 
-      INIT_OQ           => '0',  -- INIT for Q1 register - '1' or '0' 
-      INIT_TQ           => '0',  -- INIT for Q2 register - '1' or '0' 
-      SERDES_MODE       => "MASTER", --Set SERDES mode to "MASTER" or "SLAVE" 
-      SRVAL_OQ          => '0', -- Define Q1 output value upon SR assertion - '1' or '0' 
-      SRVAL_TQ          => '0', -- Define Q1 output value upon SR assertion - '1' or '0' 
-      TRISTATE_WIDTH    => 1
-) -- Specify parallel to serial converter width 
-                           -- When DATA_RATE_TQ = DDR: 2 or 4 
-                           -- When DATA_RATE_TQ = SDR or BUF: 1 " 
-port map(
-      OQ                => txclk,    -- 1-bit output
-      SHIFTOUT1         => open, -- 1-bit data expansion output
-      SHIFTOUT2         => open, -- 1-bit data expansion output
-      TQ                => open,    -- 1-bit 3-state control output
-      CLK               => ckh,  -- 1-bit clock input
-      CLKDIV            => ckm,  -- 1-bit divided clock input
-      D1                => outclk_short_i(0),    -- 1-bit parallel data input
-      D2                => outclk_short_i(1),    -- 1-bit parallel data input
-      D3                => outclk_short_i(2),    -- 1-bit parallel data input
-      D4                => outclk_short_i(3),    -- 1-bit parallel data input
-      D5                => '0',    -- 1-bit parallel data input
-      D6                => '0',    -- 1-bit parallel data input
-      OCE               => '1',  -- 1-bit clcok enable input
-      REV               => '0',  -- Must be tied to logic zero
-      SHIFTIN1          => '0', -- 1-bit data expansion input
-      SHIFTIN2          => '0', -- 1-bit data expansion input
-      SR                => nlocked_i,   -- 1-bit set/reset input
-      T1                => '0',   -- 1-bit parallel 3-state input
-      T2                => '0',   -- 1-bit parallel 3-state input
-      T3                => '0',   -- 1-bit parallel 3-state input
-      T4                => '0',   -- 1-bit parallel 3-state input
-      TCE               => '0'  -- 1-bit 3-state signal clock enable input
-);
-        --outdata_final <= "1111100" when deskew_out = '1' and buf_cycle(0) = '1' else
-        --                 "1100000" when deskew_out = '1' and buf_cycle(0) = '0' else
-        --                 outdata_balanced;
+        outdata_short_p: process(ckm, out_run, out_cycle, outdata_long)
+        begin
+            if out_run = '0' then
+                outdata_short <= (others => '0');
+            elsif ckm'event and ckm = '1' then
+                case out_cycle is
+                    when "000" => outdata_short <= outdata_long(0)(6 downto 3);
+                    when "001" => outdata_short <= outdata_long(0)(2 downto 0) & outdata_long(1)(6 downto 6);
+                    when "010" => outdata_short <= outdata_long(1)(5 downto 2);
+                    when "011" => outdata_short <= outdata_long(1)(1 downto 0) & outdata_long(2)(6 downto 5);
+                    when "100" => outdata_short <= outdata_long(2)(4 downto 1);
+                    when "101" => outdata_short <= outdata_long(2)(0 downto 0) & outdata_long(3)(6 downto 4);
+                    when "110" => outdata_short <= outdata_long(3)(3 downto 0);
+                    when others => null;
+                end case;
+            end if;
+        end process outdata_short_p;
 
-outclk_short_i <= "1100";
-
+        tx_oserdes_inst_i : OSERDES
+        generic map(
+              DATA_RATE_OQ      => "DDR",
+              DATA_RATE_TQ      => "DDR",
+              DATA_WIDTH        => 4,
+              INIT_OQ           => '0',
+              INIT_TQ           => '1',
+              SERDES_MODE       => "MASTER",
+              SRVAL_OQ          => '0',
+              SRVAL_TQ          => '1',
+              TRISTATE_WIDTH    => 4
+        ) 
+        port map(
+              OQ                => tx,
+              SHIFTOUT1         => open,
+              SHIFTOUT2         => open,
+              TQ                => tq,
+              CLK               => ckh,
+              CLKDIV            => ckm,
+              D1                => outdata_short(3),
+              D2                => outdata_short(2),
+              D3                => outdata_short(1),
+              D4                => outdata_short(0),
+              D5                => '0',
+              D6                => '0',
+              OCE               => out_en,
+              REV               => '0',
+              SHIFTIN1          => '0',
+              SHIFTIN2          => '0',
+              SR                => nlocked_i,
+              T1                => nout_en,
+              T2                => nout_en,
+              T3                => nout_en,
+              T4                => nout_en,
+              TCE               => out_en
+        );
+        tx_pin_i: OBUFTDS
+        generic map(
+            IOSTANDARD => "LVDS_25"
+        )
+        port map(
+            I  => tx,
+            T  => tq,
+            O  => txclkp,
+            OB => txclkn
+        );
+    end generate;
 
 end Structural;
 
