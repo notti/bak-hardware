@@ -32,7 +32,8 @@ architecture Structural of flag is
     attribute TIG of flag_in        : signal is "TRUE";
     attribute ASYNC_REG of sreg     : signal is "TRUE";
     attribute SHIFT_EXTRACT of sreg : signal is "NO";
-    attribute HBLKNM of sreg        : signal is "sync_reg";
+    attribute HBLKNM of sreg(0)        : signal is "sync_reg";
+    attribute HBLKNM of sreg(1)        : signal is "sync_reg";
 begin
 
     sync: process(clk)

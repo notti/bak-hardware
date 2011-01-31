@@ -38,7 +38,7 @@ architecture Structural of toggle is
     signal toggle_out_r : std_logic;
     signal toggle_in_r : std_logic;
 begin
-    toggle_in_r_p: process(clk_from, toggle_in)
+    toggle_in_r_p: process(clk_from, rst, toggle_in)
     begin
         if rst = '1' then
             toggle_in_r <= '0';
@@ -46,7 +46,7 @@ begin
             toggle_in_r <= toggle_in;
         end if;
     end process toggle_in_r_p;
-    state_in_p: process(clk_from, toggle_in, toggle_in_r, ack_crossed)
+    state_in_p: process(clk_from, rst, toggle_in, toggle_in_r, ack_crossed)
     begin
         if rst = '1' then
             state_in_r <= LOWIN;
@@ -83,7 +83,7 @@ begin
     );
     
 
-    state_out_p: process(clk_to, doit_crossed)
+    state_out_p: process(clk_to, rst, doit_crossed)
     begin
         if rst = '1' then
             state_out_r <= LOWOUT;
@@ -104,7 +104,7 @@ begin
             end case;
         end if;
     end process state_out_p;
-    toggle_out_r_p: process(clk_to, toggle_out_i)
+    toggle_out_r_p: process(clk_to, rst, toggle_out_i)
     begin
         if rst = '1' then
             toggle_out_r <= '0';

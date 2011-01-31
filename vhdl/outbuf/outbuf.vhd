@@ -30,7 +30,9 @@ port(
         txn                 : out std_ulogic_vector(7 downto 0);
         txp                 : out std_ulogic_vector(7 downto 0);
         txclkn              : out std_ulogic;
-        txclkp              : out std_ulogic
+        txclkp              : out std_ulogic;
+
+        deskew              : in std_logic
 );
 end outbuf;
 
@@ -59,7 +61,7 @@ port map(
         txp                 => txp,
         txclkn              => txclkn,
         txclkp              => txclkp,
-        deskew              => '0'
+        deskew              => deskew
 );
 
 end Structural;
