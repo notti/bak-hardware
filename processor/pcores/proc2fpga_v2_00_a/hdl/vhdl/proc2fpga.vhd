@@ -33,9 +33,9 @@
 --
 ------------------------------------------------------------------------------
 -- Filename:          proc2fpga.vhd
--- Version:           1.00.a
+-- Version:           2.00.a
 -- Description:       Top level design, instantiates library components and user logic.
--- Date:              Sun Mar 28 16:45:41 2010 (by Create and Import Peripheral Wizard)
+-- Date:              Mon Jan 31 15:17:30 2011 (by Create and Import Peripheral Wizard)
 -- VHDL Standard:     VHDL'93
 ------------------------------------------------------------------------------
 -- Naming Conventions:
@@ -73,8 +73,8 @@ use interrupt_control_v2_00_a.interrupt_control;
 library plbv46_slave_single_v1_00_a;
 use plbv46_slave_single_v1_00_a.plbv46_slave_single;
 
-library proc2fpga_v1_00_a;
-use proc2fpga_v1_00_a.user_logic;
+library proc2fpga_v2_00_a;
+use proc2fpga_v2_00_a.user_logic;
 
 ------------------------------------------------------------------------------
 -- Entity section
@@ -175,31 +175,29 @@ entity proc2fpga is
     C_MEM1_BASEADDR                : std_logic_vector     := X"FFFFFFFF";
     C_MEM1_HIGHADDR                : std_logic_vector     := X"00000000";
     C_MEM2_BASEADDR                : std_logic_vector     := X"FFFFFFFF";
-    C_MEM2_HIGHADDR                : std_logic_vector     := X"00000000"
+    C_MEM2_HIGHADDR                : std_logic_vector     := X"00000000";
+    C_MEM3_BASEADDR                : std_logic_vector     := X"FFFFFFFF";
+    C_MEM3_HIGHADDR                : std_logic_vector     := X"00000000"
     -- DO NOT EDIT ABOVE THIS LINE ---------------------
   );
   port
   (
     -- ADD USER PORTS BELOW THIS LINE ------------------
-    bus_clk                        : out std_logic;
-    bus_reset                      : out std_logic;
-    bus_be                         : out std_logic_vector(3 downto 0);
-    bus_error                      : in  std_logic;
-
-    reg_wr                         : out std_logic_vector(7 downto 0);
-    reg_rd                         : out std_logic_vector(7 downto 0);
-    reg_ip2bus_data                : in  std_logic_vector(31 downto 0);
-    reg_bus2ip_data                : out std_logic_vector(31 downto 0);
-
-    intr                           : in  std_logic_vector(31 downto 0);
-
-    mem_select                     : out std_logic_vector(2 downto 0);
-    mem_read_enable                : out std_logic;
-    mem_read_ack                   : in  std_logic;
-    mem_write_ack                  : in  std_logic;
-    mem_address                    : out std_logic_vector(15 downto 0);
-    mem_ip2bus_data                : in  std_logic_vector(31 downto 0);
-    mem_bus2ip_data                : out std_logic_vector(31 downto 0);
+    bus2fpga_clk                        : out std_logic;
+    bus2fpga_reset                      : out std_logic;
+    bus2fpga_addr                       : out std_logic_vector(31 downto 0);
+    bus2fpga_cs                         : out std_logic_vector(3 downto 0);
+    bus2fpga_rnw                        : out std_logic;
+    bus2fpga_data                       : out std_logic_vector(31 downto 0);
+    bus2fpga_be                         : out std_logic_vector(3 downto 0);
+    bus2fpga_rdce                       : out std_logic_vector(3 downto 0);
+    bus2fpga_wrce                       : out std_logic_vector(3 downto 0);
+    fpga2bus_data                       : in  std_logic_vector(31 downto 0);
+    fpga2bus_rdack                      : in  std_logic;
+    fpga2bus_wrack                      : in  std_logic;
+    fpga2bus_error                      : in  std_logic;
+    fpga2bus_intr                       : in  std_logic_vector(31 downto 0);
+   
     -- ADD USER PORTS ABOVE THIS LINE ------------------
 
     -- DO NOT EDIT BELOW THIS LINE ---------------------
@@ -287,17 +285,19 @@ architecture IMP of proc2fpga is
       ZERO_ADDR_PAD & C_MEM1_BASEADDR,    -- user logic memory space 1 base address
       ZERO_ADDR_PAD & C_MEM1_HIGHADDR,    -- user logic memory space 1 high address
       ZERO_ADDR_PAD & C_MEM2_BASEADDR,    -- user logic memory space 2 base address
-      ZERO_ADDR_PAD & C_MEM2_HIGHADDR     -- user logic memory space 2 high address
+      ZERO_ADDR_PAD & C_MEM2_HIGHADDR,    -- user logic memory space 2 high address
+      ZERO_ADDR_PAD & C_MEM3_BASEADDR,    -- user logic memory space 3 base address
+      ZERO_ADDR_PAD & C_MEM3_HIGHADDR     -- user logic memory space 3 high address
     );
 
   ------------------------------------------
   -- Array of desired number of chip enables for each address range
   ------------------------------------------
-  constant USER_SLV_NUM_REG               : integer              := 8;
+  constant USER_SLV_NUM_REG               : integer              := 4;
   constant USER_NUM_REG                   : integer              := USER_SLV_NUM_REG;
   constant RST_NUM_CE                     : integer              := 1;
   constant INTR_NUM_CE                    : integer              := 16;
-  constant USER_NUM_MEM                   : integer              := 3;
+  constant USER_NUM_MEM                   : integer              := 4;
 
   constant IPIF_ARD_NUM_CE_ARRAY          : INTEGER_ARRAY_TYPE   := 
     (
@@ -306,7 +306,8 @@ architecture IMP of proc2fpga is
       2  => INTR_NUM_CE,                  -- number of ce for interrupt control space
       3  => 1,                            -- number of ce for user logic memory space 0 (always 1 chip enable)
       4  => 1,                            -- number of ce for user logic memory space 1 (always 1 chip enable)
-      5  => 1                             -- number of ce for user logic memory space 2 (always 1 chip enable)
+      5  => 1,                            -- number of ce for user logic memory space 2 (always 1 chip enable)
+      6  => 1                             -- number of ce for user logic memory space 3 (always 1 chip enable)
     );
 
   ------------------------------------------
@@ -386,14 +387,14 @@ architecture IMP of proc2fpga is
   -- true  = include priority encoder
   -- false = omit priority encoder
   ------------------------------------------
-  constant INTR_INCLUDE_DEV_PENCODER      : boolean              := false;
+  constant INTR_INCLUDE_DEV_PENCODER      : boolean              := true;
 
   ------------------------------------------
   -- Device ISC feature inclusion/omission
   -- true  = include device ISC
   -- false = omit device ISC
   ------------------------------------------
-  constant INTR_INCLUDE_DEV_ISC           : boolean              := false;
+  constant INTR_INCLUDE_DEV_ISC           : boolean              := true;
 
   ------------------------------------------
   -- Width of the slave address bus (32 only)
@@ -592,7 +593,7 @@ begin
   ------------------------------------------
   -- instantiate User Logic
   ------------------------------------------
-  USER_LOGIC_I : entity proc2fpga_v1_00_a.user_logic
+  USER_LOGIC_I : entity proc2fpga_v2_00_a.user_logic
     generic map
     (
       -- MAP USER GENERICS BELOW THIS LINE ---------------
@@ -608,25 +609,21 @@ begin
     port map
     (
       -- MAP USER PORTS BELOW THIS LINE ------------------
-      bus_clk                        => bus_clk,
-      bus_reset                      => bus_reset,
-      bus_be                         => bus_be,
-      bus_error                      => bus_error,
-
-      reg_wr                         => reg_wr,
-      reg_rd                         => reg_rd,
-      reg_ip2bus_data                => reg_ip2bus_data,
-      reg_bus2ip_data                => reg_bus2ip_data,
-
-      intr                           => intr,
-
-      mem_select                     => mem_select,
-      mem_read_enable                => mem_read_enable,
-      mem_read_ack                   => mem_read_ack,
-      mem_write_ack                  => mem_write_ack,
-      mem_address                    => mem_address,
-      mem_ip2bus_data                => mem_ip2bus_data,
-      mem_bus2ip_data                => mem_bus2ip_data,
+      bus2fpga_clk                   => bus2fpga_clk,
+      bus2fpga_reset                 => bus2fpga_reset,
+      bus2fpga_addr                  => bus2fpga_addr,
+      bus2fpga_cs                    => bus2fpga_cs,
+      bus2fpga_rnw                   => bus2fpga_rnw,
+      bus2fpga_data                  => bus2fpga_data,
+      bus2fpga_be                    => bus2fpga_be,
+      bus2fpga_rdce                  => bus2fpga_rdce,
+      bus2fpga_wrce                  => bus2fpga_wrce,
+      fpga2bus_data                  => fpga2bus_data,
+      fpga2bus_rdack                 => fpga2bus_rdack,
+      fpga2bus_wrack                 => fpga2bus_wrack,
+      fpga2bus_error                 => fpga2bus_error,
+      fpga2bus_intr                  => fpga2bus_intr,
+      --USER ports mapped here
       -- MAP USER PORTS ABOVE THIS LINE ------------------
 
       Bus2IP_Clk                     => ipif_Bus2IP_Clk,
@@ -652,12 +649,13 @@ begin
   begin
 
     case ipif_Bus2IP_CS is
-      when "100000" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
-      when "010000" => ipif_IP2Bus_Data <= (others => '0');
-      when "001000" => ipif_IP2Bus_Data <= intr_IP2Bus_Data;
-      when "000100" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
-      when "000010" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
-      when "000001" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
+      when "1000000" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
+      when "0100000" => ipif_IP2Bus_Data <= (others => '0');
+      when "0010000" => ipif_IP2Bus_Data <= intr_IP2Bus_Data;
+      when "0001000" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
+      when "0000100" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
+      when "0000010" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
+      when "0000001" => ipif_IP2Bus_Data <= user_IP2Bus_Data;
       when others => ipif_IP2Bus_Data <= (others => '0');
     end case;
 
