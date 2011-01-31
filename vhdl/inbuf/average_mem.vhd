@@ -74,14 +74,6 @@ END component;
     signal read_ack_i : std_logic;
     signal we_i     : std_logic;
     signal arm_i    : std_logic;
-    component average_test
-  port (
-    CLK : in STD_LOGIC := 'X'; 
-    CONTROL : inout STD_LOGIC_VECTOR ( 35 downto 0 ); 
-    TRIG0 : in STD_LOGIC_VECTOR ( 8 downto 0 ) 
-  );
-    end component;
-    signal TRIG0 : STD_LOGIC_VECTOR ( 8 downto 0 ) ;
 
 begin
 

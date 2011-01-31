@@ -40,6 +40,7 @@ port(
         oserdes_txp             : out std_ulogic_vector(7 downto 0);
         oserdes_txclkn          : out std_ulogic;
         oserdes_txclkp          : out std_ulogic;
+        outbuf_deskew           : in std_logic;
 -- signals for processor
         fpga_0_Hard_Ethernet_MAC_PHY_MII_INT        : IN std_logic;
         fpga_0_RS232_Uart_1_sin_pin                 : IN std_logic;
@@ -235,7 +236,8 @@ port map(
         txn                 => oserdes_txn,
         txp                 => oserdes_txp,
         txclkn              => oserdes_txclkn,
-        txclkp              => oserdes_txclkp
+        txclkp              => oserdes_txclkp,
+        deskew              => outbuf_deskew
 );
 
 Inst_system: system PORT MAP(

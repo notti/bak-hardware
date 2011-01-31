@@ -71,10 +71,8 @@ architecture Structural of transmitter is
         type ubal_arr is array(7 downto 0) of std_logic_vector(5 downto 0);
         type deskew_states is (RESET, OUT_DESKEW, OUT_DATA, DESKEW_SYNC);
 
-        signal txclk            : std_ulogic;
         signal locked_i         : std_logic;
         signal nlocked_i        : std_logic;
-        signal reset_i          : std_logic;
         signal ckm              : std_ulogic;
         signal ckh              : std_ulogic;
         signal ckf              : std_ulogic;
@@ -84,7 +82,6 @@ architecture Structural of transmitter is
         signal buf_cycle        : std_logic_vector(1 downto 0);
         signal out_run          : std_logic;
         signal out_cycle        : std_logic_vector(2 downto 0);
-        signal outclk_short_i   : std_logic_vector(3 downto 0);
         signal CLKFBOUT_CLKFBIN : std_logic;
         signal out_en           : std_logic;
         signal nout_en          : std_logic;
@@ -95,6 +92,10 @@ architecture Structural of transmitter is
         signal frame_sync       : std_logic;
         signal ckf_dly          : std_logic;
         signal en_balance       : std_logic;
+        signal CLKOUT0          : std_ulogic;
+        signal CLKOUT1          : std_ulogic;
+        signal CLKOUT2          : std_ulogic;
+
         
         function reverse(a: in std_logic_vector) return std_logic_vector is
             variable result: std_logic_vector(a'length - 1 downto 0);
@@ -138,7 +139,7 @@ begin
             buf_cycle <= buf_cycle + 1;
         end if;
     end process buf_cycle_p;
-    out_run_p: process(ckf, in_start)
+    out_run_p: process(ckf, rst, in_start)
     begin
         if rst = '1' then
             out_run <= '0';
@@ -154,7 +155,7 @@ begin
             out_cycle <= out_cycle + 1;
         end if;
     end process;
-    out_en_p: process(ckm, out_run)
+    out_en_p: process(ckm, rst, out_run)
     begin
         if rst = '1' then
             out_en <= '0';
@@ -162,36 +163,39 @@ begin
             out_en <= out_run;
         end if;
     end process;
-    deskew_p: process(clk, frame_scan, deskew_cnt, deskew, deskew_state, in_start)
+    deskew_cnt_p: process(clk, deskew_state)
+    begin
+        if not (deskew_state = OUT_DESKEW) then
+            deskew_cnt <= (others => '0');
+        elsif clk'event and clk = '1' then
+            deskew_cnt <= deskew_cnt + 1;
+        end if;
+    end process;
+    deskew_p: process(clk, rst, frame_scan, deskew_cnt, deskew, deskew_state, in_start)
     begin
         if rst = '1' then
             deskew_state <= RESET;
-            deskew_cnt <= (others => '0');
         elsif clk'event and clk = '1' then
             case deskew_state is
                 when RESET =>
                     if in_start = '1' then
                         deskew_state <= OUT_DESKEW;
                     end if;
-                    deskew_cnt <= (others => '0');
                     deskew_out <= '0';
                 when OUT_DESKEW =>
                     if and_many(deskew_cnt) = '1' then
                         deskew_state <= OUT_DATA;
                     end if;
-                    deskew_cnt <= deskew_cnt + 1;
                     deskew_out <= '1';
                 when OUT_DATA =>
                     if deskew = '1' then
                         deskew_state <= DESKEW_SYNC;
                     end if;
-                    deskew_cnt <= (others => '0');
                     deskew_out <= '0';
                 when DESKEW_SYNC =>
                     if frame_sync = '1' then
                         deskew_state <= OUT_DESKEW;
                     end if;
-                    deskew_cnt <= (others => '0');
                     deskew_out <= '0';
             end case;
         end if;
@@ -300,16 +304,9 @@ begin
         );
     end generate;
 
---    CLKOUT0_BUFG_INST : BUFG
---      port map (I=>CLKOUT0_BUF,
---                O=>CLKOUT0_OUT);
---   
---   CLKOUT1_BUFG_INST : BUFG
---      port map (I=>CLKOUT1_BUF,
---                O=>CLKOUT1_OUT);
    
-   PLL_INST : PLL_BASE
-   generic map( CLKIN_PERIOD => 10.000,
+    PLL_INST : PLL_BASE
+    generic map( CLKIN_PERIOD => 10.000,
             CLKOUT0_DIVIDE => 2,
             CLKOUT1_DIVIDE => 4,
             CLKOUT2_DIVIDE => 28,
@@ -322,17 +319,27 @@ begin
             DIVCLK_DIVIDE => 1,
             CLKFBOUT_MULT => 7,
             CLKFBOUT_PHASE => 0.0)
-      port map (CLKFBIN=>CLKFBOUT_CLKFBIN,
-                RST=>rst,
-                CLKIN=>clk,
-                CLKFBOUT=>CLKFBOUT_CLKFBIN,
-                CLKOUT0=>ckh,
-                CLKOUT1=>ckm,
-                CLKOUT2=>ckf,
-                CLKOUT3=>open,
-                CLKOUT4=>open,
-                CLKOUT5=>open,
-                LOCKED=>locked_i);
+    port map (CLKFBIN=>CLKFBOUT_CLKFBIN,
+              RST=>rst,
+              CLKIN=>clk,
+              CLKFBOUT=>CLKFBOUT_CLKFBIN,
+              CLKOUT0=>CLKOUT0,
+              CLKOUT1=>CLKOUT1,
+              CLKOUT2=>CLKOUT2,
+              CLKOUT3=>open,
+              CLKOUT4=>open,
+              CLKOUT5=>open,
+              LOCKED=>locked_i);
+    CLKOUT0_BUFG_INST : BUFG
+      port map (I=>CLKOUT0,
+                O=>ckh);
+   
+    CLKOUT1_BUFG_INST : BUFG
+      port map (I=>CLKOUT1,
+                O=>ckm);
+    CLKOUT2_BUFG_INST : BUFG
+      port map (I=>CLKOUT2,
+                O=>ckf);
 
     nlocked_i <= not locked_i;
 

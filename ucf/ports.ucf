@@ -21,15 +21,16 @@ NET oserdes_txp(7) LOC = W34 | FAST;
 NET oserdes_txn(7) LOC = V34 | FAST;
 NET inbuf_trigger LOC = AN33;
 NET frame_clk LOC = AN34;
+NET outbuf_deskew LOC = AM32;
 INST inbuf_i/reciever_i/gtx_i/tile0_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y3;
 INST inbuf_i/reciever_i/gtx_i/tile1_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y5;
 NET "inbuf_i/reciever_i/refclkout_i" TNM_NET = inbuf_i/reciever_i/refclkout_i;
 TIMESPEC TS_inbuf_i_reciever_i_refclkout_i = PERIOD "inbuf_i/reciever_i/refclkout_i" 10 ns HIGH 50%;
 
-NET "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT0_BUF" TNM_NET = outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT0_BUF;
-TIMESPEC TS_outbuf_i_transmitter_i_transmitter_pll_i_CLKOUT0_BUF = PERIOD "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT0_BUF" 350 MHz HIGH 50%;
-NET "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1_BUF" TNM_NET = outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1_BUF;
-TIMESPEC TS_outbuf_i_transmitter_i_transmitter_pll_i_CLKOUT1_BUF = PERIOD "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1_BUF" 175 MHz HIGH 50%;
+#NET "outbuf_i/transmitter_i/PLL_INST/CLKOUT0" TNM_NET = outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT0_BUF;
+#TIMESPEC TS_outbuf_i_transmitter_i_transmitter_pll_i_CLKOUT0_BUF = PERIOD "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT0_BUF" 350 MHz HIGH 50%;
+#NET "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1" TNM_NET = outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1_BUF;
+#TIMESPEC TS_outbuf_i_transmitter_i_transmitter_pll_i_CLKOUT1_BUF = PERIOD "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1_BUF" 175 MHz HIGH 50%;
 
 
 Net fpga_0_Hard_Ethernet_MAC_PHY_MII_INT LOC=H20;
