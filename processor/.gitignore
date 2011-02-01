@@ -3,3 +3,8 @@ data
 etc
 report
 __xps
+*log
+hdl
+implementation
+synthesis
+platgen.opt

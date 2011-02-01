@@ -838,28 +838,27 @@ proc restore { { project_dir "" } } {
   set user_files { 
       "../../processor/system.xmp" 
       "../../ucf/ports.ucf" 
-      "../../vhdl/inbuf/average_mem.vhd" 
-      "../../vhdl/inbuf/datamux.vhd" 
-      "../../vhdl/inbuf/inbuf.vhd" 
-      "../../vhdl/inbuf/inbuf_arb.vhd" 
-      "../../vhdl/inbuf/inbuf_ctrl.vhd" 
-      "../../vhdl/inbuf/reciever/alignfsm.vhd" 
-      "../../vhdl/inbuf/reciever/descramble.vhd" 
-      "../../vhdl/inbuf/reciever/reciever.vhd" 
-      "../../vhdl/outbuf/outbuf.vhd" 
-      "../../vhdl/outbuf/transmitter/balance.vhd" 
-      "../../vhdl/outbuf/transmitter/transmitter.vhd" 
-      "../../vhdl/proc/cpumem.vhd" 
-      "../../vhdl/proc/flag.vhd" 
-      "../../vhdl/proc/status_reg.vhd" 
-      "../../vhdl/proc/toggle.vhd" 
+      "../../vhdl/alignfsm.vhd" 
+      "../../vhdl/average_mem.vhd" 
+      "../../vhdl/balance.vhd" 
+      "../../vhdl/datamux.vhd" 
+      "../../vhdl/descramble.vhd" 
+      "../../vhdl/flag.vhd" 
+      "../../vhdl/inbuf.vhd" 
+      "../../vhdl/inbuf_arb.vhd" 
+      "../../vhdl/inbuf_ctrl.vhd" 
+      "../../vhdl/outbuf.vhd" 
+      "../../vhdl/proc2fpga.vhd" 
       "../../vhdl/procedures.vhd" 
+      "../../vhdl/reciever.vhd" 
       "../../vhdl/top.vhd" 
+      "../../vhdl/transmitter.vhd" 
       "../../wizard/average_test.xco" 
       "../../wizard/bustest.xco" 
       "../../wizard/chipscope.xco" 
       "../../wizard/gtx.xco" 
       "../../wizard/inbuf_mem.xco" 
+      "../../wizard/outbuf_mem.xco" 
       "../../wizard/sin.xco"}
 
   HandleException {
@@ -895,6 +894,13 @@ proc restore { { project_dir "" } } {
       "../../wizard/inbuf_mem.veo" 
       "../../wizard/inbuf_mem.vhd" 
       "../../wizard/inbuf_mem.vho" 
+      "../../wizard/outbuf_mem.asy" 
+      "../../wizard/outbuf_mem.ngc" 
+      "../../wizard/outbuf_mem.sym" 
+      "../../wizard/outbuf_mem.v" 
+      "../../wizard/outbuf_mem.veo" 
+      "../../wizard/outbuf_mem.vhd" 
+      "../../wizard/outbuf_mem.vho" 
       "../../wizard/sin.asy" 
       "../../wizard/sin.ngc" 
       "../../wizard/sin.sym" 
@@ -926,7 +932,7 @@ proc restore { { project_dir "" } } {
       "A" "" "" "" "PROPEXT_xstUseSyncReset_virtex5" "Auto" 
       "A" "" "" "" "PROPEXT_xstUseSyncSet_virtex5" "Auto" 
       "A" "" "" "" "PROP_AutoGenFile" "false" 
-      "A" "" "" "" "PROP_BehavioralSimTop" "Architecture|transmitter|Structural" 
+      "A" "" "" "" "PROP_BehavioralSimTop" "Architecture|top|Structural" 
       "A" "" "" "" "PROP_CPLDFitkeepio" "false" 
       "A" "" "" "" "PROP_CompxlibAbelLib" "true" 
       "A" "" "" "" "PROP_CompxlibCPLDDetLib" "true" 
@@ -967,7 +973,7 @@ proc restore { { project_dir "" } } {
       "A" "" "" "" "PROP_ISimUutInstName" "UUT" 
       "A" "" "" "" "PROP_ImpactProjectFile" "/home/notti/notti/fpga/bakk/ise/FFT/FFT.ipf" 
       "A" "" "" "" "PROP_LastAppliedGoal" "Timing Performance" 
-      "A" "" "" "" "PROP_LastAppliedStrategy" "Performance with Physical Synthesis;/home/notti/test.xds" 
+      "A" "" "" "" "PROP_LastAppliedStrategy" "Performance with IOB Packing;/home/notti/fpga/bakk/ise/FFT/strategy.xds" 
       "A" "" "" "" "PROP_LastUnlockStatus" "false" 
       "A" "" "" "" "PROP_LoadPostTrceTSIFile" "false" 
       "A" "" "" "" "PROP_MSimSDFTimingToBeRead" "Setup Time" 
@@ -982,7 +988,7 @@ proc restore { { project_dir "" } } {
       "A" "" "" "" "PROP_OverwriteSym" "false" 
       "A" "" "" "" "PROP_Parse_Edif_Module" "false" 
       "A" "" "" "" "PROP_Parse_Target" "synthesis" 
-      "A" "" "" "" "PROP_PartitionCreateDelete" "Mon Jan 24 16:38:14 2011
+      "A" "" "" "" "PROP_PartitionCreateDelete" "Tue Feb  1 20:57:03 2011
 " 
       "A" "" "" "" "PROP_PartitionForcePlacement" "" 
       "A" "" "" "" "PROP_PartitionForceSynth" "" 
@@ -1075,7 +1081,7 @@ proc restore { { project_dir "" } } {
       "A" "" "" "" "PROP_Top_Level_Module_Type" "HDL" 
       "A" "" "" "" "PROP_UseDataGate" "true" 
       "A" "" "" "" "PROP_UseSmartGuide" "false" 
-      "A" "" "" "" "PROP_UserBrowsedStrategyFiles" "/home/notti/test.xds" 
+      "A" "" "" "" "PROP_UserBrowsedStrategyFiles" "/home/notti/fpga/bakk/ise/FFT/strategy.xds" 
       "A" "" "" "" "PROP_UserConstraintEditorPreference" "Constraints Editor" 
       "A" "" "" "" "PROP_UserEditorCustomSetting" "" 
       "A" "" "" "" "PROP_UserEditorPreference" "ISE Text Editor" 
@@ -1251,7 +1257,7 @@ proc restore { { project_dir "" } } {
       "A" "" "" "" "PROP_xilxPreTrceUncovPath" "" 
       "A" "" "" "" "PROP_xilxSynthAddIObuf" "true" 
       "A" "" "" "" "PROP_xilxSynthGlobOpt" "AllClockNets" 
-      "A" "" "" "" "PROP_xilxSynthKeepHierarchy" "No" 
+      "A" "" "" "" "PROP_xilxSynthKeepHierarchy" "Yes" 
       "A" "" "" "" "PROP_xilxSynthKeepHierarchy_CPLD" "Yes" 
       "A" "" "" "" "PROP_xilxSynthMacroPreserve" "true" 
       "A" "" "" "" "PROP_xilxSynthRegBalancing" "Yes" 
@@ -1518,34 +1524,6 @@ proc restore { { project_dir "" } } {
 
    # library names and their members
    set libraries {
-      "inbuf"
-      {
-       "../../vhdl/inbuf/inbuf.vhd"
-       "../../vhdl/inbuf/reciever/descramble.vhd"
-       "../../vhdl/inbuf/reciever/alignfsm.vhd"
-       "../../vhdl/inbuf/reciever/reciever.vhd"
-       "../../vhdl/inbuf/datamux.vhd"
-       "../../vhdl/inbuf/average_mem.vhd"
-       "../../vhdl/inbuf/inbuf_ctrl.vhd"
-       "../../vhdl/inbuf/inbuf_arb.vhd"
-       }
-      "misc"
-      {
-       "../../vhdl/procedures.vhd"
-       }
-      "outbuf"
-      {
-       "../../vhdl/outbuf/transmitter/transmitter.vhd"
-       "../../vhdl/outbuf/outbuf.vhd"
-       "../../vhdl/outbuf/transmitter/balance.vhd"
-       }
-      "proc"
-      {
-       "../../vhdl/proc/cpumem.vhd"
-       "../../vhdl/proc/flag.vhd"
-       "../../vhdl/proc/status_reg.vhd"
-       "../../vhdl/proc/toggle.vhd"
-       }
    }
 
   HandleException {
@@ -1554,6 +1532,10 @@ proc restore { { project_dir "" } } {
 
    # partition names for recreation
    set partition_names {
+      "/top/inst_inbuf"
+      "/top/inst_outbuf"
+      "/top/inst_proc2fpga"
+      "/top/Inst_system"
    }
 
   HandleException {

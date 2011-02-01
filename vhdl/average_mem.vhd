@@ -6,15 +6,15 @@
 -- contents			: Average Buffer
 -----------------------------------------------------------
 library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.STD_LOGIC_ARITH.ALL;
-        use IEEE.STD_LOGIC_SIGNED.ALL;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_SIGNED.ALL;
 
 library UNISIM;
-        use UNISIM.VComponents.all;
+use UNISIM.VComponents.all;
 
-library inbuf;
-        use inbuf.all;
+library work;
+use work.all;
 
 entity average_mem is
 port(
@@ -32,7 +32,6 @@ port(
     locked       : out std_logic;
     read_req     : in std_logic;
     read_ack     : out std_logic;
-    clk_bus      : in std_logic;
     rst_arb      : in std_logic;
 
     clk_data     : in std_logic;
@@ -45,19 +44,19 @@ end average_mem;
 
 architecture Structural of average_mem is
 
-component inbuf_mem IS
-	port (
-	clka: IN std_logic;
-	dina: IN std_logic_VECTOR(18 downto 0);
-	addra: IN std_logic_VECTOR(15 downto 0);
-	wea: IN std_logic_VECTOR(0 downto 0);
-	douta: OUT std_logic_VECTOR(18 downto 0);
-	clkb: IN std_logic;
-	dinb: IN std_logic_VECTOR(18 downto 0);
-	addrb: IN std_logic_VECTOR(15 downto 0);
-	web: IN std_logic_VECTOR(0 downto 0);
-	doutb: OUT std_logic_VECTOR(18 downto 0));
-END component;
+	component inbuf_mem IS
+		port (
+		clka: IN std_logic;
+		dina: IN std_logic_VECTOR(18 downto 0);
+		addra: IN std_logic_VECTOR(15 downto 0);
+		wea: IN std_logic_VECTOR(0 downto 0);
+		douta: OUT std_logic_VECTOR(18 downto 0);
+		clkb: IN std_logic;
+		dinb: IN std_logic_VECTOR(18 downto 0);
+		addrb: IN std_logic_VECTOR(15 downto 0);
+		web: IN std_logic_VECTOR(0 downto 0);
+		doutb: OUT std_logic_VECTOR(18 downto 0));
+	END component;
 
     signal dina_i   : std_logic_vector(18 downto 0);
     signal davg_i   : std_logic_vector(18 downto 0);
@@ -85,9 +84,9 @@ begin
       S => read_ack_i
     );
 
-    inbuf_arb: entity inbuf.inbuf_arb
+    inbuf_arb: entity work.inbuf_arb
     port map(
-        clk         => clk_bus,
+        clk         => clk,
         rst         => rst_arb,
 
         read_req    => read_req,
@@ -97,7 +96,7 @@ begin
 
     arm_i <= arm and not read_ack_i;
 
-    inbuf_ctrl: entity inbuf.inbuf_ctrl
+    inbuf_ctrl: entity work.inbuf_ctrl
     port map(
         clk          => clk,
         rst          => rst,
@@ -147,19 +146,19 @@ begin
     addra <= addra_i when read_ack_i = '0' else
              addr;
 
-inbuf_mem_i: inbuf_mem
-port map(
-	clka  => clka,
-	dina  => dina_i,
-	addra => addra,
-	wea   => wea_i,
-	douta => douta_i,
-	clkb  => clk,
-	dinb  => (others => '0'),
-	addrb => addrb_i,
-	web   => "0",
-	doutb => doutb_i
-);
+	inbuf_mem_i: inbuf_mem
+	port map(
+		clka  => clka,
+		dina  => dina_i,
+		addra => addra,
+		wea   => wea_i,
+		douta => douta_i,
+		clkb  => clk,
+		dinb  => (others => '0'),
+		addrb => addrb_i,
+		web   => "0",
+		doutb => doutb_i
+	);
 
     read_ack <= read_ack_i;
 

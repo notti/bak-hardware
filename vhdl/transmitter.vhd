@@ -37,80 +37,78 @@
 --                                         s1(0-0)         s2(1-0)         s3(2-0)
 -----------------------------------------------------------
 library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.STD_LOGIC_UNSIGNED.ALL;
-        use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 library UNISIM;
-        use UNISIM.VComponents.all;
+use UNISIM.VComponents.all;
 
-library outbuf;
-    use outbuf.all;
-
-library misc;
-    use misc.procedures.all;
+library work;
+use work.procedures.all;
 
 entity transmitter is
 port(
-        clk                 : in  std_logic;
-        rst                 : in  std_logic;
-        e1                  : in  std_logic_vector(23 downto 0);
-        e2                  : in  std_logic_vector(23 downto 0);
-        deskew              : in  std_logic;
+	clk                 : in  std_logic;
+	rst                 : in  std_logic;
+	e1                  : in  std_logic_vector(23 downto 0);
+	e2                  : in  std_logic_vector(23 downto 0);
+	deskew              : in  std_logic;
+	deskew_running		: out std_logic;
 
 -- signals for selectio oserdes transmitter
-        txn                 : out std_ulogic_vector(7 downto 0);
-        txp                 : out std_ulogic_vector(7 downto 0);
-        txclkn              : out std_ulogic;
-        txclkp              : out std_ulogic
+	txn                 : out std_logic_vector(7 downto 0);
+	txp                 : out std_logic_vector(7 downto 0);
+	txclkn              : out std_logic;
+	txclkp              : out std_logic
 );
 end transmitter;
 
 architecture Structural of transmitter is
-        type data_arr is array (3 downto 0) of std_logic_vector(6 downto 0);
-        type ubal_arr is array(7 downto 0) of std_logic_vector(5 downto 0);
-        type deskew_states is (RESET, OUT_DESKEW, OUT_DATA, DESKEW_SYNC);
+	type data_arr is array (3 downto 0) of std_logic_vector(6 downto 0);
+	type ubal_arr is array(7 downto 0) of std_logic_vector(5 downto 0);
+	type deskew_states is (RESET, OUT_DESKEW, OUT_DATA, DESKEW_SYNC);
 
-        signal locked_i         : std_logic;
-        signal nlocked_i        : std_logic;
-        signal ckm              : std_ulogic;
-        signal ckh              : std_ulogic;
-        signal ckf              : std_ulogic;
-        signal in_start         : std_logic;
-        signal frame_scan       : std_logic;
-   
-        signal buf_cycle        : std_logic_vector(1 downto 0);
-        signal out_run          : std_logic;
-        signal out_cycle        : std_logic_vector(2 downto 0);
-        signal CLKFBOUT_CLKFBIN : std_logic;
-        signal out_en           : std_logic;
-        signal nout_en          : std_logic;
-        signal outdata_unbalanced : ubal_arr;
-        signal deskew_cnt       : std_logic_vector(11 downto 0);
-        signal deskew_out       : std_logic;
-        signal deskew_state     : deskew_states;
-        signal frame_sync       : std_logic;
-        signal ckf_dly          : std_logic;
-        signal en_balance       : std_logic;
-        signal CLKOUT0          : std_ulogic;
-        signal CLKOUT1          : std_ulogic;
-        signal CLKOUT2          : std_ulogic;
+	signal locked_i         : std_logic;
+	signal nlocked_i        : std_logic;
+	signal ckm              : std_ulogic;
+	signal ckh              : std_ulogic;
+	signal ckf              : std_ulogic;
+	signal in_start         : std_logic;
+	signal frame_scan       : std_logic;
 
-        
-        function reverse(a: in std_logic_vector) return std_logic_vector is
-            variable result: std_logic_vector(a'length - 1 downto 0);
-        begin
-            for i in result'range loop
-                result((a'length-1)-i) := a(i+a'low);
-            end loop;
-            return result;
-        end;
+	signal buf_cycle        : std_logic_vector(1 downto 0);
+	signal out_run          : std_logic;
+	signal out_cycle        : std_logic_vector(2 downto 0);
+	signal CLKFBOUT_CLKFBIN : std_logic;
+	signal out_en           : std_logic;
+	signal nout_en          : std_logic;
+	signal outdata_unbalanced : ubal_arr;
+	signal deskew_cnt       : std_logic_vector(11 downto 0);
+	signal deskew_out       : std_logic;
+	signal deskew_state     : deskew_states;
+	signal frame_sync       : std_logic;
+	signal ckf_dly          : std_logic;
+	signal en_balance       : std_logic;
+	signal CLKOUT0          : std_ulogic;
+	signal CLKOUT1          : std_ulogic;
+	signal CLKOUT2          : std_ulogic;
+
+	
+	function reverse(a: in std_logic_vector) return std_logic_vector is
+		variable result: std_logic_vector(a'length - 1 downto 0);
+	begin
+		for i in result'range loop
+			result((a'length-1)-i) := a(i+a'low);
+		end loop;
+		return result;
+	end;
 begin
     in_start_p: process(ckf, locked_i)
     begin
         if locked_i = '0' then
             in_start <= '0';
-        elsif ckf'event and ckf = '1' then
+        elsif rising_edge(ckf) then
             in_start <= '1';
         end if;
     end process in_start_p;
@@ -118,7 +116,7 @@ begin
     begin
         if in_start = '0' then
             frame_scan <= '0';
-        elsif clk'event and clk = '1' and buf_cycle = "11" then
+        elsif rising_edge(clk) and buf_cycle = "11" then
             frame_scan <= '1';
         end if;
     end process;
@@ -126,7 +124,7 @@ begin
     begin
         if rst = '1' then
             ckf_dly <= '0';
-        elsif clk'event and clk = '1' then
+        elsif rising_edge(clk) then
             ckf_dly <= ckf;
         end if;
     end process;
@@ -135,7 +133,7 @@ begin
     begin
         if in_start = '0' then
             buf_cycle <= "10";
-        elsif clk'event and clk='1' then
+        elsif rising_edge(clk) then
             buf_cycle <= buf_cycle + 1;
         end if;
     end process buf_cycle_p;
@@ -143,7 +141,7 @@ begin
     begin
         if rst = '1' then
             out_run <= '0';
-        elsif ckf'event and ckf = '1' then
+        elsif rising_edge(ckf) then
             out_run <= in_start;
         end if;
     end process out_run_p;
@@ -151,7 +149,7 @@ begin
     begin
         if out_run = '0' or out_cycle = "111" then
             out_cycle <= (others => '0');
-        elsif ckm'event and ckm = '1' then
+        elsif rising_edge(ckm) then
             out_cycle <= out_cycle + 1;
         end if;
     end process;
@@ -159,7 +157,7 @@ begin
     begin
         if rst = '1' then
             out_en <= '0';
-        elsif ckm'event and ckm='1' then
+        elsif rising_edge(ckm) then
             out_en <= out_run;
         end if;
     end process;
@@ -167,7 +165,7 @@ begin
     begin
         if not (deskew_state = OUT_DESKEW) then
             deskew_cnt <= (others => '0');
-        elsif clk'event and clk = '1' then
+        elsif rising_edge(clk) then
             deskew_cnt <= deskew_cnt + 1;
         end if;
     end process;
@@ -175,7 +173,7 @@ begin
     begin
         if rst = '1' then
             deskew_state <= RESET;
-        elsif clk'event and clk = '1' then
+        elsif rising_edge(clk) then
             case deskew_state is
                 when RESET =>
                     if in_start = '1' then
@@ -220,7 +218,7 @@ begin
         signal tx               : std_ulogic;
         signal tq               : std_ulogic;
     begin
-        balance_i: entity outbuf.balance
+        balance_i: entity work.balance
         port map(
             clk => clk,
             rst => rst,
@@ -233,7 +231,7 @@ begin
                          outdata_balanced;
         long_buf_p: process(clk, buf_cycle, frame_scan, outdata_final)
         begin
-            if clk'event and clk = '1' and frame_scan = '1' then
+            if rising_edge(clk) and frame_scan = '1' then
                 outdata_long(conv_integer(buf_cycle)) <= outdata_final;
             end if;
         end process long_buf_p;
@@ -242,7 +240,7 @@ begin
         begin
             if out_run = '0' then
                 outdata_short <= (others => '0');
-            elsif ckm'event and ckm = '1' then
+            elsif rising_edge(ckm) then
                 case out_cycle is
                     when "000" => outdata_short <= outdata_long(0)(6 downto 3);
                     when "001" => outdata_short <= outdata_long(0)(2 downto 0) & outdata_long(1)(6 downto 6);
@@ -356,7 +354,7 @@ begin
                          "1000011";
         long_buf_p: process(clk, buf_cycle, frame_scan, outdata_final)
         begin
-            if clk'event and clk = '1' and frame_scan = '1' then
+            if rising_edge(clk) and frame_scan = '1' then
                 outdata_long(conv_integer(buf_cycle)) <= outdata_final;
             end if;
         end process long_buf_p;
@@ -365,7 +363,7 @@ begin
         begin
             if out_run = '0' then
                 outdata_short <= (others => '0');
-            elsif ckm'event and ckm = '1' then
+            elsif rising_edge(ckm) then
                 case out_cycle is
                     when "000" => outdata_short <= outdata_long(0)(6 downto 3);
                     when "001" => outdata_short <= outdata_long(0)(2 downto 0) & outdata_long(1)(6 downto 6);
