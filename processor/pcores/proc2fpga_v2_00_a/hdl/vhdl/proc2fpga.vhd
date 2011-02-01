@@ -185,7 +185,7 @@ entity proc2fpga is
     -- ADD USER PORTS BELOW THIS LINE ------------------
     bus2fpga_clk                        : out std_logic;
     bus2fpga_reset                      : out std_logic;
-    bus2fpga_addr                       : out std_logic_vector(31 downto 0);
+    bus2fpga_addr                       : out std_logic_vector(15 downto 0);
     bus2fpga_cs                         : out std_logic_vector(3 downto 0);
     bus2fpga_rnw                        : out std_logic;
     bus2fpga_data                       : out std_logic_vector(31 downto 0);

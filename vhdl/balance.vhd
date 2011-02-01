@@ -4,26 +4,26 @@
 -- Author			: Gernot Vormayr
 -----------------------------------------------------------
 library IEEE;
-        use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 library UNISIM;
-        use UNISIM.VComponents.all;
+use UNISIM.VComponents.all;
 
 entity balance is
 port(
-        clk                 : in  std_logic;
-        rst                 : in  std_logic;
-        en                  : in  std_logic;
-        unbalanced          : in  std_logic_vector(5 downto 0);
-        balanced            : out std_logic_vector(6 downto 0)
+	clk                 : in  std_logic;
+	rst                 : in  std_logic;
+	en                  : in  std_logic;
+	unbalanced          : in  std_logic_vector(5 downto 0);
+	balanced            : out std_logic_vector(6 downto 0)
 );
 end balance;
 
 architecture Structural of balance is
-    signal bal : SIGNED(3 downto 0);
+    signal bal             : SIGNED(3 downto 0);
     signal overall_balance : SIGNED(3 downto 0);
-    signal inv : std_logic;
+    signal inv             : std_logic;
 begin
     -- generated with balance_table.py
     bal <= TO_SIGNED(-6,4) when unbalanced = "000000" else
@@ -117,7 +117,7 @@ begin
         end if;
         if rst = '1' then
             overall_balance <= (others => '0');
-        elsif clk'event and clk = '1' and en = '1' then
+        elsif rising_edge(clk) and en = '1' then
             if inv = '1' then
                 overall_balance <= overall_balance + 1 - bal;
             else
