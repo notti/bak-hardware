@@ -152,10 +152,12 @@ END COMPONENT;
     signal inbuf_mem_ack     : std_logic;
     signal inbuf_wrack       : std_logic;
     signal inbuf_rdack       : std_logic;
+    signal inbuf_rdack_r     : std_logic;
     signal inbuf_data        : std_logic_vector(31 downto 0);
+    signal inbuf_data_r      : std_logic_vector(31 downto 0);
     signal inbuf_error       : std_logic;
     signal frame_clk_i       : std_logic;
-    signal clk_data          : std_logic;
+    signal sample_clk        : std_logic;
 --outbuf
     signal tx_deskew_req     : std_logic;
     signal tx_deskew_ack     : std_logic;
@@ -188,8 +190,8 @@ END COMPONENT;
     signal bus2fpga_reset    : std_logic;
     signal bus2fpga_clk      : std_logic;
 
-    attribute KEEP_HIERACHY  : string;
-    attribute KEEP_HIERACHY of Structural: architecture is "yes";
+    attribute KEEP_HIERARCHY : string;
+    attribute KEEP_HIERARCHY of Structural: architecture is "yes";
 begin
 
 
@@ -217,13 +219,13 @@ port map(
     arm_req             => arm_req,
     arm_ack             => arm_ack,
     rst_req             => rst_req,
-    rst_ack             => rst_ack,
+    rst_ack             => inbuf_rst_ack,
     avg_done            => avg_done,
     locked              => locked,
     mem_req             => mem_req,
     mem_ack             => inbuf_mem_ack,
 
-    clk_data            => clk_data,
+    sample_clk          => sample_clk,
 
     fpga2bus_error      => inbuf_error,
     fpga2bus_wrack      => inbuf_wrack,
@@ -253,7 +255,7 @@ port map(
     rst_req             => rst_req,
     rst_ack             => outbuf_rst_ack,
     frame_clk           => frame_clk_i,
-    clk                 => clk_data,
+    clk                 => sample_clk,
 
     fpga2bus_error      => outbuf_error,
     fpga2bus_wrack      => outbuf_wrack,
@@ -306,10 +308,21 @@ port map(
     bus2fpga_clk         => bus2fpga_clk
 );
 
+process(bus2fpga_clk, bus2fpga_reset, inbuf_data)
+begin
+    if bus2fpga_reset = '1' then
+        inbuf_data_r <= (others => '0');
+        inbuf_rdack_r <= '0';
+    elsif rising_edge(bus2fpga_clk) then
+        inbuf_data_r <= inbuf_data;
+        inbuf_rdack_r <= inbuf_rdack;
+    end if;
+end process;
+
 fpga2bus_wrack <= or_many(outbuf_wrack & inbuf_wrack & proc2fpga_wrack);
-fpga2bus_rdack <= or_many(outbuf_rdack & inbuf_rdack & proc2fpga_rdack);
+fpga2bus_rdack <= or_many(outbuf_rdack & inbuf_rdack_r & proc2fpga_rdack);
 fpga2bus_data  <= proc2fpga_data when or_many(bus2fpga_rdce) = '1' else
-                  inbuf_data when bus2fpga_cs = "0001" else
+                  inbuf_data_r when bus2fpga_cs = "0001" else
                   outbuf_data when bus2fpga_cs = "1000" else
                   (others => '0');
 fpga2bus_error <= inbuf_error or outbuf_error or proc2fpga_error;

@@ -988,10 +988,11 @@ proc restore { { project_dir "" } } {
       "A" "" "" "" "PROP_OverwriteSym" "false" 
       "A" "" "" "" "PROP_Parse_Edif_Module" "false" 
       "A" "" "" "" "PROP_Parse_Target" "synthesis" 
-      "A" "" "" "" "PROP_PartitionCreateDelete" "Tue Feb  1 20:57:03 2011
+      "A" "" "" "" "PROP_PartitionCreateDelete" "Thu Feb  3 12:19:25 2011
 " 
       "A" "" "" "" "PROP_PartitionForcePlacement" "" 
-      "A" "" "" "" "PROP_PartitionForceSynth" "" 
+      "A" "" "" "" "PROP_PartitionForceSynth" "Thu Feb  3 12:04:29 2011
+" 
       "A" "" "" "" "PROP_PartitionForceTranslate" "" 
       "A" "" "" "" "PROP_PlsClockEnable" "true" 
       "A" "" "" "" "PROP_PostFitSimTop" "" 
@@ -1532,10 +1533,6 @@ proc restore { { project_dir "" } } {
 
    # partition names for recreation
    set partition_names {
-      "/top/inst_inbuf"
-      "/top/inst_outbuf"
-      "/top/inst_proc2fpga"
-      "/top/Inst_system"
    }
 
   HandleException {
