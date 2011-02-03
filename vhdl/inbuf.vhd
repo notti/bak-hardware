@@ -48,8 +48,6 @@ port(
     rst_ack             : out std_logic;
     locked              : out std_logic;
 
-    clk_data            : out std_logic;
-
 -- data
     mem_req             : in  std_logic;
     mem_ack             : out std_logic;
@@ -96,8 +94,8 @@ begin
     port map
     (
         O                   => refclk_unbuffered,
-        I                   => refclkn,
-        IB                  => refclkp
+        I                   => refclkp,
+        IB                  => refclkn
     );
     refclk_bufg_i : BUFG
     port map
@@ -165,11 +163,11 @@ begin
         clk                 => clk_i,
         rst_out             => rst_out_i,
         data                => rec_data_i,
-        polarity            => rec_polarity,
+        polarity            => rec_polarity_synced,
         descramble          => rec_descramble,
         rxeqmix             => rec_rxeqmix,
         data_valid          => rec_data_valid_i,
-        enable              => rec_enable
+        enable              => rec_enable_synced
     );
 
     datamux_i: entity work.datamux
@@ -282,7 +280,6 @@ begin
     rec_data_valid <= rec_data_valid_i;
     sample_clk <= clk_i;
 	rec_stream_valid <= stream_valid_i;
-    clk_data <= refclk;
 
 end Structural;
 

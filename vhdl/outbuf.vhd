@@ -66,7 +66,6 @@ architecture Structural of outbuf is
 		doutb: OUT std_logic_VECTOR(31 downto 0));
 	END COMPONENT;
 
-    signal addr           : std_logic_vector(15 downto 0);
     signal rst            : std_logic;
     signal mem            : std_logic;
     signal deskew_running : std_logic;
@@ -76,6 +75,8 @@ architecture Structural of outbuf is
 	signal addra		  : std_logic_vector(15 downto 0);
 	signal depth_r		  : std_logic_vector(15 downto 0);
 	signal douta		  : std_logic_vector(31 downto 0);
+    signal rddly          : std_logic;
+    signal wrdly          : std_logic;
 begin
     sync_rst_i: entity work.flag
     port map(
@@ -107,14 +108,9 @@ begin
         flag_out     => deskew,
         clk          => clk
     );
-    deskew_p: process(clk)
-    begin
-        if rising_edge(clk) then
-            tx_deskew_ack <= deskew; --TODO
-        end if;
-    end process;
+    tx_deskew_ack <= deskew_running;
 
-	reg_process: process(clk, depth, rst)
+	reg_process: process(clk, depth, rst, bus2fpga_reset)
 	begin
 		if bus2fpga_reset = '1' then
 			depth_r <= (others => '0');
@@ -169,6 +165,25 @@ begin
 		web                 => web,
 		doutb               => fpga2bus_data
 	);
+    fpga2bus_error <= '0';
+    rdack: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_cs, bus2fpga_rnw)
+    begin
+        if bus2fpga_reset = '1' then
+            rddly <= '0';
+        elsif rising_edge(bus2fpga_clk) and bus2fpga_cs = "1000" and bus2fpga_rnw = '1' then
+            rddly <= bus2fpga_rnw;
+        end if;
+    end process;
+    wrack: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_cs, bus2fpga_rnw)
+    begin
+        if bus2fpga_reset = '1' then
+            wrdly <= '0';
+        elsif rising_edge(bus2fpga_clk) and bus2fpga_cs = "1000" and bus2fpga_rnw = '0' then
+            wrdly <= not bus2fpga_rnw;
+        end if;
+    end process;
+    fpga2bus_rdack <= '1' when bus2fpga_cs = "1000" and bus2fpga_rnw = '1' and rddly = '0' else '0';
+    fpga2bus_wrack <= '1' when bus2fpga_cs = "1000" and bus2fpga_rnw = '0' and wrdly = '0' else '0';
 
 end Structural;
 

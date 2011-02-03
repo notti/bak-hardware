@@ -109,7 +109,7 @@ begin
 --        <   3  ><   2  ><   1  ><   0  >
 --        76543210765432107654321076543210
 --  REG0: 00000vSE00vRXdpe00vRXdpe00vRXdpe   GTX
---  REG1: 00aqlrds000000WI<     DEPTH    >   MEM
+--  REG1: 000qlrda000000WI<     DEPTH    >   MEM
 --  REG2:                                    FFT
 --  REG3:                                d   OUT
     
