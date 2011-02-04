@@ -57,7 +57,7 @@ begin
 				 "0001" when width_r = "01" else
 				 "0000";
 
-	rst_i     <= rst and not stream_valid;
+	rst_i     <= rst or not stream_valid;
 	frame_clk <= frame_clk_i;
 
 	state_process: process(clk, rst_i, depth, width)

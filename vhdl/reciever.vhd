@@ -382,7 +382,7 @@ begin
 	end generate syncs;
 
 	clk     <= usrclk_i;
-	rst_out <= and_many(resetdone_i);
+	rst_out <= not and_many(resetdone_i);
 
 end Structural;
 

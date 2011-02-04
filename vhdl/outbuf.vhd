@@ -77,6 +77,8 @@ architecture Structural of outbuf is
 	signal douta		  : std_logic_vector(31 downto 0);
     signal rddly          : std_logic;
     signal wrdly          : std_logic;
+    signal rd             : std_logic;
+    signal wr             : std_logic;
 begin
     sync_rst_i: entity work.flag
     port map(
@@ -87,7 +89,7 @@ begin
     rst_p: process(clk)
     begin
         if rising_edge(clk) then
-            rst_ack <= rst;
+            rst_ack <= rst_req;
         end if;
     end process;
     sync_mem_i: entity work.flag
@@ -149,7 +151,7 @@ begin
 	genweb: for i in 0 to 3 generate
 		web(i) <= '1' when bus2fpga_be(i) = '1' and bus2fpga_rnw = '0' and bus2fpga_cs = "1000" else '0';
 	end generate;
-	enb <= '1' when bus2fpga_cs = "0001" else '0';
+	enb <= '1' when bus2fpga_cs = "1000" else '0';
 
 	outbuf_mem_1: outbuf_mem
 	port map (
@@ -166,24 +168,18 @@ begin
 		doutb               => fpga2bus_data
 	);
     fpga2bus_error <= '0';
+    rd <= '1' when bus2fpga_cs = "1000" and bus2fpga_rnw = '1' else '0';
+    wr <= '1' when bus2fpga_cs = "1000" and bus2fpga_rnw = '0' else '0';
     rdack: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_cs, bus2fpga_rnw)
     begin
         if bus2fpga_reset = '1' then
             rddly <= '0';
-        elsif rising_edge(bus2fpga_clk) and bus2fpga_cs = "1000" and bus2fpga_rnw = '1' then
-            rddly <= bus2fpga_rnw;
+        elsif rising_edge(bus2fpga_clk) then
+            rddly <= rd;
         end if;
     end process;
-    wrack: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_cs, bus2fpga_rnw)
-    begin
-        if bus2fpga_reset = '1' then
-            wrdly <= '0';
-        elsif rising_edge(bus2fpga_clk) and bus2fpga_cs = "1000" and bus2fpga_rnw = '0' then
-            wrdly <= not bus2fpga_rnw;
-        end if;
-    end process;
-    fpga2bus_rdack <= '1' when bus2fpga_cs = "1000" and bus2fpga_rnw = '1' and rddly = '0' else '0';
-    fpga2bus_wrack <= '1' when bus2fpga_cs = "1000" and bus2fpga_rnw = '0' and wrdly = '0' else '0';
+    fpga2bus_rdack <= rddly;
+    fpga2bus_wrack <= wr;
 
 end Structural;
 
