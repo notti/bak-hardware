@@ -26,6 +26,7 @@ port(
     gtx_txn                                     : out std_logic_vector(3 downto 0);
     gtx_txp                                     : out std_logic_vector(3 downto 0);
     inbuf_trigger                               : in  std_logic;
+    push_south                                  : in  std_logic;
     frame_clk                                   : out std_logic;
 -- signals for oserdes transmitter
     oserdes_txn                                 : out std_logic_vector(7 downto 0);
@@ -189,10 +190,14 @@ END COMPONENT;
     signal bus2fpga_addr     : std_logic_vector(15 downto 0);
     signal bus2fpga_reset    : std_logic;
     signal bus2fpga_clk      : std_logic;
+    signal in_trigger        : std_logic;
 
     attribute KEEP_HIERARCHY : string;
     attribute KEEP_HIERARCHY of Structural: architecture is "yes";
 begin
+
+
+    in_trigger <= inbuf_trigger or push_south;
 
 
 inst_inbuf: entity work.inbuf
@@ -204,7 +209,7 @@ port map(
     rxp                 => gtx_rxp,
     txn                 => gtx_txn,
     txp                 => gtx_txp,
-    trigger             => inbuf_trigger,
+    trigger             => in_trigger,
     frame_clk           => frame_clk_i,
 
     rec_polarity        => rx_polarity,
@@ -308,21 +313,10 @@ port map(
     bus2fpga_clk         => bus2fpga_clk
 );
 
-process(bus2fpga_clk, bus2fpga_reset, inbuf_data)
-begin
-    if bus2fpga_reset = '1' then
-        inbuf_data_r <= (others => '0');
-        inbuf_rdack_r <= '0';
-    elsif rising_edge(bus2fpga_clk) then
-        inbuf_data_r <= inbuf_data;
-        inbuf_rdack_r <= inbuf_rdack;
-    end if;
-end process;
-
 fpga2bus_wrack <= or_many(outbuf_wrack & inbuf_wrack & proc2fpga_wrack);
-fpga2bus_rdack <= or_many(outbuf_rdack & inbuf_rdack_r & proc2fpga_rdack);
+fpga2bus_rdack <= or_many(outbuf_rdack & inbuf_rdack & proc2fpga_rdack);
 fpga2bus_data  <= proc2fpga_data when or_many(bus2fpga_rdce) = '1' else
-                  inbuf_data_r when bus2fpga_cs = "0001" else
+                  inbuf_data when bus2fpga_cs = "0001" else
                   outbuf_data when bus2fpga_cs = "1000" else
                   (others => '0');
 fpga2bus_error <= inbuf_error or outbuf_error or proc2fpga_error;

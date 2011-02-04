@@ -213,9 +213,7 @@ begin
 	inbuf_addr_data(0) <= '1' when bus2fpga_cs = "0001" and (mem_read_cycle = "011" or mem_write_cycle = "00011" or mem_write_cycle = "01111") else
 					      '0';
 
-	fpga2bus_data <= (inbuf_data_out & mem_low_word_r) when bus2fpga_cs = "0001" and mem_read_cycle = "111" else
-					 (others => '0');
-
+	fpga2bus_data <= inbuf_data_out & mem_low_word_r;
     ---------------------------------------------------
     -- cycle 0: read 0
     -- cycle 1: read 1 data 0
