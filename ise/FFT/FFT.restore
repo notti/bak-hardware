@@ -853,6 +853,7 @@ proc restore { { project_dir "" } } {
       "../../vhdl/reciever.vhd" 
       "../../vhdl/top.vhd" 
       "../../vhdl/transmitter.vhd" 
+      "../../wizard/chipscope_test.cdc" 
       "../../wizard/gtx.xco" 
       "../../wizard/inbuf_mem.xco" 
       "../../wizard/outbuf_mem.xco" 

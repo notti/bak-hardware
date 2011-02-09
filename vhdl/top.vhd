@@ -153,15 +153,14 @@ END COMPONENT;
     signal inbuf_mem_ack     : std_logic;
     signal inbuf_wrack       : std_logic;
     signal inbuf_rdack       : std_logic;
-    signal inbuf_rdack_r     : std_logic;
     signal inbuf_data        : std_logic_vector(31 downto 0);
-    signal inbuf_data_r      : std_logic_vector(31 downto 0);
     signal inbuf_error       : std_logic;
     signal frame_clk_i       : std_logic;
     signal sample_clk        : std_logic;
 --outbuf
     signal tx_deskew_req     : std_logic;
     signal tx_deskew_ack     : std_logic;
+    signal dc_balance        : std_logic;
     signal outbuf_rst_ack    : std_logic;
     signal outbuf_mem_ack    : std_logic;
     signal outbuf_wrack      : std_logic;
@@ -260,6 +259,7 @@ port map(
     rst_req             => rst_req,
     rst_ack             => outbuf_rst_ack,
     frame_clk           => frame_clk_i,
+    dc_balance          => dc_balance,
     clk                 => sample_clk,
 
     fpga2bus_error      => outbuf_error,
@@ -297,6 +297,7 @@ port map(
     tx_deskew_ack        => tx_deskew_ack,
     mem_req              => mem_req,
     mem_ack              => mem_ack,
+    dc_balance           => dc_balance,
 
 ----- proc interface
     fpga2bus_intr        => fpga2bus_intr,

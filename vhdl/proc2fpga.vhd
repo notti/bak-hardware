@@ -37,6 +37,7 @@ port(
     tx_deskew_ack        : in  std_logic;
     mem_req              : out std_logic;
     mem_ack              : in  std_logic;
+    dc_balance           : out std_logic;
 
     fpga2bus_intr        : out std_logic_vector(31 downto 0);
     fpga2bus_error       : out std_logic;
@@ -99,7 +100,7 @@ begin
 --    WI,DEPTH       ASYNC
 --TX:
 --    t  deskew      SYNC_GTX 0 0
---    0  0                    0 1
+--    x  dc_balance           0 1
 --    0  0                    0 2
 --    0  0                    0 3
 --    0  0                    0 4
@@ -111,7 +112,7 @@ begin
 --  REG0: 00000vSE00vRXdpe00vRXdpe00vRXdpe   GTX
 --  REG1: 000qlrda000000WI<     DEPTH    >   MEM
 --  REG2:                                    FFT
---  REG3:                                d   OUT
+--  REG3:                               bd   OUT
     
 -- reciever:
     reciever_gen: for i in 0 to 2 generate
@@ -266,7 +267,7 @@ begin
         clk         => bus2fpga_clk
     );
     slv_reg1(23 downto 18) <= "000000";
-    slv_reg1(31 downto 30) <= "00";
+    slv_reg1(31 downto 29) <= "000";
     mem_write_proc: process(bus2fpga_clk) is
     begin
         if rising_edge(bus2fpga_clk) then
@@ -291,6 +292,8 @@ begin
             end if;
         end if;
     end process mem_write_proc;
+--FFT
+    slv_reg2 <= (others => '0');
 --TX
     sync_tx_deskew_ack_i: entity work.flag
     port map(
@@ -329,6 +332,22 @@ begin
             end if;
         end if;
     end process;
+    dc_balance <= slv_reg3(1);
+    tx_write_proc: process(bus2fpga_clk) is
+    begin
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' then
+                slv_reg3(1) <= '0';
+            else
+                if bus2fpga_wrce = "0100" then
+                    if bus2fpga_be(0) = '1' then
+                        slv_reg3(1) <= bus2fpga_data(1);
+                    end if;
+                end if;
+            end if;
+        end if;
+    end process tx_write_proc;
+    slv_reg3(31 downto 2) <= (others => '0');
 
     slave_reg_read_proc : process(bus2fpga_rdce, slv_reg0, slv_reg1, slv_reg2, slv_reg3) is
     begin

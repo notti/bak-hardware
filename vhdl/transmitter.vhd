@@ -4,6 +4,22 @@
 -- Author			: Gernot Vormayr
 -- created			: July, 3rd 2009
 -- contents			: Transmitter for DS90CR486 Reciever
+-- no DC Balance:
+--
+-- scheme: c 1     1     0     0     0     1     1
+--        0d e2d8  e2d5  e2d4  e2d3  e2d2  e2d1  e2d0
+--        1d e2d17 e2d16 e2d13 e2d12 e2d11 e2d10 e2d9
+--        2d NA    NA    NA    e2d21 e2d20 e2d19 e2d18
+--        3d e2d23 e2d23 e2d22 e2d15 e2d14 e2d7  e2d6
+--        4d e1d8  e1d5  e1d4  e1d3  e1d2  e1d1  e1d0
+--        5d e1d17 e1d16 e1d13 e1d12 e1d11 e1d10 e1d9
+--        6d NA    NA    NA    e1d21 e1d20 e1d19 e1d18
+--        7d e1d23 e1d23 e1d22 e1d15 e1d14 e1d7  e1d6
+--
+-- deskew: not supported
+--
+-- DC Balance:
+--
 -- scheme: c 1     1/0   0     0     0     1     1
 --        0d e2d0  e2d1  e2d2  e2d3  e2d4  e2d5  dcb
 --        1d e2d8  e2d9  e2d10 e2d11 e2d12 e2d13 dcb
@@ -55,6 +71,7 @@ port(
 	e2                  : in  std_logic_vector(23 downto 0);
 	deskew              : in  std_logic;
 	deskew_running		: out std_logic;
+    dc_balance          : in  std_logic;
 
 -- signals for selectio oserdes transmitter
 	txn                 : out std_logic_vector(7 downto 0);
@@ -67,6 +84,7 @@ end transmitter;
 architecture Structural of transmitter is
 	type data_arr is array (3 downto 0) of std_logic_vector(6 downto 0);
 	type ubal_arr is array(7 downto 0) of std_logic_vector(5 downto 0);
+	type nbal_arr is array(7 downto 0) of std_logic_vector(6 downto 0);
 	type deskew_states is (RESET, OUT_DESKEW, OUT_DATA, DESKEW_SYNC);
 
 	signal locked_i         : std_logic;
@@ -84,6 +102,7 @@ architecture Structural of transmitter is
 	signal out_en           : std_logic;
 	signal nout_en          : std_logic;
 	signal outdata_unbalanced : ubal_arr;
+	signal outdata_nobalanced : nbal_arr;
 	signal deskew_cnt       : std_logic_vector(11 downto 0);
 	signal deskew_out       : std_logic;
 	signal deskew_state     : deskew_states;
@@ -171,7 +190,7 @@ begin
     end process;
     deskew_p: process(clk, rst, frame_scan, deskew_cnt, deskew, deskew_state, in_start)
     begin
-        if rst = '1' then
+        if rst = '1' or dc_balance = '0' then
             deskew_state <= RESET;
         elsif rising_edge(clk) then
             case deskew_state is
@@ -211,6 +230,14 @@ begin
     outdata_unbalanced(5) <= reverse(e1(13 downto  8));
     outdata_unbalanced(6) <= reverse(e1(21 downto 16));
     outdata_unbalanced(7) <= reverse(e1(23 downto 22) & e1(15 downto 14) & e1(7 downto 6));
+    outdata_nobalanced(0) <= reverse(e2(8) & e2(5 downto 0));
+    outdata_nobalanced(1) <= reverse(e2(17 downto 16) & e2(13 downto 9));
+    outdata_nobalanced(2) <= reverse("000" & e2(21 downto 18));
+    outdata_nobalanced(3) <= reverse(e2(23) & e2(23) & e2(22) & e2(15 downto 14) & e2(7 downto 6));
+    outdata_nobalanced(4) <= reverse(e1(8) & e1(5 downto 0));
+    outdata_nobalanced(5) <= reverse(e1(17 downto 16) & e1(13 downto 9));
+    outdata_nobalanced(6) <= reverse("000" & e1(21 downto 18));
+    outdata_nobalanced(7) <= reverse(e1(23) & e1(23) & e1(22) & e1(15 downto 14) & e1(7 downto 6));
     nout_en <= not out_en;
     en_balance <= frame_scan and not deskew_out;
 
@@ -232,7 +259,8 @@ begin
         );
         outdata_final <= "1111000" when deskew_out = '1' and buf_cycle(0) = '1' else
                          "1110000" when deskew_out = '1' and buf_cycle(0) = '0' else
-                         outdata_balanced;
+                         outdata_balanced when dc_balance = '1' else
+                         outdata_nobalanced(i);
         long_buf_p: process(clk, buf_cycle, frame_scan, outdata_final)
         begin
             if rising_edge(clk) and frame_scan = '1' then
@@ -352,7 +380,8 @@ begin
         signal tx               : std_ulogic;
         signal tq               : std_ulogic;
     begin
-        outdata_final <= "1111100" when deskew_out = '1' and buf_cycle(0) = '1' else
+        outdata_final <= "1100011" when dc_balance = '0' else
+                         "1111100" when deskew_out = '1' and buf_cycle(0) = '1' else
                          "1100000" when deskew_out = '1' and buf_cycle(0) = '0' else
                          "1100011" when deskew_out = '0' and buf_cycle(0) = '1' else
                          "1000011";
