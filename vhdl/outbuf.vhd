@@ -34,6 +34,7 @@ port(
     rst_req             : in  std_logic;
     rst_ack             : out std_logic;
     frame_clk           : in  std_logic;
+    dc_balance          : in  std_logic;
     clk                 : in  std_logic;
 
     fpga2bus_error      : out std_logic;
@@ -79,6 +80,9 @@ architecture Structural of outbuf is
     signal wrdly          : std_logic;
     signal rd             : std_logic;
     signal wr             : std_logic;
+    signal rd_rq          : std_logic;
+    signal rdackdly       : std_logic;
+    signal dc_balance_sync: std_logic;
 begin
     sync_rst_i: entity work.flag
     port map(
@@ -110,7 +114,14 @@ begin
         flag_out     => deskew,
         clk          => clk
     );
-    tx_deskew_ack <= deskew_running;
+    sync_dc_balance: entity work.flag
+    port map(
+        flag_in      => dc_balance,
+        flag_out     => dc_balance_sync,
+        clk          => clk
+    );
+    tx_deskew_ack <= deskew_running when dc_balance_sync = '1' else
+                     deskew;
 
 	reg_process: process(clk, depth, rst, bus2fpga_reset)
 	begin
@@ -126,7 +137,7 @@ begin
 		if rst = '1' then
 			addra <= (others => '0');
 		elsif rising_edge(clk) then
-			if addra = depth_r then
+            if addra = depth_r then --X"C350" then
 				addra <= (others => '0');
 			else
 				addra <= addra + 1;
@@ -145,6 +156,7 @@ begin
 		txclkn              => txclkn,
 		txclkp              => txclkp,
 		deskew              => deskew,
+        dc_balance          => dc_balance_sync,
 		deskew_running		=> deskew_running
 	);
 
@@ -170,15 +182,28 @@ begin
     fpga2bus_error <= '0';
     rd <= '1' when bus2fpga_cs = "1000" and bus2fpga_rnw = '1' else '0';
     wr <= '1' when bus2fpga_cs = "1000" and bus2fpga_rnw = '0' else '0';
-    rdack: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_cs, bus2fpga_rnw)
+    rdack: process(bus2fpga_clk, bus2fpga_reset, rd)
     begin
-        if bus2fpga_reset = '1' then
-            rddly <= '0';
-        elsif rising_edge(bus2fpga_clk) then
-            rddly <= rd;
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' then
+                rddly <= '0';
+            else
+                rddly <= rd;
+            end if;
         end if;
     end process;
-    fpga2bus_rdack <= rddly;
+    rd_rq <= rd and not(rddly);
+    rdack_dly: process(bus2fpga_clk, bus2fpga_reset, rd_rq)
+    begin
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' then
+                rdackdly <= '0';
+            else
+                rdackdly <= rd_rq;
+            end if;
+        end if;
+    end process;
+    fpga2bus_rdack <= rdackdly;
     fpga2bus_wrack <= wr;
 
 end Structural;

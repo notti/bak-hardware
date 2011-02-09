@@ -164,7 +164,6 @@ architecture Structural of reciever is
 	end component;
 
 -- clocks
-	signal refclk_unbuffered        : std_logic;
 	signal refclkout_i              : std_logic;
 	signal usrclk_i                 : std_logic;
 
