@@ -178,5 +178,5 @@ begin
     IP2Bus_RdAck     <= fpga2bus_rdack;
     IP2Bus_WrAck     <= fpga2bus_wrack;
     IP2Bus_Error     <= fpga2bus_error;
-    IP2Bus_IntrEvent <= fpga2bus_intr;
+    IP2Bus_IntrEvent <= reverse(fpga2bus_intr);
 end IMP;

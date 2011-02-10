@@ -93,7 +93,7 @@ begin
     rst_p: process(clk)
     begin
         if rising_edge(clk) then
-            rst_ack <= rst_req;
+            rst_ack <= rst;
         end if;
     end process;
     sync_mem_i: entity work.flag
@@ -128,7 +128,11 @@ begin
 		if bus2fpga_reset = '1' then
 			depth_r <= (others => '0');
 		elsif rising_edge(clk) and rst = '1' then
-			depth_r <= depth - 1;
+            if depth = "0000" then
+                depth_r <= (others => 0);
+            else
+			    depth_r <= depth - 1;
+            end if;
 		end if;
 	end process reg_process;
 
