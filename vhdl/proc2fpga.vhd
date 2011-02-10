@@ -339,7 +339,7 @@ begin
             if bus2fpga_reset = '1' then
                 slv_reg3(1) <= '0';
             else
-                if bus2fpga_wrce = "0100" then
+                if bus2fpga_wrce = "0001" then
                     if bus2fpga_be(0) = '1' then
                         slv_reg3(1) <= bus2fpga_data(1);
                     end if;
