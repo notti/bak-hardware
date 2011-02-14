@@ -128,8 +128,8 @@ begin
 		if bus2fpga_reset = '1' then
 			depth_r <= (others => '0');
 		elsif rising_edge(clk) and rst = '1' then
-            if depth = "0000" then
-                depth_r <= (others => 0);
+            if depth = X"0000" then
+                depth_r <= (others => '0');
             else
 			    depth_r <= depth - 1;
             end if;
@@ -141,7 +141,7 @@ begin
 		if rst = '1' then
 			addra <= (others => '0');
 		elsif rising_edge(clk) then
-            if addra = depth_r then --X"C350" then
+            if addra = X"C350" then  -- depth_r
 				addra <= (others => '0');
 			else
 				addra <= addra + 1;
