@@ -51,6 +51,13 @@
 --                                 |  0  | |  1  | |  2  | |  3  | |  4  | |  5  | |  6  | 
 --                                 s0(3-0) s0(6-4) s1(4-1) s1(6-5) s2(5-2) s2(6-6) s3(6-3)
 --                                         s1(0-0)         s2(1-0)         s3(2-0)
+--1100
+--0111
+--1000
+--1111
+--0001
+--1110
+--0011
 -----------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -97,7 +104,7 @@ architecture Structural of transmitter is
 
 	signal buf_cycle        : std_logic_vector(1 downto 0);
 	signal out_run          : std_logic;
-	signal out_cycle        : std_logic_vector(2 downto 0);
+	signal out_cycle        : unsigned(2 downto 0);
 	signal CLKFBOUT_CLKFBIN : std_logic;
 	signal out_en           : std_logic;
 	signal nout_en          : std_logic;
@@ -122,6 +129,7 @@ architecture Structural of transmitter is
 		end loop;
 		return result;
 	end;
+
 begin
     in_start_p: process(ckf, locked_i)
     begin
@@ -166,10 +174,10 @@ begin
     end process out_run_p;
     out_cycle_p: process(ckm, out_run, out_cycle)
     begin
-        if out_run = '0' or out_cycle = "111" then
+        if out_run = '0' then
             out_cycle <= (others => '0');
         elsif rising_edge(ckm) then
-            out_cycle <= out_cycle + 1;
+            out_cycle <= (out_cycle + 1) mod 7;
         end if;
     end process;
     out_en_p: process(ckm, rst, out_run)
@@ -188,7 +196,7 @@ begin
             deskew_cnt <= deskew_cnt + 1;
         end if;
     end process;
-    deskew_p: process(clk, rst, frame_scan, deskew_cnt, deskew, deskew_state, in_start)
+    deskew_p: process(clk, rst, frame_scan, dc_balance, deskew_cnt, deskew, deskew_state, in_start)
     begin
         if rst = '1' or dc_balance = '0' then
             deskew_state <= RESET;
@@ -222,24 +230,24 @@ begin
         end if;
     end process;
 
-    outdata_unbalanced(0) <= reverse(e2( 5 downto  0));
-    outdata_unbalanced(1) <= reverse(e2(13 downto  8));
-    outdata_unbalanced(2) <= reverse(e2(21 downto 16));
-    outdata_unbalanced(3) <= reverse(e2(23 downto 22) & e2(15 downto 14) & e2(7 downto 6));
-    outdata_unbalanced(4) <= reverse(e1( 5 downto  0));
-    outdata_unbalanced(5) <= reverse(e1(13 downto  8));
-    outdata_unbalanced(6) <= reverse(e1(21 downto 16));
-    outdata_unbalanced(7) <= reverse(e1(23 downto 22) & e1(15 downto 14) & e1(7 downto 6));
-    outdata_nobalanced(0) <= reverse(e2(8) & e2(5 downto 0));
-    outdata_nobalanced(1) <= reverse(e2(17 downto 16) & e2(13 downto 9));
-    outdata_nobalanced(2) <= reverse("000" & e2(21 downto 18));
-    outdata_nobalanced(3) <= reverse(e2(23) & e2(23) & e2(22) & e2(15 downto 14) & e2(7 downto 6));
-    outdata_nobalanced(4) <= reverse(e1(8) & e1(5 downto 0));
-    outdata_nobalanced(5) <= reverse(e1(17 downto 16) & e1(13 downto 9));
-    outdata_nobalanced(6) <= reverse("000" & e1(21 downto 18));
-    outdata_nobalanced(7) <= reverse(e1(23) & e1(23) & e1(22) & e1(15 downto 14) & e1(7 downto 6));
+    outdata_unbalanced(0) <= e2( 5 downto  0);
+    outdata_unbalanced(1) <= e2(13 downto  8);
+    outdata_unbalanced(2) <= e2(21 downto 16);
+    outdata_unbalanced(3) <= e2(23 downto 22) & e2(15 downto 14) & e2(7 downto 6);
+    outdata_unbalanced(4) <= e1( 5 downto  0);
+    outdata_unbalanced(5) <= e1(13 downto  8);
+    outdata_unbalanced(6) <= e1(21 downto 16);
+    outdata_unbalanced(7) <= e1(23 downto 22) & e1(15 downto 14) & e1(7 downto 6);
+    outdata_nobalanced(0) <= e2(8) & e2(5 downto 0);
+    outdata_nobalanced(1) <= e2(17 downto 16) & e2(13 downto 9);
+    outdata_nobalanced(2) <= "000" & e2(21 downto 18);
+    outdata_nobalanced(3) <= e2(23) & e2(23) & e2(22) & e2(15 downto 14) & e2(7 downto 6);
+    outdata_nobalanced(4) <= e1(8) & e1(5 downto 0);
+    outdata_nobalanced(5) <= e1(17 downto 16) & e1(13 downto 9);
+    outdata_nobalanced(6) <= "000" & e1(21 downto 18);
+    outdata_nobalanced(7) <= e1(23) & e1(23) & e1(22) & e1(15 downto 14) & e1(7 downto 6);
     nout_en <= not out_en;
-    en_balance <= frame_scan and not deskew_out;
+    en_balance <= frame_scan and (not deskew_out) and dc_balance;
 
     outputs_generate: for i in 0 to 7 generate
         signal outdata_long     : data_arr;
