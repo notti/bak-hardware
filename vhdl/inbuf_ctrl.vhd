@@ -20,7 +20,7 @@ port(
 	rst                 : in  std_logic;
 	stream_valid		: in  std_logic;
 
-	depth               : in  std_logic_vector(15 downto 0);
+	depth_1             : in  std_logic_vector(15 downto 0);
 	width               : in  std_logic_vector(1 downto 0);
 
 	arm					: in  std_logic;
@@ -42,8 +42,6 @@ architecture Structural of inbuf_ctrl is
 	type inbuf_state is (RESET, EXT_TRIG, WRITE, FINISHED, INT_TRIG);
 	signal state         : inbuf_state;
 	signal next_state    : inbuf_state;
-	signal depth_r       : std_logic_vector(15 downto 0);
-	signal width_r       : std_logic_vector(1 downto 0);
 	signal rst_i         : std_logic;
 	signal frame_clk_i   : std_logic;
 	signal frame_clk_cnt : std_logic_vector(15 downto 0);
@@ -52,15 +50,15 @@ architecture Structural of inbuf_ctrl is
 	signal width_max	 : std_logic_vector(3 downto 0);
 	signal addrb_cnt     : std_logic_vector(15 downto 0);
 begin
-	width_max <= "0111" when width_r = "11" else
-				 "0011" when width_r = "10" else
-				 "0001" when width_r = "01" else
+	width_max <= "0111" when width = "11" else
+				 "0011" when width = "10" else
+				 "0001" when width = "01" else
 				 "0000";
 
 	rst_i     <= rst or not stream_valid;
 	frame_clk <= frame_clk_i;
 
-	state_process: process(clk, rst_i, depth, width)
+	state_process: process(clk, rst_i)
 	begin
 		if rst_i = '1' then
 			state <= RESET;
@@ -69,18 +67,7 @@ begin
 		end if;
 	end process state_process;
 
-	reg_process: process(clk, state, depth, width, rst_i)
-	begin
-		if rst_i = '1' then
-			depth_r <= (others => '0');
-			width_r <= (others => '0');
-		elsif rising_edge(clk) and state = RESET then
-			depth_r <= depth - 1;
-			width_r <= width;
-		end if;
-	end process reg_process;
-
-	next_state_process: process(clk, state, arm, trigger, frame_clk_i, frame_clk_cnt, depth_r, width_cnt, width_max)
+	next_state_process: process(clk, state, arm, trigger, frame_clk_i, frame_clk_cnt, depth_1, width_cnt, width_max)
 	begin
 		next_state <= state;
 		case state is
@@ -90,7 +77,7 @@ begin
 			when EXT_TRIG =>	if trigger = '1' then
 									next_state <= WRITE;
 								end if;
-			when WRITE    =>	if frame_clk_cnt = depth_r and width_cnt = width_max then
+			when WRITE    =>	if frame_clk_cnt = depth_1 and width_cnt = width_max then
 									next_state <= FINISHED;
 								end if;
 			when FINISHED =>	if arm = '1' then
@@ -113,13 +100,13 @@ begin
 		end case;
 	end process output_function_process;
 
-	frame_clk_cnt_process: process(clk, locked_i, depth_r, state)
+	frame_clk_cnt_process: process(clk, locked_i, depth_1, state)
 	begin
 		if locked_i = '0' then 
 			frame_clk_cnt <= (others => '0');
 			frame_clk_i <= '0';
 		elsif rising_edge(clk) then
-			if frame_clk_cnt = depth_r then
+			if frame_clk_cnt = depth_1 then
 				frame_clk_cnt <= (others => '0');
 				frame_clk_i <= '1';
 			else
@@ -129,12 +116,12 @@ begin
 		end if;
 	end process frame_clk_cnt_process;
 
-	addrb_cnt_process: process(clk, rst_i, locked_i, depth_r)
+	addrb_cnt_process: process(clk, rst_i, locked_i, depth_1)
 	begin
 		if locked_i = '0' then
-			addrb_cnt <= depth_r - 2;
+			addrb_cnt <= depth_1 - 2;
 		elsif rising_edge(clk) then
-			if addrb_cnt = depth_r then
+			if addrb_cnt = depth_1 then
 				addrb_cnt <= (others => '0');
 			else
 				addrb_cnt <= addrb_cnt + 1;
@@ -147,7 +134,7 @@ begin
 		if not(state = WRITE) then
 			width_cnt <= (others => '0');
 		elsif rising_edge(clk) then
-			if frame_clk_cnt = depth_r then
+			if frame_clk_cnt = depth_1 then
 				width_cnt <= width_cnt + 1;
 			end if;
 		end if;

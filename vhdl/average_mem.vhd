@@ -21,7 +21,7 @@ port(
     clk          : in std_logic;
 
     width        : in std_logic_vector(1 downto 0);
-    depth        : in std_logic_vector(15 downto 0);
+    depth_1      : in std_logic_vector(15 downto 0);
     arm          : in std_logic;
     trigger      : in std_logic;
     done         : out std_logic;
@@ -101,7 +101,7 @@ begin
         clk          => clk,
         rst          => rst,
         stream_valid => stream_valid,
-        depth        => depth,
+        depth_1      => depth_1,
         width        => width,
         arm          => arm_i,
         trigger      => trigger,

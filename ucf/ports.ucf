@@ -1,37 +1,36 @@
 ######################################
 NET gtx_refclk_n  LOC=H15;
 NET gtx_refclk_p  LOC=H14;
-NET oserdes_txp(0) LOC = L34 | FAST;
-NET oserdes_txn(0) LOC = K34 | FAST;
-NET oserdes_txp(1) LOC = K33 | FAST;
-NET oserdes_txn(1) LOC = K32 | FAST;
-NET oserdes_txp(2) LOC = P32 | FAST;
-NET oserdes_txn(2) LOC = N32 | FAST;
-NET oserdes_txclkp LOC = T33 | FAST;
-NET oserdes_txclkn LOC = R34 | FAST;
-NET oserdes_txp(3) LOC = R33 | FAST;
-NET oserdes_txn(3) LOC = R32 | FAST;
-NET oserdes_txp(4) LOC = U33 | FAST;
-NET oserdes_txn(4) LOC = T34 | FAST;
-NET oserdes_txp(5) LOC = U32 | FAST;
-NET oserdes_txn(5) LOC = U31 | FAST;
-NET oserdes_txp(6) LOC = V32 | FAST;
-NET oserdes_txn(6) LOC = V33 | FAST;
-NET oserdes_txp(7) LOC = W34 | FAST;
-NET oserdes_txn(7) LOC = V34 | FAST;
-NET inbuf_trigger LOC = AN33 | IOSTANDARD=LVCMOS25 | PULLDOWN;
-NET frame_clk LOC = AN34 | IOSTANDARD=LVCMOS25 | FAST;
-NET push_south LOC = V8 |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
+NET oserdes_txp(0) LOC = L34 |FAST;
+NET oserdes_txn(0) LOC = K34 |FAST;
+NET oserdes_txp(1) LOC = K33 |FAST;
+NET oserdes_txn(1) LOC = K32 |FAST;
+NET oserdes_txp(2) LOC = P32 |FAST;
+NET oserdes_txn(2) LOC = N32 |FAST;
+NET oserdes_txclkp LOC = T33 |FAST;
+NET oserdes_txclkn LOC = R34 |FAST;
+NET oserdes_txp(3) LOC = R33 |FAST;
+NET oserdes_txn(3) LOC = R32 |FAST;
+NET oserdes_txp(4) LOC = U33 |FAST;
+NET oserdes_txn(4) LOC = T34 |FAST;
+NET oserdes_txp(5) LOC = U32 |FAST;
+NET oserdes_txn(5) LOC = U31 |FAST;
+NET oserdes_txp(6) LOC = V32 |FAST;
+NET oserdes_txn(6) LOC = V33 |FAST;
+NET oserdes_txp(7) LOC = W34 |FAST;
+NET oserdes_txn(7) LOC = V34 |FAST;
+NET inbuf_trigger LOC = AN33 |IOSTANDARD=LVCMOS25 |PULLDOWN;
+NET frame_clk LOC = AN34 |IOSTANDARD=LVCMOS25 |FAST;
+NET push_south LOC = V8 |IOSTANDARD=LVCMOS33  |PULLDOWN  |SLEW=SLOW  |DRIVE=2;
 INST inst_inbuf/reciever_i/gtx_i/tile0_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y3;
 INST inst_inbuf/reciever_i/gtx_i/tile1_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y5;
-NET "inst_inbuf/reciever_i/refclkout_i" TNM_NET = inst_inbuf_i/reciever_i/refclkout_i;
+NET "inst_inbuf/reciever_i/refclkout_i" TNM_NET = inst_inbuf/reciever_i/refclkout_i;
 TIMESPEC TS_inst_inbuf_reciever_i_refclkout_i = PERIOD "inst_inbuf/reciever_i/refclkout_i" 10 ns HIGH 50%;
 
 #NET "outbuf_i/transmitter_i/PLL_INST/CLKOUT0" TNM_NET = outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT0_BUF;
 #TIMESPEC TS_outbuf_i_transmitter_i_transmitter_pll_i_CLKOUT0_BUF = PERIOD "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT0_BUF" 350 MHz HIGH 50%;
 #NET "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1" TNM_NET = outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1_BUF;
 #TIMESPEC TS_outbuf_i_transmitter_i_transmitter_pll_i_CLKOUT1_BUF = PERIOD "outbuf_i/transmitter_i/transmitter_pll_i/CLKOUT1_BUF" 175 MHz HIGH 50%;
-
 
 Net fpga_0_Hard_Ethernet_MAC_PHY_MII_INT LOC=H20;
 Net fpga_0_Hard_Ethernet_MAC_PHY_MII_INT IOSTANDARD = LVCMOS25;
@@ -48,16 +47,13 @@ TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 10000 ps;
 Net sys_rst_pin TIG;
 
 ## IO Devices constraints
-
 #### Module RS232_Uart_1 constraints
-
 Net fpga_0_RS232_Uart_1_sin_pin LOC = AG15;
 Net fpga_0_RS232_Uart_1_sin_pin IOSTANDARD=LVCMOS33;
 Net fpga_0_RS232_Uart_1_sout_pin LOC = AG20;
 Net fpga_0_RS232_Uart_1_sout_pin IOSTANDARD=LVCMOS33;
 
 #### Module Hard_Ethernet_MAC constraints
-
 Net fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin LOC=J14;
 Net fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin IOSTANDARD = LVCMOS25;
 Net fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin TIG;
@@ -113,7 +109,6 @@ Net fpga_0_Hard_Ethernet_MAC_MDIO_0_pin LOC=H13;
 Net fpga_0_Hard_Ethernet_MAC_MDIO_0_pin IOSTANDARD = LVCMOS25;
 
 #### Module DDR2_SDRAM constraints
-
 Net fpga_0_DDR2_SDRAM_DDR2_ODT_pin<0> LOC=F31;
 Net fpga_0_DDR2_SDRAM_DDR2_ODT_pin<0> IOSTANDARD = SSTL18_II;
 Net fpga_0_DDR2_SDRAM_DDR2_ODT_pin<1> LOC=F30;
@@ -344,7 +339,6 @@ Net fpga_0_DDR2_SDRAM_DDR2_DQ<63> LOC=L24;
 Net fpga_0_DDR2_SDRAM_DDR2_DQ<63> IOSTANDARD = SSTL18_II;
 
 #### Module SysACE_CompactFlash constraints
-
 Net fpga_0_SysACE_CompactFlash_SysACE_CLK_pin LOC=AH17;
 Net fpga_0_SysACE_CompactFlash_SysACE_CLK_pin IOSTANDARD = LVCMOS33;
 Net fpga_0_SysACE_CompactFlash_SysACE_CLK_pin PERIOD = 30000 ps;
@@ -410,7 +404,6 @@ Net fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin TIG;
 #  PPC440MC_DDR2 BRAM Location Constraints
 #
 ############################################################################
-
 ##------------------------------------------------------------------------------
 ## MIG 2.0 Constraints
 ##------------------------------------------------------------------------------
@@ -418,7 +411,6 @@ Net fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin TIG;
 ## Define multicycle paths - these paths may take longer because additional
 ## time allowed for logic to settle in calibration/initialization FSM
 ###########################################################################
-
 NET "*/DDR2_SDRAM*/mc_mibclk" TNM = FFS "TNM_CLK0";
 NET "*/DDR2_SDRAM*/mi_mcclk90" TNM = FFS "TNM_CLK90";
 
@@ -467,7 +459,6 @@ TIMESPEC "TS_MC_RDEN_SEL_MUX" = FROM "TNM_RDEN_SEL_MUX" TO "TNM_CLK0"
 ## 2. DM data mask (output only, input side is free for use)
 ## 3. Any output-only site
 ###########################################################################
-
 INST "*/gen_dqs[0].u_iob_dqs/u_iddr_dq_ce" LOC = "ILOGIC_X0Y96";
 INST "*/gen_dqs[0].u_iob_dqs/u_iodelay_dq_ce" LOC = "IODELAY_X0Y96";
 INST "*/gen_dqs[1].u_iob_dqs/u_iddr_dq_ce" LOC = "ILOGIC_X0Y58";
@@ -488,7 +479,6 @@ INST "*/gen_dqs[7].u_iob_dqs/u_iodelay_dq_ce" LOC = "IODELAY_X0Y262";
 ###########################################################################
 ## DQS Squelch-related timing constraints
 ###########################################################################
-
 ###########################################################################
 ## Half-cycle path constraint from IDDR to CE pin for all DQ IDDRs
 ## for DQS Read Postamble Glitch Squelch circuit
@@ -509,7 +499,6 @@ TIMESPEC "TS_DQ_CE" = FROM "TNM_DQ_CE_IDDR" TO "TNM_DQS_FLOPS" 1.9 ns;
 ## voltage/temp variations - these are roughly proportional to the
 ## absolute delay of the path
 ###########################################################################
-
 INST "*/u_phy_calib/gen_gate[0].u_en_dqs_ff" LOC = SLICE_X0Y48;
 INST "*/u_phy_calib/gen_gate[1].u_en_dqs_ff" LOC = SLICE_X0Y29;
 INST "*/u_phy_calib/gen_gate[2].u_en_dqs_ff" LOC = SLICE_X0Y31;
@@ -526,12 +515,10 @@ INST "*/u_phy_calib/gen_gate[7].u_en_dqs_ff" LOC = SLICE_X0Y131;
 ## A single number is used for all speed grades - value based on 333MHz.
 ## This can be relaxed for lower frequencies.
 ###########################################################################
-
 NET "*/u_phy_io/en_dqs*" MAXDELAY = 600 ps;
 NET "*/u_phy_io/gen_dqs*.u_iob_dqs/en_dqs_sync" MAXDELAY = 850 ps;
 
 ###########################################################################
-
 INST "*/gen_dq[0].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise" RLOC_ORIGIN = X0Y42;
 INST "*/gen_dq[1].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise" RLOC_ORIGIN = X0Y43;
 INST "*/gen_dq[2].u_iob_dq/gen_stg2_*.u_ff_stg2a_rise" RLOC_ORIGIN = X0Y45;
@@ -605,32 +592,21 @@ INST "*/DDR2_SDRAM/*/*gen_wdf[1]*u_wdf" LOC = RAMB36_X0Y16;
 
 
 ###############################################################################
-
 # Prevent unrelated logic from being packed into any slices used
-
 # by read data capture RPM's - if unrelated logic gets packed into
-
 # these slices, it could cause the DIRT strings that define the
-
 # IDDR -> fabric flop routing to become unroutable during PAR stage
-
 # (unrelated logic may require routing resources required by the
-
 # DIRT strings - MAP does not currently take into account DIRT
-
 # strings when placing logic
-
 ###############################################################################
-
 AREA_GROUP "DDR_CAPTURE_FFS" GROUP = CLOSED;
 
  
 
 
 #### New Hard_Ethernet_MAC constraints
-
 # EMAC0 Clocking
-
 # EMAC0 TX Client Clock input from BUFG
 NET "*/tx_client_clk*" TNM_NET = "clk_client_tx0";
 TIMEGRP  "v5_emac_v1_3_single_gmii_client_clk_tx0"     = "clk_client_tx0";
@@ -686,5 +662,3 @@ TIMESPEC "TS_LL_CLK_2_RX_CLIENT_CLK"  = FROM LLCLK TO clk_client_rx0 8000 ps DAT
 TIMESPEC "TS_LL_CLK_2_TX_CLIENT_CLK"  = FROM LLCLK TO clk_client_tx0 8000 ps DATAPATHONLY;
 TIMESPEC "TS_RX_CLIENT_CLK_2_LL_CLK"  = FROM clk_client_rx0 TO LLCLK 10000 ps DATAPATHONLY;
 TIMESPEC "TS_TX_CLIENT_CLK_2_LL_CLK"  = FROM clk_client_tx0 TO LLCLK 10000 ps DATAPATHONLY;
-
-

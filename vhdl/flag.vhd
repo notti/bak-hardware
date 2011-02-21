@@ -37,10 +37,11 @@ begin
 sync: process(clk)
 begin
     if rising_edge(clk) then
-        flag_out <= sreg(1);
         sreg <= sreg(0) & flag_in;
     end if;
 end process sync;
+
+flag_out <= sreg(1);
 
 end Structural;
 
