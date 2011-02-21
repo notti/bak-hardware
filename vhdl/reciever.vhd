@@ -25,6 +25,7 @@ port(
 	rxp                 : in  std_logic_vector(3 downto 0);
 	txn                 : out std_logic_vector(3 downto 0);
 	txp                 : out std_logic_vector(3 downto 0);
+    pll_locked          : out std_logic;
 
 -- clk
 	clk                 : out std_logic;
@@ -238,7 +239,7 @@ begin
 		--------------------- Shared Ports - Tile and PLL Ports --------------------
 		TILE0_CLKIN_IN                  =>      refclk,
 		TILE0_GTXRESET_IN               =>      rst,
-		TILE0_PLLLKDET_OUT              =>      open,
+		TILE0_PLLLKDET_OUT              =>      pll_locked,
 		TILE0_REFCLKOUT_OUT             =>      refclkout_i,
 		TILE0_RESETDONE0_OUT            =>      resetdone_i(0),
 		TILE0_RESETDONE1_OUT            =>      resetdone_i(1),

@@ -77,7 +77,6 @@ port(
 	e1                  : in  std_logic_vector(23 downto 0);
 	e2                  : in  std_logic_vector(23 downto 0);
 	deskew              : in  std_logic;
-	deskew_running		: out std_logic;
     dc_balance          : in  std_logic;
 
 -- signals for selectio oserdes transmitter
@@ -207,25 +206,21 @@ begin
                         deskew_state <= OUT_DESKEW;
                     end if;
                     deskew_out <= '0';
-                    deskew_running <= '0';
                 when OUT_DESKEW =>
                     if and_many(deskew_cnt) = '1' then
                         deskew_state <= OUT_DATA;
                     end if;
                     deskew_out <= '1';
-                    deskew_running <= '1';
                 when OUT_DATA =>
                     if deskew = '1' then
                         deskew_state <= DESKEW_SYNC;
                     end if;
                     deskew_out <= '0';
-                    deskew_running <= '0';
                 when DESKEW_SYNC =>
                     if frame_sync = '1' then
                         deskew_state <= OUT_DESKEW;
                     end if;
                     deskew_out <= '0';
-                    deskew_running <= '1';
             end case;
         end if;
     end process;
