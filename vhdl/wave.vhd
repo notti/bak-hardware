@@ -1,0 +1,71 @@
+----------------------------------------------------------
+-- Project			: 
+-- File				: wave.vhd
+-- Author			: Gernot Vormayr
+-- created			: July, 3rd 2009
+-- contents			: overlap add
+-----------------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+library work;
+use work.all;
+
+entity wave is
+port(
+    clk        : in std_logic;
+    rst        : in std_logic;
+    en         : in std_logic;
+    wave_index : in std_logic_vector(3 downto 0);
+    run        : in std_logic;
+    data       : in std_logic_vector(15 downto 0);
+    i          : out std_logic_vector(15 downto 0);
+    q          : out std_logic_vector(15 downto 0)
+);
+end wave;
+
+architecture Structural of wave is
+    signal cnt: std_logic_vector(3 downto 0) := X"0";
+    type comp is array(natural range <>) of std_logic_vector(15 downto 0);
+    signal c: comp(0 to 9) :=
+          --(  32767,  -10126,  -26509,   26509,   10126,  -32767,   10126,   26509,  -26509, -10126
+            (X"7FFF", X"D872", X"9873", X"678D", X"278E", X"8001", X"278E", X"678D", X"9873", X"D872");
+    signal s: comp(0 to 9) :=
+          --(      0,   31163,  -19260,  -19260,   31163,       0,  -31163,   19260,   19260,   -31163
+            (X"0000", X"79BB", X"B4C4", X"B4C4", X"79BB", X"0000", X"8645", X"4B3C", X"4B3C", X"8645");
+    signal i_long : std_logic_vector(31 downto 0);
+    signal q_long : std_logic_vector(31 downto 0);
+    signal data_r : std_logic_vector(15 downto 0);
+begin
+    cnt_p: process(clk, rst)
+    begin
+        if clk = '1' and clk'event then
+            if rst = '1' then
+                cnt <= wave_index;
+            elsif run = '1' then
+                if cnt = X"9" then
+                    cnt <= (others => '0');
+                else
+                    cnt <= cnt + 1;
+                end if;
+            end if;
+        end if;
+    end process cnt_p;
+
+    mul_p: process(clk)
+    begin
+        if clk = '1' and clk'event then
+            i_long <= data*c(conv_integer(cnt));
+            q_long <= data*s(conv_integer(cnt));
+            data_r <= data;
+        end if;
+    end process mul_p;
+
+    i <= i_long(31 downto 16) when en = '1' else
+         (others => '0');
+    q <= q_long(31 downto 16) when en = '1' else
+         data_r;
+
+end Structural;
+
