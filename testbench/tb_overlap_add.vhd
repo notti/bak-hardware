@@ -21,6 +21,8 @@ architecture behav of tb_overlap_add is
     signal start        : std_logic := '0';
     signal nfft         : std_logic_vector(4 downto 0) := "00110";
     signal scale_sch    : std_logic_vector(11 downto 0) := "011010101010";
+    signal scale_schi   : std_logic_vector(11 downto 0) := "011010101010";
+    signal cmul_sch     : std_logic_vector(1 downto 0) := "00";
     signal L            : std_logic_vector(11 downto 0) := X"023"; -- 35
     signal n            : std_logic_vector(15 downto 0) := X"0190"; -- 400
     signal iq           : std_logic := '0';
@@ -146,6 +148,8 @@ begin
     start        => start,
     nfft         => nfft,
     scale_sch    => scale_sch,
+    scale_schi   => scale_schi,
+    cmul_sch     => cmul_sch,
     L            => L,
     n            => n,
     iq           => iq,

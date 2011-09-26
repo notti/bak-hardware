@@ -29,15 +29,23 @@ port(
 end cadd;
 
 architecture Structural of cadd is
+    signal c_re_i : std_logic_vector(15 downto 0);
+    signal c_im_i : std_logic_vector(15 downto 0);
+    signal ovfl_re : std_logic;
+    signal ovfl_im : std_logic;
 begin
 
+    c_re_i <= a_re + b_re;
+    c_im_i <= a_im + b_im;
+    ovfl_re <= (a_re(15) and b_re(15) and (not c_re_i(15))) or ((not a_re(15)) and (not b_re(15)) and c_re_i(15));
+    ovfl_im <= (a_im(15) and b_im(15) and (not c_im_i(15))) or ((not a_im(15)) and (not b_im(15)) and c_im_i(15));
     add_p: process(clk)
     begin
         if clk = '1' and clk'event then
-            c_re <= a_re + b_re;
-            c_im <= a_im + b_im;
+            ovfl <= ovfl_re or ovfl_im;
+            c_re <= c_re_i;
+            c_im <= c_im_i;
         end if;
     end process add_p;
-    ovfl <= '0';
 
 end Structural;

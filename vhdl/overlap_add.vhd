@@ -33,6 +33,7 @@ port(
     start        : in std_logic;
     nfft         : in std_logic_vector(4 downto 0);
     scale_sch    : in std_logic_vector(11 downto 0);
+    scale_schi   : in std_logic_vector(11 downto 0);
     cmul_sch     : in std_logic_vector(1 downto 0);
     L            : in std_logic_vector(11 downto 0);
     n            : in std_logic_vector(15 downto 0);
@@ -216,6 +217,9 @@ end component;
     signal iq_i         : std_logic;
     signal last_y_cnt   : data_t;
     signal next_index_neg : std_logic;
+    signal scale_sch_i : std_logic_vector(11 downto 0);
+    signal scale_schi_i : std_logic_vector(11 downto 0);
+    signal scale_sch_fft : std_logic_vector(11 downto 0);
 begin
     assert (FFT_CYCLES - X_READ_CYCLES = 1) report "X read cycles + 1 cycle iq/demux != FFT_CYCLES!" severity error;
 
@@ -279,6 +283,8 @@ begin
                 m_i <= max_index - L;
                 iq_i <= iq;
                 cmul_sch_i <= cmul_sch;
+                scale_sch_i <= scale_sch;
+                scale_schi_i <= scale_schi;
             end if;
         end if;
     end process prepare_p;
@@ -613,6 +619,9 @@ begin
     scratch_we_i(0) <= scratch_we;
 
 
+    scale_sch_fft <= scale_sch_i when fwd_inv_i = '1' else
+                     scale_schi_i;
+
     fft_inst: fft
     port map(
         sclr         => rst,
@@ -622,13 +631,13 @@ begin
         fwd_inv      => fwd_inv_i,
         dv           => dv_i,
         nfft_we      => prepare_we,
-        scale_sch_we => prepare_we,
+        scale_sch_we => fwd_inv_we_i,
         done         => done_i,
         clk          => clk,
         busy         => busy_i,
         edone        => edone_i,
         ovflo        => ovflo_fft,
-        scale_sch    => scale_sch,
+        scale_sch    => scale_sch_fft,
         xn_re        => xn_re_i,
         xk_im        => xk_im_i,
         xn_index     => xn_index_i,
