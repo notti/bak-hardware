@@ -44,7 +44,6 @@ architecture Structural of cmul is
     signal ovflb : std_logic;
     signal ovflc : std_logic;
     signal ovfld : std_logic;
-    signal ovfl_i : std_logic;
     signal ovfl_re : std_logic;
     signal ovfl_im : std_logic;
 begin
@@ -59,7 +58,7 @@ begin
         if clk = '1' and clk'event then
             c_re <= c_re_i;
             c_im <= c_im_i;
-            ovfl <= ovfl_i or ovfl_im or ovfl_re or ovfla or ovflb or ovflc or ovfld;
+            ovfl <= ovfl_im or ovfl_re or ovfla or ovflb or ovflc or ovfld;
         end if;
     end process;
 
