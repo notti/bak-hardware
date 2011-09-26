@@ -7,7 +7,7 @@
 -----------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_SIGNED.ALL;
 
 library UNISIM;
 use UNISIM.VComponents.all;
@@ -30,251 +30,98 @@ port(
 end cmul;
 
 architecture Structural of cmul is
-    signal PCOUT_0: std_logic_vector(47 downto 0);
-    signal PCOUT_2: std_logic_vector(47 downto 0);
-    signal c_re_i: std_logic_vector(47 downto 0);
-    signal c_im_i: std_logic_vector(47 downto 0);
-    signal a_im_i: std_logic_vector(29 downto 0);
-    signal a_re_i: std_logic_vector(29 downto 0);
-    signal b_im_i: std_logic_vector(17 downto 0);
-    signal b_re_i: std_logic_vector(17 downto 0);
-
+    signal a_re_b_re : std_logic_vector(15 downto 0);
+    signal a_re_b_im : std_logic_vector(15 downto 0);
+    signal a_im_b_re : std_logic_vector(15 downto 0);
+    signal a_im_b_im : std_logic_vector(15 downto 0);
+    signal c_re_i : std_logic_vector(15 downto 0);
+    signal c_im_i : std_logic_vector(15 downto 0);
+    signal carry_a_re_b_re : std_ulogic;
+    signal carry_a_re_b_im : std_ulogic;
+    signal carry_a_im_b_re : std_ulogic;
+    signal carry_a_im_b_im : std_ulogic;
+    signal ovfla : std_logic;
+    signal ovflb : std_logic;
+    signal ovflc : std_logic;
+    signal ovfld : std_logic;
+    signal ovfl_i : std_logic;
+    signal ovfl_re : std_logic;
+    signal ovfl_im : std_logic;
 begin
-    a_im_i <= SXT(a_im, 30);
-    a_re_i <= SXT(a_re, 30);
-    b_im_i <= SXT(b_im, 18);
-    b_re_i <= SXT(b_re, 18);
--- c_re = a_re * b_re - a_im * b+im
+-- c_re = a_re * b_re - a_im * b_im
 -- c_im = a_re * b_im + b_re * a_im
--- DSP48E_0       DSP48E_1       DSP48E_2       DSP48E_3       
--- OPMODE 0000101 OPMODE 0010101 OPMODE 0000101 OPMODE 0010101 
--- ALUMODE   0000 ALUMODE   0011 ALUMODE   0000 ALUMODE   0000 
--- Z+(X+Y+CARRY)  Z-(X+Y+CARRY)  Z+(X+Y+CARRY)  Z+(X+Y+CARRY)  
-    DSP48E_3: DSP48E
-    generic map (
-        AREG => 1,
-        BREG => 1,
-        MREG => 1,
-        PREG => 1,
-        USE_MULT => "MULT_S"
-    )
-    port map (
-        A => a_im_i,
-        B => b_re_i,
-        P => c_im_i,
-        OPMODE => "0010101",
-        ALUMODE => "0000",
-        PCIN => PCOUT_2,
-        PCOUT => open,
-        ACOUT => open,
-        BCOUT => open,
-        CARRYCASCOUT => open,
-        CARRYOUT => open,
-        MULTSIGNOUT => open,
-        OVERFLOW => open,
-        PATTERNBDETECT => open,
-        PATTERNDETECT => open,
-        UNDERFLOW => open,
-        ACIN => "000000000000000000000000000000",
-        BCIN => "000000000000000000",
-        C => "000000000000000000000000000000000000000000000000",
-        CARRYINSEL => "000",
-        CARRYCASCIN => '0',
-        CARRYIN => '0',
-        CEA1 => '1',
-        CEA2 => '1',
-        CEALUMODE => '1',
-        CEB1 => '1',
-        CEB2 => '1',
-        CEC => '1',
-        CECARRYIN => '1',
-        CECTRL => '1',
-        CEM => '1',
-        CEMULTCARRYIN => '1',
-        CEP => '1',
-        CLK => clk,
-        MULTSIGNIN => '0',
-        RSTA => '0',
-        RSTALLCARRYIN => '0',
-        RSTALUMODE => '0',
-        RSTB => '0',
-        RSTC => '0',
-        RSTCTRL => '0',
-        RSTM => '0',
-        RSTP => '0'
-    );
-    DSP48E_2: DSP48E
-    generic map (
-        AREG => 0,
-        ACASCREG => 0,
-        BREG => 0,
-        BCASCREG => 0,
-        MREG => 1,
-        PREG => 1,
-        USE_MULT => "MULT_S"
-    )
-    port map (
-        A => a_re_i,
-        B => b_im_i,
-        P => open,
-        OPMODE => "0000101",
-        ALUMODE => "0000",
-        PCIN => "000000000000000000000000000000000000000000000000",
-        PCOUT => PCOUT_2,
-        ACOUT => open,
-        BCOUT => open,
-        CARRYCASCOUT => open,
-        CARRYOUT => open,
-        MULTSIGNOUT => open,
-        OVERFLOW => open,
-        PATTERNBDETECT => open,
-        PATTERNDETECT => open,
-        UNDERFLOW => open,
-        ACIN => "000000000000000000000000000000",
-        BCIN => "000000000000000000",
-        C => "000000000000000000000000000000000000000000000000",
-        CARRYINSEL => "000",
-        CARRYCASCIN => '0',
-        CARRYIN => '0',
-        CEA1 => '1',
-        CEA2 => '1',
-        CEALUMODE => '1',
-        CEB1 => '1',
-        CEB2 => '1',
-        CEC => '1',
-        CECARRYIN => '1',
-        CECTRL => '1',
-        CEM => '1',
-        CEMULTCARRYIN => '1',
-        CEP => '1',
-        CLK => clk,
-        MULTSIGNIN => '0',
-        RSTA => '0',
-        RSTALLCARRYIN => '0',
-        RSTALUMODE => '0',
-        RSTB => '0',
-        RSTC => '0',
-        RSTCTRL => '0',
-        RSTM => '0',
-        RSTP => '0'
-    );
-    DSP48E_1: DSP48E
-    generic map (
-        AREG => 1,
-        BREG => 1,
-        MREG => 1,
-        PREG => 1,
-        USE_MULT => "MULT_S"
-    )
-    port map (
-        A => a_im_i,
-        B => b_im_i,
-        P => c_re_i,
-        OPMODE => "0010101",
-        ALUMODE => "0011",
-        PCIN => PCOUT_0,
-        PCOUT => open,
-        ACOUT => open,
-        BCOUT => open,
-        CARRYCASCOUT => open,
-        CARRYOUT => open,
-        MULTSIGNOUT => open,
-        OVERFLOW => open,
-        PATTERNBDETECT => open,
-        PATTERNDETECT => open,
-        UNDERFLOW => open,
-        ACIN => "000000000000000000000000000000",
-        BCIN => "000000000000000000",
-        C => "000000000000000000000000000000000000000000000000",
-        CARRYINSEL => "000",
-        CARRYCASCIN => '0',
-        CARRYIN => '0',
-        CEA1 => '1',
-        CEA2 => '1',
-        CEALUMODE => '1',
-        CEB1 => '1',
-        CEB2 => '1',
-        CEC => '1',
-        CECARRYIN => '1',
-        CECTRL => '1',
-        CEM => '1',
-        CEMULTCARRYIN => '1',
-        CEP => '1',
-        CLK => clk,
-        MULTSIGNIN => '0',
-        RSTA => '0',
-        RSTALLCARRYIN => '0',
-        RSTALUMODE => '0',
-        RSTB => '0',
-        RSTC => '0',
-        RSTCTRL => '0',
-        RSTM => '0',
-        RSTP => '0'
-    );
-    DSP48E_0: DSP48E
-    generic map (
-        AREG => 0,
-        ACASCREG => 0,
-        BREG => 0,
-        BCASCREG => 0,
-        MREG => 1,
-        PREG => 1,
-        USE_MULT => "MULT_S"
-    )
-    port map (
-        A => a_re_i,
-        B => b_re_i,
-        P => open,
-        OPMODE => "0000101",
-        ALUMODE => "0000",
-        PCIN => "000000000000000000000000000000000000000000000000",
-        PCOUT => PCOUT_0,
-        ACOUT => open,
-        BCOUT => open,
-        CARRYCASCOUT => open,
-        CARRYOUT => open,
-        MULTSIGNOUT => open,
-        OVERFLOW => open,
-        PATTERNBDETECT => open,
-        PATTERNDETECT => open,
-        UNDERFLOW => open,
-        ACIN => "000000000000000000000000000000",
-        BCIN => "000000000000000000",
-        C => "000000000000000000000000000000000000000000000000",
-        CARRYINSEL => "000",
-        CARRYCASCIN => '0',
-        CARRYIN => '0',
-        CEA1 => '1',
-        CEA2 => '1',
-        CEALUMODE => '1',
-        CEB1 => '1',
-        CEB2 => '1',
-        CEC => '1',
-        CECARRYIN => '1',
-        CECTRL => '1',
-        CEM => '1',
-        CEMULTCARRYIN => '1',
-        CEP => '1',
-        CLK => clk,
-        MULTSIGNIN => '0',
-        RSTA => '0',
-        RSTALLCARRYIN => '0',
-        RSTALUMODE => '0',
-        RSTB => '0',
-        RSTC => '0',
-        RSTCTRL => '0',
-        RSTM => '0',
-        RSTP => '0'
-    );
+    c_re_i <= a_re_b_re + carry_a_re_b_re - a_im_b_im - carry_a_re_b_re;
+    c_im_i <= a_re_b_im + carry_a_re_b_im + a_im_b_re + carry_a_im_b_re;
+    ovfl_im <= (a_re_b_im(15) and a_im_b_re(15) and (not c_im_i(15))) or ((not a_re_b_im(15)) and (not a_im_b_re(15)) and c_im_i(15));
+    ovfl_re <= (a_re_b_re(15) and (not a_im_b_im(15)) and (not c_re_i(15))) or ((not a_re_b_re(15)) and a_im_b_im(15) and c_re_i(15));
+    process(clk)
+    begin
+        if clk = '1' and clk'event then
+            c_re <= c_re_i;
+            c_im <= c_im_i;
+            ovfl <= ovfl_i or ovfl_im or ovfl_re or ovfla or ovflb or ovflc or ovfld;
+        end if;
+    end process;
 
-    ovfl <= '0';
-    c_re <= c_re_i(31 downto 16) when sch = "00" else
-            c_re_i(30 downto 14) when sch = "01" else
-            c_re_i(29 downto 13) when sch = "10" else
-            c_re_i(28 downto 12) when sch = "11";
-    c_im <= c_im_i(31 downto 16) when sch = "00" else
-            c_im_i(30 downto 14) when sch = "01" else
-            c_im_i(29 downto 13) when sch = "10" else
-            c_im_i(28 downto 12) when sch = "11";
+    mul_a_re_b_re: entity work.mul
+    generic map(
+        INREG => 0,
+        MREG => 1,
+        PREG => 1
+    )
+    port map(
+        clk => clk,
+        sch => sch,
+        ovfl => ovfla,
+        a => a_re,
+        b => b_re,
+        c => a_re_b_re,
+        carry => carry_a_re_b_re
+    );
+    mul_a_im_b_im: entity work.mul
+    generic map(
+        INREG => 0,
+        MREG => 1,
+        PREG => 1
+    )
+    port map(
+        clk => clk,
+        sch => sch,
+        ovfl => ovflb,
+        a => a_im,
+        b => b_im,
+        c => a_im_b_im,
+        carry => carry_a_im_b_im
+    );
+    mul_a_re_b_im: entity work.mul
+    generic map(
+        INREG => 0,
+        MREG => 1,
+        PREG => 1
+    )
+    port map(
+        clk => clk,
+        sch => sch,
+        ovfl => ovflc,
+        a => a_re,
+        b => b_im,
+        c => a_re_b_im,
+        carry => carry_a_re_b_im
+    );
+    mul_a_im_b_re: entity work.mul
+    generic map(
+        INREG => 0,
+        MREG => 1,
+        PREG => 1
+    )
+    port map(
+        clk => clk,
+        sch => sch,
+        ovfl => ovfld,
+        a => a_im,
+        b => b_re,
+        c => a_im_b_re,
+        carry => carry_a_im_b_re
+    );
 
 end Structural;

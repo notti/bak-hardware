@@ -4,6 +4,8 @@ GHDL = ghdl
 CORELIB = BLK_MEM_GEN_V2_8.o
 
 tb_overlap_add: wave.o cmul.o cadd.o fft_fsm.o overlap_add.o scratch.o fft.o
+tb_mul: mul.o
+tb_cmul: cmul.o mul.o
 
 %: %.o
 	$(GHDL) -e $(GHDLFLAGS) $@
@@ -37,3 +39,6 @@ vpath %.vhd ../vhdl:../wizard:.
 .PHONY: clean clean-unisim clean-xcl unisim xcl
 .SUFFIXES:
 .SUFFIXES: .vhd .o
+
+cmul.o: mul.o
+overlap_add.o: wave.o cmul.o cadd.o fft_fsm.o scratch.o fft.o
