@@ -22,7 +22,7 @@ generic(
     Y_READ_CYCLES       : natural := 2;
     X_READ_CYCLES       : natural := 2;
     H_READ_CYCLES       : natural := 1; 
-    CMUL_CYCLES         : natural := 3;
+    CMUL_CYCLES         : natural := 4;
     CADD_CYCLES         : natural := 1;
     FFT_CYCLES          : natural := 3
 );
@@ -54,7 +54,10 @@ port(
     h_im_in      : in std_logic_vector(15 downto 0);
     h_index      : out std_logic_vector(11 downto 0);
 
-    ovfl        : out std_logic;
+    ovfl_fft     : out std_logic;
+    ovfl_ifft    : out std_logic;
+    ovfl_cmul    : out std_logic;
+
     busy         : out std_logic;
     done         : out std_logic
 );
@@ -220,6 +223,8 @@ end component;
     signal scale_sch_i : std_logic_vector(11 downto 0);
     signal scale_schi_i : std_logic_vector(11 downto 0);
     signal scale_sch_fft : std_logic_vector(11 downto 0);
+    signal fft_read_i : flag_dt(CMUL2SCRATCH downto 0);
+    signal ifft_read_i : flag_dt(CADD2Y downto 0);
 begin
     assert (FFT_CYCLES - X_READ_CYCLES = 1) report "X read cycles + 1 cycle iq/demux != FFT_CYCLES!" severity error;
 
@@ -296,7 +301,9 @@ begin
                 offset_x <= (others => '0');
                 last_cycle_x <= '0';
                 last_cycle_yw <= '0';
-                ovfl <= '0';
+                ovfl_fft <= '0';
+                ovfl_ifft <= '0';
+                ovfl_cmul <= '0';
                 first_cycle_yr <= '1';
                 offset_y <= (others => '0');
             else
@@ -315,8 +322,14 @@ begin
                 if ifft_read = '1' and y_index_i = n_i then
                     last_cycle_yw <= '1';
                 end if;
-                if ovflo_fft = '1' or cmul_ovfl = '1' or cadd_ovfl = '1' then
-                    ovfl <= '1';
+                if ovflo_fft = '1' and (fft_read = '1' or fft_read_i = "00001" or fft_read_i = "00011" or fft_read_i = "00111" or fft_read_i = "01111" or fft_read_i = "11111") then
+                    ovfl_fft <= '1';
+                end if;
+                if ovflo_fft = '1' and (ifft_read = '1' or ifft_read_i = "0001" or ifft_read_i = "0011" or ifft_read_i = "0111" or ifft_read_i = "1111") then
+                    ovfl_ifft <= '1';
+                end if;
+                if cmul_ovfl = '1' then
+                    ovfl_cmul <= '1';
                 end if;
             end if;
         end if;
@@ -400,34 +413,47 @@ begin
             --    cmul_index(i) <= cmul_index(i-1);
             --    cmul_read(i) <= cmul_read(i-1);
             --    fft_done(i) <= fft_done(i-1);
+            --    fft_read_i(i) <= fft_read_i(i-1);
             --end loop cmul2scratch_g;
+            cmul_index(5) <= cmul_index(4);
+            cmul_read(5) <= cmul_read(4);
+            fft_done(5) <= fft_done(4);
+            fft_read_i(5) <= fft_read_i(4);
             cmul_index(4) <= cmul_index(3);
             cmul_read(4) <= cmul_read(3);
             fft_done(4) <= fft_done(3);
+            fft_read_i(4) <= fft_read_i(3);
             cmul_index(3) <= cmul_index(2);
             cmul_read(3) <= cmul_read(2);
             fft_done(3) <= fft_done(2);
+            fft_read_i(3) <= fft_read_i(2);
             cmul_index(2) <= cmul_index(1);
             cmul_read(2) <= cmul_read(1);
             fft_done(2) <= fft_done(1);
+            fft_read_i(2) <= fft_read_i(1);
             cmul_index(1) <= cmul_index(0);
             cmul_read(1) <= cmul_read(0);
             fft_done(1) <= fft_done(0);
+            fft_read_i(1) <= fft_read_i(0);
             --cadd2y_g: for i in CADD2Y downto 1 loop
             --    cadd_index(i) <= cadd_index(i-1);
             --    y_we_i(i) <= y_we_i(i-1);
             --    ifft_done(i) <= ifft_done(i-1);
+            --    ifft_read_i(i) <= ifft_read_i(i-1);
             --end loop cadd2y_g;
             y_we_i(3) <= y_we_i(2);
             ifft_done(3) <= ifft_done(2);
+            ifft_read_i(3) <= ifft_read_i(2);
             if cadd_index(1) >= mn_i then
                 y_we_i(2) <= '0';
             else
                 y_we_i(2) <= y_we_i(1);
             end if;
             ifft_done(2) <= ifft_done(1);
+            ifft_read_i(2) <= ifft_read_i(1);
             y_we_i(1) <= y_we_i(0);
             ifft_done(1) <= ifft_done(0);
+            ifft_read_i(1) <= ifft_read_i(0);
             if next_index_neg = '0' then
                 cadd_index(3) <= cadd_index(2);
             else
@@ -602,6 +628,8 @@ begin
         read         => ifft_read,
         done         => ifft_done(0)
     );
+    ifft_read_i(0) <= ifft_read;
+    fft_read_i(0) <= fft_read;
     y_we_i(0) <= ifft_read;
 
     scratch_i: scratch

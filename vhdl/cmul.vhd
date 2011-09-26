@@ -49,7 +49,7 @@ architecture Structural of cmul is
 begin
 -- c_re = a_re * b_re - a_im * b_im
 -- c_im = a_re * b_im + b_re * a_im
-    c_re_i <= a_re_b_re + carry_a_re_b_re - a_im_b_im - carry_a_re_b_re;
+    c_re_i <= a_re_b_re + carry_a_re_b_re - a_im_b_im - carry_a_im_b_im;
     c_im_i <= a_re_b_im + carry_a_re_b_im + a_im_b_re + carry_a_im_b_re;
     ovfl_im <= (a_re_b_im(15) and a_im_b_re(15) and (not c_im_i(15))) or ((not a_re_b_im(15)) and (not a_im_b_re(15)) and c_im_i(15));
     ovfl_re <= (a_re_b_re(15) and (not a_im_b_im(15)) and (not c_re_i(15))) or ((not a_re_b_re(15)) and a_im_b_im(15) and c_re_i(15));
@@ -65,8 +65,7 @@ begin
     mul_a_re_b_re: entity work.mul
     generic map(
         INREG => 0,
-        MREG => 1,
-        PREG => 1
+        MREG => 1
     )
     port map(
         clk => clk,
@@ -80,8 +79,7 @@ begin
     mul_a_im_b_im: entity work.mul
     generic map(
         INREG => 0,
-        MREG => 1,
-        PREG => 1
+        MREG => 1
     )
     port map(
         clk => clk,
@@ -95,8 +93,7 @@ begin
     mul_a_re_b_im: entity work.mul
     generic map(
         INREG => 0,
-        MREG => 1,
-        PREG => 1
+        MREG => 1
     )
     port map(
         clk => clk,
@@ -110,8 +107,7 @@ begin
     mul_a_im_b_re: entity work.mul
     generic map(
         INREG => 0,
-        MREG => 1,
-        PREG => 1
+        MREG => 1
     )
     port map(
         clk => clk,
