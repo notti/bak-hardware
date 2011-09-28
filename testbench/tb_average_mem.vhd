@@ -7,8 +7,8 @@ library std;
 library UNISIM;
 use UNISIM.vcomponents.all;
 
-library inbuf;
-        use inbuf.all;
+library work;
+        use work.all;
 
 entity tb_average_mem is
 end tb_average_mem;
@@ -17,30 +17,13 @@ architecture behav of tb_average_mem is
     signal clk          : std_logic;
     signal width        : std_logic_vector(1 downto 0);
     signal depth        : std_logic_vector(15 downto 0);
-    signal arm          : std_logic;
-    signal trigger      : std_logic;
+    signal trig         : std_logic;
     signal done         : std_logic;
-    signal frame_clk    : std_logic;
     signal rst          : std_logic;
     signal data         : std_logic_vector(15 downto 0);
-    signal stream_valid : std_logic;
-    signal locked       : std_logic;
-    signal read_req     : std_logic;
-    signal read_ack     : std_logic;
-    signal clk_data     : std_logic;
-	signal we           : std_logic;
-    signal addr         : std_logic_vector(15 downto 0);
-    signal dout         : std_logic_vector(15 downto 0);
-    signal din          : std_logic_vector(15 downto 0);
 begin
     
-    width <= "10";
     depth <= X"0005";
-    clk_data <= '0';
-    we <= '0';
-    addr <= (others => '0');
-    addr <= (others => '0');
-    din <= (others => '0');
 
     clock: process
     begin
@@ -60,11 +43,9 @@ begin
     process
         variable l : line;
     begin
-        arm <= '0';
-        trigger <= '0';
+        width <= "10";
+        trig <= '0';
         rst <= '1';
-        stream_valid <= '0';
-        read_req <= '0';
         
         wait for 5 ns;
 
@@ -74,56 +55,46 @@ begin
 
         wait for 30 ns;
 
-        stream_valid <= '1';
-
-        wait for 30 ns;
-
-        trigger <= '1', '0' after 10 ns;
+        trig <= '1', '0' after 10 ns;
         
         wait for 100 ns;
 
-        arm <= '1', '0' after 10 ns;
-
-        wait for 100 ns;
-
-        trigger <= '1', '0' after 10 ns;
+        trig <= '1', '0' after 10 ns;
 
         wait for 100 ns;
         
-        trigger <= '1', '0' after 10 ns;
-        
-        wait for 100 ns;
-        
-        arm <= '1', '0' after 10 ns;
-        
-        wait for 100 ns;
-        
-        arm <= '1', '0' after 10 ns;
+        trig <= '1', '0' after 10 ns;
 
+        wait for 100 ns;
+        width <= "00";
+        trig <= '1' , '0' after 10 ns;
+
+        wait for 100 ns;
+        
+        trig <= '1', '0' after 10 ns;
+        
         wait;
     end process;
     
-    average_mem_i: entity inbuf.average_mem
+    average_mem_i: entity work.average_mem
     port map(
     clk          => clk,
+    rst          => rst,
     width        => width,
     depth        => depth,
-    arm          => arm,
-    trigger      => trigger,
+    trig         => trig,
     done         => done,
-    frame_clk    => frame_clk,
-    rst          => rst,
     data         => data,
-    stream_valid => stream_valid,
-    locked       => locked,
-    clk_data     => clk_data,
-    read_req     => read_req,
-    read_ack     => read_ack,
-    clk_bus      => clk,
-	we          =>	we,
-    addr         => addr,
-    dout         => dout,
-    din          => din
+    memclk       => clk,
+    ext          => '0',
+    dina         => (others => '0'),
+    addra        => (others => '0'),
+    wea          => '0',
+    douta        => open,
+    dinb         => (others => '0'),
+    addrb        => (others => '0'),
+    web          => '0',
+    doutb        => open
     );
 
 end behav;

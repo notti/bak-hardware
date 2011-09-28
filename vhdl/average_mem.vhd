@@ -19,31 +19,28 @@ use work.all;
 entity average_mem is
 port(
     clk          : in std_logic;
+    rst          : in std_logic;
 
     width        : in std_logic_vector(1 downto 0);
-    depth_1      : in std_logic_vector(15 downto 0);
-    arm          : in std_logic;
-    trigger      : in std_logic;
+    depth        : in std_logic_vector(15 downto 0);
+    trig         : in std_logic;
     done         : out std_logic;
-    frame_clk    : out std_logic;
-    rst          : in std_logic;
     data         : in std_logic_vector(15 downto 0);
-    stream_valid : in std_logic;
-    locked       : out std_logic;
-    read_req     : in std_logic;
-    read_ack     : out std_logic;
-    rst_arb      : in std_logic;
 
-    clk_data     : in std_logic;
-	we           : in std_logic;
-    addr         : in std_logic_vector(15 downto 0);
-    dout         : out std_logic_vector(15 downto 0);
-    din          : in  std_logic_vector(15 downto 0)
+    memclk       : in std_logic;
+    ext          : in std_logic;
+    dina         : in std_logic_vector(15 downto 0);
+    addra        : in std_logic_vector(15 downto 0);
+    wea          : in std_logic;
+    douta        : out std_logic_vector(15 downto 0);
+    dinb         : in std_logic_vector(15 downto 0);
+    addrb        : in std_logic_vector(15 downto 0);
+    web          : in std_logic;
+    doutb        : out std_logic_vector(15 downto 0)
 );
 end average_mem;
 
 architecture Structural of average_mem is
-
 	component inbuf_mem IS
 		port (
 		clka: IN std_logic;
@@ -58,108 +55,135 @@ architecture Structural of average_mem is
 		doutb: OUT std_logic_VECTOR(18 downto 0));
 	END component;
 
-    signal dina_i   : std_logic_vector(18 downto 0);
-    signal davg_i   : std_logic_vector(18 downto 0);
-    signal din_i    : std_logic_vector(18 downto 0);
-    signal douta_i  : std_logic_vector(18 downto 0);
-    signal doutb_i  : std_logic_vector(18 downto 0);
-    signal wea_i    : std_logic_vector(0 downto 0);
-    signal add_i    : std_logic;
-    signal active_i : std_logic;
-    signal addra_i  : std_logic_vector(15 downto 0);
-    signal addra    : std_logic_vector(15 downto 0);
-    signal addrb_i  : std_logic_vector(15 downto 0);
-    signal clka     : std_logic;
-    signal read_ack_i : std_logic;
-    signal we_i     : std_logic;
-    signal arm_i    : std_logic;
+    type avg_state is (IDLE, FIRST, RUN, FINISHED);
+    signal state        : avg_state;
+    signal next_state   : avg_state;
 
+    signal dina_i       : std_logic_vector(18 downto 0);
+    signal addra_i      : std_logic_vector(15 downto 0);
+    signal wea_i        : std_logic;
+    signal douta_i      : std_logic_vector(18 downto 0);
+    signal dinb_i       : std_logic_vector(18 downto 0);
+    signal addrb_i      : std_logic_vector(15 downto 0);
+    signal web_i        : std_logic;
+    signal doutb_i      : std_logic_vector(18 downto 0);
+
+    signal cycle_cnt    : std_logic_vector(1 downto 0);
+    signal frame_cnt    : std_logic_vector(15 downto 0);
+    signal read_cnt     : std_logic_vector(15 downto 0);
+    signal max          : std_logic_vector(15 downto 0);
+    signal max_1        : std_logic_vector(15 downto 0);
+    signal width_i      : std_logic_vector(1 downto 0);
+    signal depth_i      : std_logic_vector(15 downto 0);
 begin
 
-    clk_mux: BUFGMUX
-    port map (
-      O => clka,
-      I0 => clk,
-      I1 => clk_data,
-      S => read_ack_i
-    );
+    done <= '1' when state = FINISHED else
+            '0';
 
-    inbuf_arb: entity work.inbuf_arb
-    port map(
-        clk         => clk,
-        rst         => rst_arb,
-
-        read_req    => read_req,
-        read_ack    => read_ack_i,
-        active      => active_i
-    );
-
-    arm_i <= arm and not read_ack_i;
-
-    inbuf_ctrl: entity work.inbuf_ctrl
-    port map(
-        clk          => clk,
-        rst          => rst,
-        stream_valid => stream_valid,
-        depth_1      => depth_1,
-        width        => width,
-        arm          => arm_i,
-        trigger      => trigger,
-        frame_clk    => frame_clk,
-        locked       => locked,
-        done         => done,
-        addra        => addra_i,
-        addrb        => addrb_i,
-        we           => we_i,
-        active       => active_i,
-        add          => add_i
-    );
-
-    wea_i(0) <= we_i when read_ack_i = '0' else
-                we;
-
-    davg_i <= SXT(data,19) + doutb_i when add_i = '1' else
-              SXT(data,19);
-
-    multiplexer_out: process(doutb_i, width, douta_i)
+    process (clk)
     begin
-        case width is
-            when "01"   => dout <= douta_i(16 downto 1);
-            when "10"   => dout <= douta_i(17 downto 2);
-            when "11"   => dout <= douta_i(18 downto 3);
-            when others => dout <= douta_i(15 downto 0);
-        end case;
-    end process multiplexer_out;
+        if clk = '1' and clk'event then
+            if rst = '1' then
+                state <= IDLE;
+            else
+                state <= next_state;
+            end if;
+        end if;
+    end process;
 
-    multiplexer_in: process(din, width)
+    fsm_b: process (clk, state, trig, width_i, frame_cnt, cycle_cnt)
     begin
-        case width is
-            when "01"   => din_i <= ("00" & din & "0");
-            when "10"   => din_i <= ("0" & din & "00");
-            when "11"   => din_i <= (din & "000");
-            when others => din_i <= ("000" & din);
+        case state is
+            when IDLE =>
+                if trig = '1' then
+                    next_state <= FIRST;
+                else
+                    next_state <= IDLE;
+                end if;
+                max <= depth - 1;
+                max_1 <= depth - 3;
+                width_i <= width;
+                depth_i <= depth;
+            when FIRST =>
+                if width_i = "00" and frame_cnt = max then
+                    next_state <= FINISHED;
+                elsif width_i /= "00" and frame_cnt = max_1 then
+                    next_state <= RUN;
+                else
+                    next_state <= FIRST;
+                end if;
+            when RUN =>
+                if cycle_cnt = width_i and frame_cnt = max then
+                    next_state <= FINISHED;
+                else
+                    next_state <= RUN;
+                end if;
+            when FINISHED =>
+                next_state <= IDLE;
         end case;
-    end process multiplexer_in;
+    end process fsm_b;
 
-    dina_i <= davg_i when read_ack_i = '0' else
-              din_i;
-    addra <= addra_i when read_ack_i = '0' else
-             addr;
+    counter: process (clk)
+    begin
+        if clk='1' and clk'event then
+            if state = IDLE or frame_cnt = max then
+                frame_cnt <= (others => '0');
+            elsif state = FIRST or state = RUN then
+                frame_cnt <= frame_cnt + 1;
+            end if;
+            if state = IDLE then
+                cycle_cnt <= (others => '0');
+            elsif frame_cnt = max then
+                cycle_cnt <= cycle_cnt + 1;
+            end if;
+            if state = IDLE or read_cnt = max then
+                read_cnt <= (others => '0');
+            elsif state = RUN then
+                read_cnt <= read_cnt + 1;
+            end if;
+        end if;
+    end process counter;
+
+    addra_i <= addra when ext = '1' else
+               frame_cnt;
+    addrb_i <= addrb when ext = '1' else
+               read_cnt;
+    wea_i  <= wea when ext = '1' else
+              '1' when state = FIRST or state = RUN else
+              '0';
+    web_i  <= web when ext = '1' else
+              '0';
+    dina_i <= SXT(data, 19) when ext = '0' and cycle_cnt = "00" else
+              SXT(data, 19) + doutb_i when ext = '0' and cycle_cnt /= "00" else
+              ("00" & dina & "0") when width_i = "01" else
+              ("0" & dina & "00") when width_i = "10" else
+              (dina & "000") when width_i = "11" else
+              ("000" & dina);
+    dinb_i <= ("00" & dinb & "0") when width_i = "01" else
+              ("0" & dinb & "00") when width_i = "10" else
+              (dinb & "000") when width_i = "11" else
+              ("000" & dinb);
+    douta <= douta_i(16 downto 1) when width_i = "01" else
+             douta_i(17 downto 2) when width_i = "10" else
+             douta_i(18 downto 3) when width_i = "11" else
+             douta_i(15 downto 0);
+    doutb <= doutb_i(16 downto 1) when width_i = "01" else
+             doutb_i(17 downto 2) when width_i = "10" else
+             doutb_i(18 downto 3) when width_i = "11" else
+             doutb_i(15 downto 0);
 
 	inbuf_mem_i: inbuf_mem
 	port map(
-		clka  => clka,
+		clka  => memclk,
 		dina  => dina_i,
-		addra => addra,
-		wea   => wea_i,
+		addra => addra_i,
+		wea(0)=> wea_i,
 		douta => douta_i,
-		clkb  => clk,
-		dinb  => (others => '0'),
+		clkb  => memclk,
+		dinb  => dinb_i,
 		addrb => addrb_i,
-		web   => "0",
+		web(0)=> web_i,
 		doutb => doutb_i
 	);
-
-    read_ack <= read_ack_i;
 
 end Structural;
