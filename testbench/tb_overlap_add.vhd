@@ -22,7 +22,7 @@ architecture behav of tb_overlap_add is
     signal nfft         : std_logic_vector(4 downto 0) := "00110";
     signal scale_sch    : std_logic_vector(11 downto 0) := "011010101010";
     signal scale_schi   : std_logic_vector(11 downto 0) := "011010101010";
-    signal cmul_sch     : std_logic_vector(1 downto 0) := "00";
+    signal cmul_sch     : std_logic_vector(1 downto 0) := "10";
     signal L            : std_logic_vector(11 downto 0) := X"023"; -- 35
     signal n            : std_logic_vector(15 downto 0) := X"0190"; -- 400
     signal iq           : std_logic := '0';
@@ -42,7 +42,9 @@ architecture behav of tb_overlap_add is
     signal h_im_in      : std_logic_vector(15 downto 0);
     signal h_index      : std_logic_vector(11 downto 0);
 
-    signal ovfl        : std_logic;
+    signal ovfl_fft    : std_logic;
+    signal ovfl_ifft   : std_logic;
+    signal ovfl_cmul   : std_logic;
     signal busy         : std_logic;
     signal done         : std_logic;
     type field is array(natural range <>) of integer;
@@ -169,7 +171,9 @@ begin
     h_im_in      => h_im_in,
     h_index      => h_index,
 
-    ovfl        => ovfl,
+    ovfl_fft    => ovfl_fft,
+    ovfl_ifft   => ovfl_ifft,
+    ovfl_cmul   => ovfl_cmul,
     busy         => busy,
     done         => done
             );
