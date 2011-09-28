@@ -6,6 +6,7 @@ CORELIB = BLK_MEM_GEN_V2_8.o
 tb_overlap_add: wave.o cmul.o cadd.o fft_fsm.o overlap_add.o scratch.o fft.o
 tb_mul: mul.o
 tb_cmul: cmul.o mul.o
+tb_average_mem: average_mem.o inbuf_mem.o
 
 %: %.o
 	$(GHDL) -e $(GHDLFLAGS) $@
@@ -42,3 +43,4 @@ vpath %.vhd ../vhdl:../wizard:.
 
 cmul.o: mul.o
 overlap_add.o: wave.o cmul.o cadd.o fft_fsm.o scratch.o fft.o
+average_mem.o: inbuf_mem.o
