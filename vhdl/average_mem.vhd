@@ -25,7 +25,9 @@ port(
     depth        : in std_logic_vector(15 downto 0);
     trig         : in std_logic;
     done         : out std_logic;
+    err			 : out std_logic;
     data         : in std_logic_vector(15 downto 0);
+	data_valid	 : in std_logic;
 
     memclk       : in std_logic;
     ext          : in std_logic;
@@ -55,7 +57,7 @@ architecture Structural of average_mem is
 		doutb: OUT std_logic_VECTOR(18 downto 0));
 	END component;
 
-    type avg_state is (IDLE, FIRST, RUN, FINISHED);
+    type avg_state is (IDLE, FIRST, RUN, FINISHED, FAILED);
     signal state        : avg_state;
     signal next_state   : avg_state;
 
@@ -79,6 +81,8 @@ begin
 
     done <= '1' when state = FINISHED else
             '0';
+	err <= '1' when state = FAILED else
+		   '0';
 
     process (clk)
     begin
@@ -105,7 +109,9 @@ begin
                 width_i <= width;
                 depth_i <= depth;
             when FIRST =>
-                if width_i = "00" and frame_cnt = max then
+				if data_valid = '0' then
+					next_state <= FAILED;
+				elsif width_i = "00" and frame_cnt = max then
                     next_state <= FINISHED;
                 elsif width_i /= "00" and frame_cnt = max_1 then
                     next_state <= RUN;
@@ -113,13 +119,17 @@ begin
                     next_state <= FIRST;
                 end if;
             when RUN =>
-                if cycle_cnt = width_i and frame_cnt = max then
+				if data_valid = '0' then
+					next_state <= FAILED;
+                elsif cycle_cnt = width_i and frame_cnt = max then
                     next_state <= FINISHED;
                 else
                     next_state <= RUN;
                 end if;
             when FINISHED =>
                 next_state <= IDLE;
+			when FAILED =>
+				next_state <= IDLE;
         end case;
     end process fsm_b;
 
