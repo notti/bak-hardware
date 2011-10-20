@@ -1,6 +1,6 @@
 -----------------------------------------------------------
 -- Project			: 
--- File				: reciever.vhd
+-- File				: receiver.vhd
 -- Author			: Gernot Vormayr
 -- created			: July, 3rd 2009
 -- last mod. by		        : 
@@ -16,7 +16,7 @@ use UNISIM.VComponents.all;
 library work;
 use work.procedures.all;
 
-entity reciever is
+entity receiver is
 port(
 -- signals for gtx transciever
 	refclk              : in  std_logic;
@@ -39,9 +39,9 @@ port(
 	data_valid          : out std_logic_vector(2 downto 0);
 	enable              : in std_logic_vector(2 downto 0)
 );
-end reciever;
+end receiver;
 
-architecture Structural of reciever is
+architecture Structural of receiver is
 	type t_gtxdata_array is array(integer range <>) of std_logic_vector(19 downto 0);
 
 	component GTX 
