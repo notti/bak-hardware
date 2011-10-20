@@ -24,7 +24,7 @@ port(
     txn                 : out std_logic_vector(3 downto 0);
     txp                 : out std_logic_vector(3 downto 0);
 
--- control signals reciever
+-- control signals receiver
     rec_polarity        : in  std_logic_vector(2 downto 0);
     rec_descramble      : in  std_logic_vector(2 downto 0);
     rec_rxeqmix         : in  t_cfg_array(2 downto 0);
@@ -120,7 +120,7 @@ begin
     end process;
     arm_toggle <= arm_synced_dly xor arm_synced;
 
-    reciever_i: entity work.reciever
+    receiver_i: entity work.receiver
     port map(
         refclk              => refclk,
         rst                 => --fixme,
