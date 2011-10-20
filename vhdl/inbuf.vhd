@@ -34,7 +34,6 @@ port(
     rec_input_select_req : in std_logic;
     rec_stream_valid    : out std_logic;
     sample_clk          : out std_logic;
-    pll_locked          : out std_logic;
 
 -- control signals inbuf
     depth               : in  std_logic_vector(15 downto 0);
@@ -43,18 +42,31 @@ port(
     width_req           : in  std_logic;
 
     arm                 : in  std_logic;
-    trigger_ext         : in  std_logic;
-    trigger_int         : in  std_logic;
+    trigger_ext         : in  std_logic; --debounce
+    trigger_int         : in  std_logic; --sync
 	trigger_type		: in  std_logic;
 	trigger_type_req    : in  std_logic;
-    avg_done            : out std_logic;
-    frame_index         : out std_logic_vector(15 downto 0);
-    frame_lock          : out std_logic;
+
+    auto_conv           : in std_logic;
+    auto_switch         : in std_logic;
+    convolute_req       : in std_logic;
+    switch_req          : in std_logic;
+    cpu_req             : in std_logic;
+    
 );
 end inbuf;
 
 architecture Structural of inbuf is
+    type state_type is (RESET, IDLE, READ, CPU, CONVOLUTE, OUTBUF_SWITCH);
+
+    signal state               : state_type;
+    signal next_state          : state_type;
+
+    signal avg_done            : std_logic;
     signal data_clk            : std_logic; -- recovered clk
+    signal fft_clk             : std_logic; -- fft clk = data_clk*2
+    signal fft_clku            : std_logic; -- fft clk unbuffered
+    signal clkfb               : std_logic; -- feedback clk
     signal rst_out_i           : std_logic;
     signal rec_data_i          : t_data_array(2 downto 0);
     signal data_i              : t_data;
@@ -91,6 +103,14 @@ architecture Structural of inbuf is
 
 	signal trig				   : std_logic;
 	signal frame_trg		   : std_logic;
+    signal pll_locked          : std_logic;
+    signal dcm_locked          : std_logic;
+    signal auto_conv_syn       : std_logic;
+    signal auto_switch_syn     : std_logic;
+    signal convolute_req_syn   : std_logic;
+    signal switch_req_syn      : std_logic;
+    signal cpu_req_syn         : std_logic;
+    signal conv_done           : std_logic;
 begin
     sync_gen: for i in 0 to 2 generate
         sync_enable_i: entity work.flag
@@ -137,6 +157,41 @@ begin
         rxeqmix             => rec_rxeqmix,
         data_valid          => rec_data_valid_i,
         enable              => rec_enable_synced
+    );
+
+    work_clk_gen : DCM_BASE
+    generic map (
+        CLKIN_DIVIDE_BY_2 => FALSE,
+        CLKIN_PERIOD => 10.0,
+        CLK_FEEDBACK => "1X",
+        DCM_PERFORMANCE_MODE => "MAX_SPEED",
+        DFS_FREQUENCY_MODE => "LOW",
+        DLL_FREQUENCY_MODE => "LOW",
+        DUTY_CYCLE_CORRECTION => TRUE,
+        FACTORY_JF => X"F0F0",
+        PHASE_SHIFT => 0,
+        STARTUP_WAIT => FALSE)
+    port map (
+        CLK0 => clkfb,
+        CLK180 => open,
+        CLK270 => open,
+        CLK2X => fft_clku,
+        CLK2X180 => open,
+        CLK90 => open,
+        CLKDV => open,
+        CLKFX => open,
+        CLKFX180 => open,
+        LOCKED => dcm_locked,
+        CLKFB => clkfb,
+        CLKIN => data_clk,
+        RST => not pll_locked
+    );
+
+    fft_clku_i : BUFG
+    port map
+    (
+        I            => fft_clku,
+        O            => fft_clk
     );
 
     sync_select_i: entity work.flag
@@ -244,7 +299,97 @@ begin
             end if;
         end if;
     end process;
+
+    sync_auto_conv_i: entity work.flag
+    port map(
+        flag_in      => auto_conv,
+        flag_out     => auto_conv_syn,
+        clk          => data_clk
+    );
+    sync_auto_switch_i: entity work.flag
+    port map(
+        flag_in      => auto_switch,
+        flag_out     => auto_switch_syn,
+        clk          => data_clk
+    );
+    sync_convolute_req_i: entity work.flag
+    port map(
+        flag_in      => convolute_req,
+        flag_out     => convolute_req_syn,
+        clk          => data_clk
+    );
+    sync_switch_req_i: entity work.flag
+    port map(
+        flag_in      => switch_req,
+        flag_out     => switch_req_syn,
+        clk          => data_clk
+    );
+    sync_cpu_req_i: entity work.flag
+    port map(
+        flag_in      => cpu_req,
+        flag_out     => cpu_req_syn,
+        clk          => data_clk
+    );
 	
+    fsm1: process(clk)
+    begin
+        if clk'event and clk = '1' then
+            if = '1' then --fixme reset
+                state <= RESET;
+            else
+                state <= next_state;
+            end if;
+        end if;
+    end process;
+
+    fsm2: process(state, convolute_req_syn, switch_req_syn, cpu_req_syn, auto_switch_syn, auto_conv_syn, avg_done, trig, conv_done) --fixme
+    begin
+        case state is
+            when RESET =>
+                next_state <= IDLE;
+            when IDLE =>
+                if trig = '1' then
+                    next_state <= READ;
+                elsif convolute_req_syn = '1' then
+                    next_state <= CONVOLUTE;
+                elsif switch_req_syn = '1' then
+                    next_state <= OUTBUF_SWITCH;
+                elsif cpu_req_syn = '1' then
+                    next_state <= CPU;
+                else
+                    next_state <= IDLE;
+                end if;
+            when READ =>
+                if avg_done = '1' and auto_conv_syn = '1' then
+                    next_state <= CONVOLUTE;
+                elsif avg_done = '1' and auto_conv_syn = '0' then
+                    next_state <= IDLE;
+                else
+                    next_state <= READ;
+                end if;
+            when CONVOLUTE =>
+                if conv_done = '1' and auto_switch_syn = '1' then
+                    next_state <= OUTBUF_SWITCH;
+                elsif conv_done = '1' and auto_switch_syn = '0' then
+                    next_state <= IDLE;
+                else
+                    next_state <= CONVOLUTE;
+                end if;
+            when OUTBUF_SWITCH =>
+                if then --switch_done = '1'
+                    next_state <= IDLE;
+                else
+                    next_state <= OUTBUF_SWITCH;
+                end if;
+            when CPU =>
+                if cpu_req_syn = '0' then
+                    next_state <= IDLE;
+                else
+                    next_state <= CPU;
+                end if;
+        end case;
+    end process;
+
 
     --statemachine overall + auto
 
@@ -295,7 +440,7 @@ begin
 
     overlap_add_i: entity work.overlap_add
     port map(
-        clk          => --fixme
+        clk          => fft_clk,
         rst          => --fixme
 
         start        => --fixme
@@ -327,7 +472,7 @@ begin
         ovfl_cmul    => --fixme
 
         busy         => --fixme
-        done         => --fixme
+        done         => conv_done
     );
 
     --outbuf
