@@ -1,10 +1,3 @@
-----------------------------------------------------------
--- Project			: 
--- File				: trigger.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- contents			: overlap add
------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
@@ -21,6 +14,7 @@ port(
     trigger_int : in  std_logic;
     frame_trg   : in  std_logic;
     arm         : in  std_logic;
+    armed       : out std_logic;
     trig        : out std_logic;
 );
 end trigger;
@@ -73,6 +67,8 @@ begin
            trigger_ext;
     trig <= '1' when state = TRIGD else
             '0';
+    armed <= '1' when state = WAIT_TRG else
+             '0';
 
 end Structural;
 
