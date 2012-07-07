@@ -1,12 +1,3 @@
------------------------------------------------------------
--- Project          : 
--- File             : flag.vhd
--- Author           : Gernot Vormayr
--- created          : July, 3rd 2009
--- last mod. by     : 
--- last mod. on     : 
--- contents         : 
------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 

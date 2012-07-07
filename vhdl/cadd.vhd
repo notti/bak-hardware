@@ -1,10 +1,3 @@
-----------------------------------------------------------
--- Project			: 
--- File				: cadd.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- contents			: overlap add
------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_SIGNED.ALL;
@@ -49,3 +42,4 @@ begin
     end process add_p;
 
 end Structural;
+

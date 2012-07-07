@@ -1,8 +1,3 @@
------------------------------------------------------------
--- Project			: 
--- File				: balance.vhd
--- Author			: Gernot Vormayr
------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -128,5 +123,4 @@ begin
     balanced <= unbalanced & "0" when inv = '0' else
                 not (unbalanced & "0");
 end Structural;
-
 

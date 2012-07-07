@@ -1,11 +1,5 @@
 -----------------------------------------------------------
--- Project			: 
--- File				: receiver.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- last mod. by		        : 
--- last mod. on		        : 
--- contents			: wrapper for gtx inputs
+-- wrapper for gtx inputs
 -----------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;

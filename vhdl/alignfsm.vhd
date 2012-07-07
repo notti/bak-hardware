@@ -1,11 +1,5 @@
 -----------------------------------------------------------
--- Project			: 
--- File				: alignfsm.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- last mod. by		        : 
--- last mod. on		        : 
--- contents			: fsm for automatic alignment and alignment signal generation
+-- fsm for automatic alignment and alignment signal generation
 --
 --  _____     _______  wait 16 cycles   _________  wait 16 cycles  _________
 -- |reset|-->|poweron|---------------->|blank_clk|--------------->|wait_sync|
