@@ -1,10 +1,3 @@
-----------------------------------------------------------
--- Project			: 
--- File				: wallclk.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- contents			: overlap add
------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
@@ -20,7 +13,7 @@ port(
     wave_index : out std_logic_vector(3 downto 0);
     frame_clk  : out std_logic;
     frame_trg  : out std_logic;    
-    frame_index : out std_logic;
+    frame_index : out std_logic_vector(15 downto 0);
 );
 end wallclk;
 
