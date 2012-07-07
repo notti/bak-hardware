@@ -1,10 +1,3 @@
------------------------------------------------------------
--- Project			: 
--- File				: fft_fsm.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- contents			: overlap add
------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -83,3 +76,4 @@ begin
         end case;
     end process fft_p2;
 end Structural;
+

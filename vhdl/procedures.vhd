@@ -1,13 +1,3 @@
------------------------------------------------------------
--- Project			: 
--- File				: procedures.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- last mod. by		        : 
--- last mod. on		        : 
--- contents			: Special procedures
------------------------------------------------------------
-
 library IEEE;
 use IEEE.std_logic_1164.all;
 

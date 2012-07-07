@@ -1,12 +1,4 @@
------------------------------------------------------------
--- Project			: 
--- File				: descramble.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- last mod. by		        : 
--- last mod. on		        : 
--- contents			: descrambler for adc LTC2271
------------------------------------------------------------
+-- descrambler for adc LTC2271
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 

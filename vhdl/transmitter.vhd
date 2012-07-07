@@ -1,9 +1,5 @@
 -----------------------------------------------------------
--- Project			: 
--- File				: transmitter.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- contents			: Transmitter for DS90CR486 Reciever
+-- Transmitter for DS90CR486 Reciever
 -- no DC Balance:
 --
 -- scheme: c 1     1     0     0     0     1     1

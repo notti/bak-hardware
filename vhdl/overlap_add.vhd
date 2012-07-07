@@ -1,11 +1,4 @@
------------------------------------------------------------
--- Project			: 
--- File				: overlap_add.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- contents			: overlap add
 -- scratch2ifft falsch um 1 cycle
------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
@@ -689,3 +682,4 @@ begin
     h_index <= xk_index_i;
 
 end Structural;
+
