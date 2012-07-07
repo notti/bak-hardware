@@ -1,11 +1,5 @@
 -----------------------------------------------------------
--- Project          : 
--- File             : outbuf.vhd
--- Author           : Gernot Vormayr
--- created          : July, 3rd 2009
--- last mod. by             : 
--- last mod. on             : 
--- contents         : Output buffer
+-- Output buffer
 -----------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
@@ -19,41 +13,36 @@ use work.procedures.all;
 
 entity outbuf is
 port(
+    clk                 : in  std_logic;
+    rst                 : in  std_logic;
+    frame_clk           : in  std_logic;
+
 -- signals for selectio oserdes transmitter
     txn                 : out std_logic_vector(7 downto 0);
     txp                 : out std_logic_vector(7 downto 0);
     txclkn              : out std_logic;
     txclkp              : out std_logic;
 
+-- settings
     depth               : in  std_logic_vector(15 downto 0);
-    depth_req           : in  std_logic;
-    mem_req             : in  std_logic;
-    mem_ack             : out std_logic;
     tx_deskew           : in  std_logic;
-    rst                 : in  std_logic;
-    frame_clk           : in  std_logic;
     dc_balance          : in  std_logic;
-    clk                 : in  std_logic;
-    pll_locked          : in  std_logic;
     muli                : in  std_logic_vector(15 downto 0);
-    muli_req            : in  std_logic;
     mulq                : in  std_logic_vector(15 downto 0);
-    mulq_req            : in  std_logic;
     toggle_buf          : in  std_logic;
-    buf_used            : out std_logic;
+    toggled             : out std_logic;
+    frame_offset        : in  std_logic_vector(15 downto 0);
+    resync              : in  std_logic;
+    cmul_ovfl           : out std_logic;
 
-
-    fpga2bus_error      : out std_logic;
-    fpga2bus_wrack      : out std_logic;
-    fpga2bus_rdack      : out std_logic;
-    fpga2bus_data       : out std_logic_vector(31 downto 0);
-    bus2fpga_rnw        : in  std_logic;
-    bus2fpga_cs         : in  std_logic_vector(3 downto 0);
-    bus2fpga_be         : in  std_logic_vector(3 downto 0);
-    bus2fpga_data       : in  std_logic_vector(31 downto 0);
-    bus2fpga_addr       : in  std_logic_vector(15 downto 0);
-    bus2fpga_reset      : in  std_logic;
-    bus2fpga_clk        : in  std_logic
+-- mem
+    mem_clk             : in  std_logic;
+    mem_dini            : in  std_logic_vector(31 downto 0);
+    mem_addri           : in  std_logic_vector(15 downto 0);
+    mem_wei             : in  std_logic_vector(3 downto 0);
+    mem_douti           : out std_logic_vector(31 downto 0);
+    mem_addra           : in  std_logic_vector(15 downto 0);
+    mem_douta           : out std_logic_vector(31 downto 0)
 );
 end outbuf;
 
@@ -72,124 +61,164 @@ architecture Structural of outbuf is
         doutb: OUT std_logic_VECTOR(31 downto 0));
     END COMPONENT;
 
-    signal rst_i             : std_logic;
-    signal mem               : std_logic;
-    signal deskew            : std_logic;
-    signal web_0             : std_logic_vector(3 downto 0);
-    signal web_1             : std_logic_vector(3 downto 0);
-    signal addra             : std_logic_vector(15 downto 0);
     signal depth_r           : std_logic_vector(15 downto 0);
-    signal douta             : std_logic_vector(31 downto 0);
-    signal douta_0           : std_logic_vector(31 downto 0);
-    signal douta_1           : std_logic_vector(31 downto 0);
-    signal doutb_0           : std_logic_vector(31 downto 0);
-    signal doutb_1           : std_logic_vector(31 downto 0);
-    signal rddly             : std_logic;
-    signal rd                : std_logic;
-    signal wr                : std_logic;
-    signal rd_rq             : std_logic;
-    signal rdackdly          : std_logic;
-    signal rdackdly1         : std_logic;
-    signal dc_balance_sync   : std_logic;
-    signal buf_used_i        : std_logic;
-    signal depth_synced      : std_logic;
-    signal depth_synced_dly  : std_logic;
-    signal depth_toggle      : std_logic;
-    signal deskew_synced     : std_logic;
-    signal deskew_synced_dly : std_logic;
-    signal rst_synced        : std_logic;
-    signal rst_synced_dly    : std_logic;
-    signal rst_toggle        : std_logic;
+    signal frame_addr        : std_logic_vector(15 downto 0);
+    signal do_sync           : std_logic;
+    signal active            : std_logic;
+    signal active_r          : std_logic;
+    signal do_toggle         : std_logic;
+
+    signal dout0             : std_logic_vector(31 downto 0);
+    signal dout1             : std_logic_vector(31 downto 0);
+    signal dout              : std_logic_vector(31 downto 0);
+    signal mem_addr0         : std_logic_vector(15 downto 0);
+    signal mem_addr1         : std_logic_vector(15 downto 0);
+    signal mem_we0           : std_logic_vector(3 downto 0);
+    signal mem_we1           : std_logic_vector(3 downto 0);
+    signal mem_out0          : std_logic_vector(31 downto 0);
+    signal mem_out1          : std_logic_vector(31 downto 0);
+
     signal e1                : std_logic_vector(23 downto 0);
     signal e2                : std_logic_vector(23 downto 0);
+
+    signal i                 : std_logic_vector(15 downto 0);
+    signal q                 : std_logic_vector(15 downto 0);
+
 begin
-    sync_mem_i: entity work.flag
-    port map(
-        flag_in      => mem_req,
-        flag_out     => mem,
-        clk          => clk
-    );
-    mem_p: process(clk)
+
+    depth_r_proc: process(clk, rst, depth)
     begin
-        if rising_edge(clk) then
-            mem_ack <= mem;
-        end if;
-    end process;
-    sync_deskew_i: entity work.flag
-    port map(
-        flag_in      => tx_deskew,
-        flag_out     => deskew_synced,
-        clk          => clk
-    );
-    deskew_dly: process(clk)
-    begin
-        if rising_edge(clk) then
-            deskew_synced_dly <= deskew_synced;
-        end if;
-    end process;
-    deskew <= deskew_synced_dly xor deskew_synced;
-    sync_rst_i: entity work.flag
-    port map(
-        flag_in      => rst,
-        flag_out     => rst_synced,
-        clk          => clk
-    );
-    rst_dly: process(clk)
-    begin
-        if rising_edge(clk) then
-            rst_synced_dly <= rst_synced;
-        end if;
-    end process;
-    rst_toggle <= rst_synced_dly xor rst_synced;
-    rst_i <= or_many(rst_toggle & bus2fpga_reset & (not pll_locked));
-    
-    sync_dc_balance: entity work.flag
-    port map(
-        flag_in      => dc_balance,
-        flag_out     => dc_balance_sync,
-        clk          => clk
-    );
-    sync_depth_i: entity work.flag
-    port map(
-        flag_in      => depth_req,
-        flag_out     => depth_synced,
-        clk          => clk
-    );
-    depth_dly: process(clk)
-    begin
-        if rising_edge(clk) then
-            depth_synced_dly <= depth_synced;
-        end if;
-    end process;
-    depth_toggle <= depth_synced_dly xor depth_synced;
-    depth_r_p: process(clk, rst_i, depth_toggle, depth)
-    begin
-        if rst_i = '1' then
-            depth_r <= (others => '0');
-		elsif rising_edge(clk) then
-            if depth_toggle = '1' then
+        if clk'event and clk = '1' then
+            if rst = '1' then
                 depth_r <= depth - 1;
             end if;
         end if;
-    end process;
+    end process depth_r_proc;
 
-    addra_process: process(clk, depth_r, rst_i)
+    do_sync_process: process(clk, rst, resync, frame_clk)
     begin
-        if rst_i = '1' then
-            addra <= (others => '0');
-        elsif rising_edge(clk) then
-			if addra = depth_r then
-				addra <= (others => '0');
-			else
-				addra <= addra + 1;
-			end if;
+        if clk = '1' and clk'event then
+            if rst = '1' or resync = '1' then
+                do_sync <= '1';
+            elsif frame_clk = '1' and do_sync = '1' then
+                do_sync <= '0';
+            end if;
         end if;
-    end process;
+    end process do_sync_process;
+
+    frame_addr_process: process(clk, depth_r, rst, do_sync, frame_offset, frame_addr)
+    begin
+        if clk = '1' and clk'event then
+            if frame_addr = depth_r or rst = '1' then
+                frame_addr <= (others => '0');
+            elsif frame_clk = '1' and do_sync = '1' then
+                frame_addr <= frame_offset;
+            else
+                frame_addr <= frame_addr + 1;
+            end if;
+        end if;
+    end process frame_addr_process;
+
+    active_process: process(clk, rst, toggle_buf, do_toggle, frame_addr, depth_r)
+    begin
+        if clk'event and clk = '1' then
+            if rst = '1' then
+                do_toggle <= '0';
+                active <= '0';
+            elsif toggle_buf = '1' then
+                do_toggle <= '1';
+            elsif do_toggle = '1' and frame_addr = depth_r then
+                active <= not active;
+                do_toggle <= '0';
+            end if;
+        end if;
+    end process active_process;
+
+    active_r_process process(clk, rst, active)
+    begin
+        if clk'event and clk = '1' then
+            if rst = '1' then
+                active_r <= '0';
+            else
+                active_r <= active;
+            end if;
+        end if;
+    end process active_r_process;
+
+    toggled <= active xor active_r;
+
+    outbuf_mem_0: outbuf_mem
+    port map (
+        clka                => clk,
+        dina                => (others => '0'),
+        addra               => frame_addr,
+        wea                 => (others => '0'),
+        douta               => dout0,
+        clkb                => mem_clk,
+        dinb                => mem_dina,
+        addrb               => mem_addr0,
+        web                 => mem_we0,
+        doutb               => mem_out0
+    );
+    outbuf_mem_1: outbuf_mem
+    port map (
+        clka                => clk,
+        dina                => (others => '0'),
+        addra               => frame_addr,
+        wea                 => (others => '0'),
+        douta               => dout1,
+        clkb                => mem_clk,
+        dinb                => mem_dina,
+        addrb               => mem_addr1,
+        web                 => mem_we1,
+        doutb               => mem_out1
+    );
+    
+    mem_addr0 <= mem_addra when active = '0' else
+                 mem_addri;
+    mem_addr1 <= mem_addra when active = '1' else
+                 mem_addri;
+    mem_we0   <= mem_wei when active = '1' else
+                 (others => '0');
+    mem_we1   <= mem_wei when active = '0' else
+                 (others => '0');
+    mem_douti <= mem_out0 when active = '1' else
+                 mem_out1;
+    mem_douta <= mem_out1 when active = '1' else
+                 mem_out0;
+    dout      <= dout1 when active = '1' else
+                 dout0;
+
+    cmul_i: entity work.cmul
+    port map(
+        clk          => clk,
+        sch          => (others => '0'),
+        a_re         => dout(15 downto 0),
+        a_im         => dout(31 downto 0),
+        b_re         => muli,
+        b_im         => mulq,
+        c_re         => i,
+        c_im         => q,
+        ovfl         => cmul_ovfl
+    );
+    
+    e2(0) <= '1'; --VALID
+    e2(1) <= '1'; --ENABLE
+    e2(2) <= '0'; --Marker_1
+    e2(3) <= '0'; --reserved
+    e2(7 downto 4) <= "0000";
+    e2(23 downto 8) <= i; -- TODO : q?
+    e1(0) <= '0'; --TRIGGER1
+    e1(1) <= '0'; --TRIGGER2
+    e1(2) <= '0'; --Marker_2
+    e1(3) <= '0'; --reserved
+    e1(7 downto 4) <= "0000";
+    e1(23 downto 8) <= q; -- TODO : i?
 
     transmitter_i: entity work.transmitter
     port map(
         clk                 => clk,
-        rst                 => rst_i,
+        rst                 => rst,
         e1                  => e1,
         e2                  => e2,
         txn                 => txn,
@@ -197,90 +226,8 @@ begin
         txclkn              => txclkn,
         txclkp              => txclkp,
         deskew              => deskew,
-        dc_balance          => dc_balance_sync
+        dc_balance          => dc_balance
     );
-
-    e2(0) <= '1'; --VALID
-    e2(1) <= '1'; --ENABLE
-    e2(2) <= '0'; --Marker_1
-    e2(3) <= '0'; --reserved
-    e2(7 downto 4) <= "0000";
-    e2(23 downto 8) <= douta(15 downto 0);
-    e1(0) <= '0'; --TRIGGER1
-    e1(1) <= '0'; --TRIGGER2
-    e1(2) <= '0'; --Marker_2
-    e1(3) <= '0'; --reserved
-    e1(7 downto 4) <= "0000";
-    e1(23 downto 8) <= douta(31 downto 16);
-
-    buf_used_i <= '0';
-
-    douta <= douta_0 when buf_used_i = '0' else
-             douta_1;
-
-    genweb: for i in 0 to 3 generate
-        web_0(i) <= '1' when bus2fpga_be(i) = '1' and bus2fpga_rnw = '0' and bus2fpga_cs = "0100" else '0';
-        web_1(i) <= '1' when bus2fpga_be(i) = '1' and bus2fpga_rnw = '0' and bus2fpga_cs = "1000" else '0';
-    end generate;
-
-    outbuf_mem_0: outbuf_mem
-    port map (
-        clka                => clk,
-        dina                => (others => '0'),
-        addra               => addra,
-        wea                 => (others => '0'),
-        douta               => douta_0,
-        clkb                => bus2fpga_clk,
-        dinb                => bus2fpga_data,
-        addrb               => bus2fpga_addr,
-        web                 => web_0,
-        doutb               => doutb_0
-    );
-    outbuf_mem_1: outbuf_mem
-    port map (
-        clka                => clk,
-        dina                => (others => '0'),
-        addra               => addra,
-        wea                 => (others => '0'),
-        douta               => douta_1,
-        clkb                => bus2fpga_clk,
-        dinb                => bus2fpga_data,
-        addrb               => bus2fpga_addr,
-        web                 => web_1,
-        doutb               => doutb_1
-    );
-    fpga2bus_data <= doutb_0 when bus2fpga_cs = "0100" else
-                     doutb_1;
-    fpga2bus_error <= '0';
-    rd <= '1' when (bus2fpga_cs = "1000" or bus2fpga_cs = "0100") and bus2fpga_rnw = '1' else '0';
-    wr <= '1' when (bus2fpga_cs = "1000" or bus2fpga_cs = "0100") and bus2fpga_rnw = '0' else '0';
-    rdack: process(bus2fpga_clk, bus2fpga_reset, rd)
-    begin
-        if rising_edge(bus2fpga_clk) then
-            if bus2fpga_reset = '1' then
-                rddly <= '0';
-            else
-                rddly <= rd;
-            end if;
-        end if;
-    end process;
-    rd_rq <= rd and not(rddly);
-    rdack_dly: process(bus2fpga_clk, bus2fpga_reset, rd_rq)
-    begin
-        if rising_edge(bus2fpga_clk) then
-            if bus2fpga_reset = '1' then
-                rdackdly <= '0';
-				rdackdly1 <= '0';
-            else
-                rdackdly <= rd_rq;
-				rdackdly1 <= rdackdly;
-            end if;
-        end if;
-    end process;
-    fpga2bus_rdack <= rdackdly1;
-    fpga2bus_wrack <= wr;
-
-    buf_used <= buf_used_i;
 
 end Structural;
 
