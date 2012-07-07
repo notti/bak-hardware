@@ -1,10 +1,3 @@
------------------------------------------------------------
--- Project			: 
--- File				: average_mem.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- contents			: Average Buffer
------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
@@ -25,6 +18,7 @@ port(
     depth        : in std_logic_vector(15 downto 0);
     trig         : in std_logic;
     done         : out std_logic;
+    active       : out std_logic;
     err			 : out std_logic;
     data         : in std_logic_vector(15 downto 0);
 	data_valid	 : in std_logic;
@@ -79,10 +73,12 @@ architecture Structural of average_mem is
     signal depth_i      : std_logic_vector(15 downto 0);
 begin
 
-    done <= '1' when state = FINISHED else
-            '0';
-	err <= '1' when state = FAILED else
-		   '0';
+    done <=   '1' when state = FINISHED else
+              '0';
+	err <=    '1' when state = FAILED else
+		      '0';
+    active <= '1' when state = FIRST or state = RUN else
+              '0';
 
     process (clk)
     begin
@@ -197,3 +193,4 @@ begin
 	);
 
 end Structural;
+
