@@ -27,7 +27,7 @@ port(
     core_ov_cmul    : out std_logic;
 
     core_busy       : out std_logic;
-    core_done       : out std_logic
+    core_done       : out std_logic;
 
     wave_index      : in  std_logic_vector(3 downto 0);
 
@@ -43,7 +43,7 @@ port(
     mem_dinh        : in  std_logic_vector(31 downto 0);
     mem_addrh       : in  std_logic_vector(15 downto 0);
     mem_weh         : in  std_logic_vector(3 downto 0);
-    mem_douth       : out std_logic_vector(31 downto 0);
+    mem_douth       : out std_logic_vector(31 downto 0)
 );
 end core;
 
@@ -65,7 +65,7 @@ end component;
 attribute syn_black_box : boolean;
 attribute syn_black_box of h: component is true;
 
-signal addra    : std_logic_vector(15 downto 0);
+signal addra    : std_logic_vector(11 downto 0);
 signal douta    : std_logic_vector(31 downto 0);
 begin
 
@@ -103,7 +103,7 @@ begin
         ovfl_cmul    => core_ov_cmul,
 
         busy         => core_busy,
-        done         => core_done,
+        done         => core_done
     );
 
     
@@ -116,7 +116,7 @@ begin
         douta      => douta,
         clkb       => mem_clkh,
         dinb       => mem_dinh,
-        addrb      => mem_addrh,
+        addrb      => mem_addrh(11 downto 0),
         web        => mem_weh,
         doutb      => mem_douth
     );

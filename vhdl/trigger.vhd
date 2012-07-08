@@ -15,7 +15,7 @@ port(
     frame_trg   : in  std_logic;
     arm         : in  std_logic;
     armed       : out std_logic;
-    trig        : out std_logic;
+    trig        : out std_logic
 );
 end trigger;
 

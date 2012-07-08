@@ -14,11 +14,12 @@ use work.procedures.all;
 entity main is
 port(
 -- signals for gtx transciever
-    refclk              : in  std_logic;
-    rxn                 : in  std_logic_vector(3 downto 0);
-    rxp                 : in  std_logic_vector(3 downto 0);
-    txn                 : out std_logic_vector(3 downto 0);
-    txp                 : out std_logic_vector(3 downto 0);
+    rx_refclk_n         : in  std_logic;
+    rx_refclk_p         : in  std_logic;
+    rx_rxn              : in  std_logic_vector(3 downto 0);
+    rx_rxp              : in  std_logic_vector(3 downto 0);
+    rx_txn              : out std_logic_vector(3 downto 0);
+    rx_txp              : out std_logic_vector(3 downto 0);
 
 -- overall settings
 	depth				: in  std_logic_vector(15 downto 0);
@@ -41,6 +42,7 @@ port(
 	trig_type		    : in  std_logic_vector(1 downto 0);
     trig_armed          : out std_logic;
     trig_trigd          : out std_logic;
+	frame_clk			: out std_logic;
 
 -- control signals average
     avg_rst             : in  std_logic;
@@ -67,10 +69,10 @@ port(
 	core_done           : out std_logic;
 
 -- signals for selectio oserdes transmitter
-    txn                 : out std_logic_vector(7 downto 0);
-    txp                 : out std_logic_vector(7 downto 0);
-    txclkn              : out std_logic;
-    txclkp              : out std_logic;
+    tx_txn              : out std_logic_vector(7 downto 0);
+    tx_txp              : out std_logic_vector(7 downto 0);
+    tx_txclkn           : out std_logic;
+    tx_txclkp           : out std_logic;
 
 -- settings
 	tx_rst				: in  std_logic;
@@ -110,8 +112,8 @@ port(
 	mem_weoi			: in  std_logic_vector(3 downto 0);
 	mem_doutoi			: out std_logic_vector(31 downto 0);
 
-	mem_addroa			: in  std_logic_vector(31 downto 0);
-	mem_doutoa			: out std_logic_vector(15 downto 0)
+	mem_addroa			: in  std_logic_vector(15 downto 0);
+	mem_doutoa			: out std_logic_vector(31 downto 0)
 );
 end main;
 
@@ -143,7 +145,7 @@ architecture Structural of main is
 
     signal sample_clk          : std_logic;
     signal sample_rst          : std_logic;
-	signal frame_clk		   : std_logic;
+	signal frame_clk_i		   : std_logic;
 	signal wave_index		   : std_logic_vector(3 downto 0);
 	signal trig_armed_i		   : std_logic;
 	signal trig_trigd_i		   : std_logic;
@@ -166,7 +168,7 @@ begin
 
 	-- mem access handling
 
-	mem_extern_process: process(sample_clk, sample_rst, )
+	mem_extern_process: process(sample_clk, sample_rst, mem_req, trig_armed_i, trig_trigd_i, avg_active_i, core_busy_i, tx_busy_i)
 	begin
 		if sample_clk'event and sample_clk = '1' then
 			if sample_rst = '1' or mem_req = '0' then
@@ -212,7 +214,7 @@ begin
 					 mem_dinoi;
 	mem_addroi_i  <= core_mem_addry when mem_extern = '0' else
 					 mem_addroi;
-	mem_weoi_i    <= (others => core_memwey) when mem_extern = '0' else
+	mem_weoi_i    <= (others => core_mem_wey) when mem_extern = '0' else
 					 mem_weoi;
 	mem_doutoi    <= mem_doutoi_i when mem_extern = '1' else
 					 (others => '0');
@@ -228,11 +230,12 @@ begin
 
 	inbuf_inst: entity work.inbuf
 	port map(
-		refclk              => refclk,
-		rxn                 => rxn,
-		rxp                 => rxp,
-		txn                 => txn,
-		txp                 => txp,
+		refclk_n            => rx_refclk_n,
+		refclk_p            => rx_refclk_p,
+		rxn                 => rx_rxn,
+		rxp                 => rx_rxp,
+		txn                 => rx_txn,
+		txp                 => rx_txp,
 		rec_rst             => rec_rst,
 		rec_polarity        => rec_polarity,
 		rec_descramble      => rec_descramble,
@@ -257,7 +260,7 @@ begin
 		avg_active          => avg_active_i,
 		avg_err             => avg_err,
 		frame_index         => open, -- don't we need this?
-		frame_clk           => frame_clk,
+		frame_clk           => frame_clk_i,
 		wave_index          => wave_index,
 		mem_en              => mem_extern,
 		mem_clk             => mem_clk_i,
@@ -268,12 +271,13 @@ begin
 		mem_dinb            => mem_dinib_i,
 		mem_addrb           => mem_addrib_i,
 		mem_web             => mem_weaib_i,
-		mem_doutb           => mem_doutib_i,
+		mem_doutb           => mem_doutib_i
 	);
 
 	trig_armed <= trig_armed_i;
 	trig_trigd <= trig_trigd_i;
 	avg_active <= avg_active_i;
+	frame_clk  <= frame_clk_i;
 
     core_clk_gen: DCM_BASE
     generic map (
@@ -363,12 +367,12 @@ begin
 	port map(
 		clk             => sample_clk,
 		rst             => tx_rst_i,
-		frame_clk       => frame_clk,
+		frame_clk       => frame_clk_i,
 
-		txn             => txn,
-		txp             => txp,
-		txclkn          => txclkn,
-		txclkp          => txclkp,
+		txn             => tx_txn,
+		txp             => tx_txp,
+		txclkn          => tx_txclkn,
+		txclkp          => tx_txclkp,
 
 		depth           => depth,
 		tx_deskew       => tx_deskew,
@@ -388,7 +392,7 @@ begin
 		mem_wei         => mem_weoi_i,
 		mem_douti       => mem_doutoi_i,
 		mem_addra       => mem_addroa_i,
-		mem_douta       => mem_doutoa_i,
+		mem_douta       => mem_doutoa_i
 	);
 
 	tx_busy <= tx_busy_i;

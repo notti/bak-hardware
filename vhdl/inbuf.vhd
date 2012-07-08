@@ -14,7 +14,8 @@ use work.procedures.all;
 entity inbuf is
 port(
 -- signals for gtx transciever
-    refclk              : in  std_logic;
+    refclk_n            : in  std_logic;
+    refclk_p            : in  std_logic;
     rxn                 : in  std_logic_vector(3 downto 0);
     rxp                 : in  std_logic_vector(3 downto 0);
     txn                 : out std_logic_vector(3 downto 0);
@@ -93,21 +94,22 @@ architecture Structural of inbuf is
 begin
     receiver_i: entity work.receiver
     port map(
-        refclk              => refclk,
+        refclk_n            => refclk_n,
+        refclk_p            => refclk_p,
         rst                 => rec_rst,
         rxn                 => rxn,
         rxp                 => rxp,
         txn                 => txn,
         txp                 => txp,
         pll_locked          => sample_locked_i,
-        clk                 => data_clk,
+        clk                 => sample_clk_i,
         rst_out             => open,
         data                => rec_data_i,
-        polarity            => rec_polarity_synced,
+        polarity            => rec_polarity,
         descramble          => rec_descramble,
         rxeqmix             => rec_rxeqmix,
         data_valid          => rec_data_valid_i,
-        enable              => rec_enable;
+        enable              => rec_enable
     );
 
     sample_rst_i   <= not sample_locked_i;
@@ -127,13 +129,13 @@ begin
 		end if;
 	end process;
 
-    rec_stream_valid <= rec_stream_valid_i;
+    rec_stream_valid <= stream_valid_i;
 
     wallclk_i : entity work.wallclk
     port map(
        clk                      => sample_clk_i,
        rst                      => avg_rst_i,
-       n                        => depth,
+       n                        => avg_depth,
        wave_index               => wave_index_i,
        frame_clk                => frame_clk,
        frame_trg                => frame_trg,
@@ -186,13 +188,14 @@ begin
     port map(
         clk                     => sample_clk_i,
         rst                     => avg_rst_i,
-        width                   => width,
-        depth                   => depth,
+        width                   => avg_width,
+        depth                   => avg_depth,
         trig                    => trig,
         done                    => avg_done,
         active                  => avg_active_i,
 		err						=> avg_err,
         data                    => data_i,
+        data_valid              => stream_valid_i,
         memclk                  => mem_clk_i,
         ext                     => mem_en,
         dina                    => mem_dina,
