@@ -34,6 +34,7 @@ port(
     frame_offset        : in  std_logic_vector(15 downto 0);
     resync              : in  std_logic;
     cmul_ovfl           : out std_logic;
+	busy				: out std_logic;
 
 -- mem
     mem_clk             : in  std_logic;
@@ -133,6 +134,8 @@ begin
             end if;
         end if;
     end process active_process;
+
+	busy <= do_toggle;
 
     active_r_process process(clk, rst, active)
     begin
