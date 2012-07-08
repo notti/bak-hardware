@@ -1,6 +1,3 @@
 top.vhd
 proc2fpga.vhd
-main.vhd
-average_mem.vhd
-core.vhd
 overlap_add.vhd -- nochmal testen
