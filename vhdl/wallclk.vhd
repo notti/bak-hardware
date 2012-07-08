@@ -13,7 +13,7 @@ port(
     wave_index : out std_logic_vector(3 downto 0);
     frame_clk  : out std_logic;
     frame_trg  : out std_logic;    
-    frame_index : out std_logic_vector(15 downto 0);
+    frame_index : out std_logic_vector(15 downto 0)
 );
 end wallclk;
 

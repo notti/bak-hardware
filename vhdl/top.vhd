@@ -205,20 +205,6 @@ begin
 
     in_trigger <= inbuf_trigger or push_south;
 
-    inbuf_refclkbufds_i : IBUFDS
-    port map
-    (
-        O                   => refclk_unbuffered,
-        I                   => gtx_refclk_p,
-        IB                  => gtx_refclk_n
-    );
-
-    refclk_bufg_i : BUFG
-    port map
-    (
-        I                   =>      refclk_unbuffered,
-        O                   =>      refclk
-    );
 
 
     inst_inbuf: entity work.inbuf

@@ -13,7 +13,8 @@ use work.procedures.all;
 entity receiver is
 port(
 -- signals for gtx transciever
-	refclk              : in  std_logic;
+	refclk_n            : in  std_logic;
+	refclk_p			: in  std_logic;
 	rst                 : in  std_logic;
 	rxn                 : in  std_logic_vector(3 downto 0);
 	rxp                 : in  std_logic_vector(3 downto 0);
@@ -161,6 +162,8 @@ architecture Structural of receiver is
 -- clocks
 	signal refclkout_i              : std_logic;
 	signal usrclk_i                 : std_logic;
+	signal refclk_unbuffered		: std_logic;
+	signal refclk					: std_logic;
 
 -- registers
 
@@ -190,6 +193,21 @@ architecture Structural of receiver is
 	signal  rxunsynced_i            : std_logic_vector(2 downto 0);
 
 begin
+    inbuf_refclkbufds_i : IBUFDS
+    port map
+    (
+        O                   => refclk_unbuffered,
+        I                   => refclk_p,
+        IB                  => refclk_n
+    );
+
+    refclk_bufg_i : BUFG
+    port map
+    (
+        I                   => refclk_unbuffered,
+        O                   => refclk
+    );
+
 	gtx_i : GTX
 	port map
 	(

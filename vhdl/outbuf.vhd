@@ -137,7 +137,7 @@ begin
 
 	busy <= do_toggle;
 
-    active_r_process process(clk, rst, active)
+    active_r_process: process(clk, rst, active)
     begin
         if clk'event and clk = '1' then
             if rst = '1' then
@@ -158,7 +158,7 @@ begin
         wea                 => (others => '0'),
         douta               => dout0,
         clkb                => mem_clk,
-        dinb                => mem_dina,
+        dinb                => mem_dini,
         addrb               => mem_addr0,
         web                 => mem_we0,
         doutb               => mem_out0
@@ -171,7 +171,7 @@ begin
         wea                 => (others => '0'),
         douta               => dout1,
         clkb                => mem_clk,
-        dinb                => mem_dina,
+        dinb                => mem_dini,
         addrb               => mem_addr1,
         web                 => mem_we1,
         doutb               => mem_out1
@@ -197,7 +197,7 @@ begin
         clk          => clk,
         sch          => (others => '0'),
         a_re         => dout(15 downto 0),
-        a_im         => dout(31 downto 0),
+        a_im         => dout(31 downto 16),
         b_re         => muli,
         b_im         => mulq,
         c_re         => i,
@@ -228,7 +228,7 @@ begin
         txp                 => txp,
         txclkn              => txclkn,
         txclkp              => txclkp,
-        deskew              => deskew,
+        deskew              => tx_deskew,
         dc_balance          => dc_balance
     );
 
