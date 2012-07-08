@@ -10,40 +10,40 @@ use work.all;
 
 entity core is
 port(
-    clk            : in  std_logic;
-    rst            : in  std_logic;
+    clk             : in  std_logic;
+    rst             : in  std_logic;
 
-    fft_start      : in  std_logic;
-    fft_n          : in  std_logic_vector(4 downto 0);
-    fft_scale_sch  : in  std_logic_vector(11 downto 0);
-    fft_scale_schi : in  std_logic_vector(11 downto 0);
-    fft_cmul_sch   : in  std_logic_vector(1 downto 0);
-    fft_L          : in  std_logic_vector(11 downto 0);
-    fft_depth      : in  std_logic_vector(15 downto 0);
-    fft_iq         : in  std_logic;
+    core_start      : in  std_logic;
+    core_n          : in  std_logic_vector(4 downto 0);
+    core_scale_sch  : in  std_logic_vector(11 downto 0);
+    core_scale_schi : in  std_logic_vector(11 downto 0);
+    core_cmul_sch   : in  std_logic_vector(1 downto 0);
+    core_L          : in  std_logic_vector(11 downto 0);
+    core_depth      : in  std_logic_vector(15 downto 0);
+    core_iq         : in  std_logic;
 
-    fft_ov_fft     : out std_logic;
-    fft_ov_ifft    : out std_logic;
-    fft_ov_cmul    : out std_logic;
+    core_ov_fft     : out std_logic;
+    core_ov_ifft    : out std_logic;
+    core_ov_cmul    : out std_logic;
 
-    fft_busy       : out std_logic;
-    fft_done       : out std_logic
+    core_busy       : out std_logic;
+    core_done       : out std_logic
 
-    wave_index     : in  std_logic_vector(3 downto 0);
+    wave_index      : in  std_logic_vector(3 downto 0);
 
-    mem_dinx       : in  std_logic_vector(15 downto 0);
-    mem_addrx      : out std_logic_vector(15 downto 0);
+    mem_dinx        : in  std_logic_vector(15 downto 0);
+    mem_addrx       : out std_logic_vector(15 downto 0);
 
-    mem_diny       : in  std_logic_vector(31 downto 0);
-    mem_addry      : out std_logic_vector(15 downto 0);
-    mem_douty      : out std_logic_vector(31 downto 0);
-    mem_wey        : out std_logic;
+    mem_diny        : in  std_logic_vector(31 downto 0);
+    mem_addry       : out std_logic_vector(15 downto 0);
+    mem_douty       : out std_logic_vector(31 downto 0);
+    mem_wey         : out std_logic;
 
-    mem_clkh       : in  std_logic;
-    mem_dinh       : in  std_logic_vector(31 downto 0);
-    mem_addrh      : in  std_logic_vector(15 downto 0);
-    mem_weh        : in  std_logic_vector(3 downto 0);
-    mem_douth      : out std_logic_vector(31 downto 0);
+    mem_clkh        : in  std_logic;
+    mem_dinh        : in  std_logic_vector(31 downto 0);
+    mem_addrh       : in  std_logic_vector(15 downto 0);
+    mem_weh         : in  std_logic_vector(3 downto 0);
+    mem_douth       : out std_logic_vector(31 downto 0);
 );
 end core;
 
@@ -74,14 +74,14 @@ begin
         clk          => clk,
         rst          => rst,
 
-        start        => fft_start,
-        nfft         => fft_n,
-        scale_sch    => fft_scale_sch,
-        scale_schi   => fft_scale_schi,
-        cmul_sch     => fft_cmul_sch,
-        L            => fft_L,
-        n            => fft_depth,
-        iq           => fft_iq,
+        start        => core_start,
+        nfft         => core_n,
+        scale_sch    => core_scale_sch,
+        scale_schi   => core_scale_schi,
+        cmul_sch     => core_cmul_sch,
+        L            => core_L,
+        n            => core_depth,
+        iq           => core_iq,
 
         wave_index   => wave_index,
         x_in         => mem_dinx,
@@ -98,12 +98,12 @@ begin
         h_im_in      => douta(31 downto 16),
         h_index      => addra,
 
-        ovfl_fft     => fft_ov_fft,
-        ovfl_ifft    => fft_ov_ifft,
-        ovfl_cmul    => fft_ov_cmul,
+        ovfl_fft     => core_ov_fft,
+        ovfl_ifft    => core_ov_ifft,
+        ovfl_cmul    => core_ov_cmul,
 
-        busy         => fft_busy,
-        done         => fft_done,
+        busy         => core_busy,
+        done         => core_done,
     );
 
     
