@@ -1,20 +1,27 @@
-cmul.vhd
-inbuf.vhd
-alignfsm.vhd
-descramble.vhd
-balance.vhd
-flag.vhd
-cadd.vhd
-receiver.vhd
-transmitter.vhd
-wave.vhd
-mul.vhd
-wallclk.vhd
-average_mem.vhd
-top.vhd
-procedures.vhd
-proc2fpga.vhd
-fft_fsm.vhd
-overlap_add.vhd
-trigger.vhd
-outbuf.vhd
+top
++- main
+|  +- inbuf
+|  |  +- receiver
+|  |  |  +- align_fsm
+|  |  |  +- descramble
+|  |  |  +- gtx
+|  |  +- average_mem
+|  |  |  +- inbuf_mem
+|  |  +- trigger
+|  |  +- wallclk
+|  +- core
+|  |  +- overlap_add
+|  |  |  +- fft
+|  |  |  +- scratch
+|  |  |  +- fft_fsm
+|  |  |  +- wave
+|  |  |  +- cmul
+|  |  |  |  +- mul
+|  |  |  +- cadd
+|  |  +- h_mem
+|  +- outbuf
+|     +- outbuf_mem
+|     +- transmitter
+|        +- balance
++- proc2fpga
++- CPU
