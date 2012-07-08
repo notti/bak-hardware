@@ -1,4 +1,4 @@
--- scratch2ifft falsch um 1 cycle
+-- scratch2ifft falsch um 1 cycle ??!?!?
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
