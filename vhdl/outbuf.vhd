@@ -89,7 +89,7 @@ begin
     depth_r_proc: process(clk, rst, depth)
     begin
         if clk'event and clk = '1' then
-            if rst = '1' then
+            if rst = '1' or resync = '1' then
                 depth_r <= depth - 1;
             end if;
         end if;
