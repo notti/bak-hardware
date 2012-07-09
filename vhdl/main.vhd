@@ -114,6 +114,10 @@ port(
 
 	mem_addroa			: in  std_logic_vector(15 downto 0);
 	mem_doutoa			: out std_logic_vector(31 downto 0)
+
+-- clk out
+    sample_clk          : out std_logic;
+    core_clk            : out std_logic;
 );
 end main;
 
@@ -143,7 +147,7 @@ architecture Structural of main is
 	signal mem_addroa_i		   : std_logic_vector(15 downto 0);
 	signal mem_doutoa_i		   : std_logic_vector(31 downto 0);
 
-    signal sample_clk          : std_logic;
+    signal sample_clk_i          : std_logic;
     signal sample_rst          : std_logic;
 	signal frame_clk_i		   : std_logic;
 	signal wave_index		   : std_logic_vector(3 downto 0);
@@ -153,7 +157,7 @@ architecture Structural of main is
 	signal trig_arm_i		   : std_logic;
 
     signal clk_fb              : std_logic; -- feedback clk DCM
-    signal core_clk            : std_logic; -- sample_clk*2
+    signal core_clk_i          : std_logic; -- sample_clk_i*2
     signal core_clku           : std_logic;
 	signal dcm_locked		   : std_logic;
 
@@ -168,9 +172,9 @@ begin
 
 	-- mem access handling
 
-	mem_extern_process: process(sample_clk, sample_rst, mem_req, trig_armed_i, trig_trigd_i, avg_active_i, core_busy_i, tx_busy_i)
+	mem_extern_process: process(sample_clk_i, sample_rst, mem_req, trig_armed_i, trig_trigd_i, avg_active_i, core_busy_i, tx_busy_i)
 	begin
-		if sample_clk'event and sample_clk = '1' then
+		if sample_clk_i'event and sample_clk_i = '1' then
 			if sample_rst = '1' or mem_req = '0' then
 				mem_extern <= '0';
 			elsif mem_req = '1' and trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and core_busy_i = '0' and tx_busy_i = '0' then
@@ -184,7 +188,7 @@ begin
     mem_clk_mux : BUFGMUX_CTRL
     port map (
         O                       => mem_clk_i,
-        I0                      => core_clk,
+        I0                      => core_clk_i,
         I1                      => mem_clk,
         S                       => mem_extern
     );
@@ -244,7 +248,7 @@ begin
 		rec_enable          => rec_enable,
 		rec_input_select    => rec_input_select,
 		rec_stream_valid    => rec_stream_valid,
-		sample_clk          => sample_clk,
+		sample_clk_i        => sample_clk_i,
 		sample_rst          => sample_rst,
 		trig_rst            => trig_rst,
 		trig_arm            => trig_arm_i,
@@ -278,6 +282,7 @@ begin
 	trig_trigd <= trig_trigd_i;
 	avg_active <= avg_active_i;
 	frame_clk  <= frame_clk_i;
+    sample_clk <= sample_clk_i;
 
     core_clk_gen: DCM_BASE
     generic map (
@@ -304,7 +309,7 @@ begin
         CLKFX180              => open,
         LOCKED                => dcm_locked,
         CLKFB                 => clk_fb,
-        CLKIN                 => sample_clk,
+        CLKIN                 => sample_clk_i,
         RST                   => sample_rst
     );
 
@@ -312,8 +317,10 @@ begin
     port map
     (
         I            => core_clku,
-        O            => core_clk
+        O            => core_clk_i
     );
+
+    core_clk <= core_clk_i;
 
 	core_rst_i   <= core_rst or not dcm_locked;
 	core_start_i <= core_start when mem_extern = '0' and trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and tx_busy_i = '0' else
@@ -321,7 +328,7 @@ begin
 
 	core_inst: entity work.core
 	port map(
-		clk             => core_clk,
+		clk             => core_clk_i,
 		rst             => core_rst_i,
 
 		core_start      => core_start_i,
@@ -365,7 +372,7 @@ begin
 
 	outbuf_inst: entity work.outbuf
 	port map(
-		clk             => sample_clk,
+		clk             => sample_clk_i,
 		rst             => tx_rst_i,
 		frame_clk       => frame_clk_i,
 
