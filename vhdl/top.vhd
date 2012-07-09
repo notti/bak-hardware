@@ -133,6 +133,61 @@ PORT(
     );
 END COMPONENT;
 
+    signal depth               : std_logic_vector(15 downto 0);
+    signal rec_rst             : std_logic;
+    signal rec_polarity        : std_logic_vector(2 downto 0);
+    signal rec_descramble      : std_logic_vector(2 downto 0);
+    signal rec_rxeqmix         : t_cfg_array(2 downto 0);
+    signal rec_data_valid      : std_logic_vector(2 downto 0);
+    signal rec_enable          : std_logic_vector(2 downto 0);
+    signal rec_input_select    : std_logic_vector(1 downto 0);
+    signal rec_stream_valid    : std_logic;
+    signal trig_rst            : std_logic;
+    signal trig_arm            : std_logic;
+    signal trig_int            : std_logic;
+    signal trig_type           : std_logic_vector(1 downto 0);
+    signal trig_armed          : std_logic;
+    signal trig_trigd          : std_logic;
+    signal avg_rst             : std_logic;
+    signal avg_width           : std_logic_vector(1 downto 0);
+    signal avg_done            : std_logic;
+    signal avg_active          : std_logic;
+    signal avg_err             : std_logic;
+    signal core_rst            : std_logic;
+    signal core_start          : std_logic;
+    signal core_n              : std_logic_vector(4 downto 0);
+    signal core_scale_sch      : std_logic_vector(11 downto 0);
+    signal core_scale_schi     : std_logic_vector(11 downto 0);
+    signal core_cmul_sch       : std_logic_vector(1 downto 0);
+    signal core_L              : std_logic_vector(11 downto 0);
+    signal core_iq             : std_logic;
+    signal core_ov_fft         : std_logic;
+    signal core_ov_ifft        : std_logic;
+    signal core_ov_cmul        : std_logic;
+    signal core_busy           : std_logic;
+    signal core_done           : std_logic;
+    signal tx_rst              : std_logic;
+    signal tx_deskew           : std_logic;
+    signal tx_dc_balance       : std_logic;
+    signal tx_muli             : std_logic_vector(15 downto 0);
+    signal tx_mulq             : std_logic_vector(15 downto 0);
+    signal tx_toggle_buf       : std_logic;
+    signal tx_toggled          : std_logic;
+    signal tx_frame_offset     : std_logic_vector(15 downto 0);
+    signal tx_resync           : std_logic;
+    signal tx_cmul_ovfl        : std_logic;
+    signal tx_busy             : std_logic;
+    signal mem_req             : std_logic;
+    signal mem_ack             : std_logic;
+
+    signal core_clk            : std_logic;
+    signal sample_clk          : std_logic;
+
+
+
+
+
+
 --inbuf
     signal rx_polarity       : std_logic_vector(2 downto 0);
     signal rx_descramble     : std_logic_vector(2 downto 0);
@@ -199,139 +254,160 @@ END COMPONENT;
     signal bus2fpga_clk      : std_logic;
     signal in_trigger        : std_logic;
 
-    attribute KEEP_HIERARCHY : string;
-    attribute KEEP_HIERARCHY of Structural: architecture is "yes";
+--    attribute KEEP_HIERARCHY : string;
+--    attribute KEEP_HIERARCHY of Structural: architecture is "yes";
 begin
 
-    in_trigger <= inbuf_trigger or push_south;
-
-
-
-    inst_inbuf: entity work.inbuf
+    main_inst: entity work.main
     port map(
-        refclk              => refclk,
-        rxn                 => gtx_rxn,
-        rxp                 => gtx_rxp,
-        txn                 => gtx_txn,
-        txp                 => gtx_txp,
-        trigger             => in_trigger,
-        frame_clk           => frame_clk_i,
-
-        rec_polarity        => rx_polarity,
-        rec_descramble      => rx_descramble,
-        rec_rxeqmix         => rx_rxeqmix,
-        rec_data_valid      => rx_data_valid,
-        rec_enable          => rx_enable,
-        rec_input_select    => rx_input_select,
-        rec_input_select_req => rx_input_select_req,
-        rec_stream_valid    => rx_stream_valid,
+        rx_refclk_n         => gtx_refclk_n,
+        rx_refclk_p         => gtx_refclk_p,
+        rx_rxn              => gtx_rxn,
+        rx_rxp              => gtx_rxp,
+        rx_txn              => gtx_txn,
+        rx_txp              => gtx_txp,
         depth               => depth,
-        depth_req           => depth_req,
-        width               => width,
-        width_req           => width_req,
-        arm                 => arm,
-        rst                 => rx_rst,
+        rec_rst             => rec_rst,
+        rec_polarity        => rec_polarity,
+        rec_descramble      => rec_descramble,
+        rec_rxeqmix         => rec_rxeqmix,
+        rec_data_valid      => rec_data_valid,
+        rec_enable          => rec_enable,
+        rec_input_select    => rec_input_select,
+        rec_stream_valid    => rec_stream_valid,
+        trig_rst            => trig_rst,
+        trig_arm            => trig_arm,
+        trig_ext            => inbuf_trigger, -- sync, debounce
+        trig_int            => trig_int,
+        trig_type           => trig_type,
+        trig_armed          => trig_armed,
+        trig_trigd          => trig_trigd,
+        frame_clk           => frame_clk,
+        avg_rst             => avg_rst,
+        avg_width           => avg_width,
         avg_done            => avg_done,
-        locked              => locked,
+        avg_active          => avg_active,
+        avg_err             => avg_err,
+        core_rst            => core_rst,
+        core_start          => core_start,
+        core_n              => core_n,
+        core_scale_sch      => core_scale_sch,
+        core_scale_schi     => core_scale_schi,
+        core_cmul_sch       => core_cmul_sch,
+        core_L              => core_L,
+        core_iq             => core_iq,
+        core_ov_fft         => core_ov_fft,
+        core_ov_ifft        => core_ov_ifft,
+        core_ov_cmul        => core_ov_cmul,
+        core_busy           => core_busy,
+        core_done           => core_done,
+        tx_txn              => oserdes_txn,
+        tx_txp              => oserdes_txp,
+        tx_txclkn           => oserdes_txclkn,
+        tx_txclkp           => oserdes_txclkp,
+        tx_rst              => tx_rst,
+        tx_deskew           => tx_deskew,
+        tx_dc_balance       => tx_dc_balance,
+        tx_muli             => tx_muli,
+        tx_mulq             => tx_mulq,
+        tx_toggle_buf       => tx_toggle_buf,
+        tx_toggled          => tx_toggled,
+        tx_frame_offset     => tx_frame_offset,
+        tx_resync           => tx_resync,
+        tx_cmul_ovfl        => tx_cmul_ovfl,
+        tx_busy             => tx_busy,
         mem_req             => mem_req,
-        mem_ack             => inbuf_mem_ack,
+        mem_ack             => mem_ack,
+
+        mem_clk             => ,   -- in  std_logic;
+        mem_dinia           => ,   -- in  std_logic_vector(15 downto 0);
+        mem_addria          => ,   -- in  std_logic_vector(15 downto 0);
+        mem_weaia           => ,   -- in  std_logic;
+        mem_doutia          => ,   -- out std_logic_vector(15 downto 0);
+        mem_dinib           => ,   -- in  std_logic_vector(15 downto 0);
+        mem_addrib          => ,   -- in  std_logic_vector(15 downto 0);
+        mem_weaib           => ,   -- in  std_logic;
+        mem_doutib          => ,   -- out std_logic_vector(15 downto 0);
+        mem_dinh            => ,   -- in  std_logic_vector(31 downto 0);
+        mem_addrh           => ,   -- in  std_logic_vector(15 downto 0);
+        mem_weh             => ,   -- in  std_logic_vector(3 downto 0);
+        mem_douth           => ,   -- out std_logic_vector(31 downto 0);
+        mem_dinoi           => ,   -- in  std_logic_vector(31 downto 0);
+        mem_addroi          => ,   -- in  std_logic_vector(15 downto 0);
+        mem_weoi            => ,   -- in  std_logic_vector(3 downto 0);
+        mem_doutoi          => ,   -- out std_logic_vector(31 downto 0);
+        mem_addroa          => ,   -- in  std_logic_vector(15 downto 0);
+        mem_doutoa          => ,   -- out std_logic_vector(31 downto 0)
+        sample_clk          => sample_clk,
+        core_clk            => core_clk
+    );
+
+
+    inst_proc_register: entity work.proc_register
+    port map(
+        depth               => depth,
+        rec_rst             => rec_rst,
+        rec_polarity        => rec_polarity,
+        rec_descramble      => rec_descramble,
+        rec_rxeqmix         => rec_rxeqmix,
+        rec_data_valid      => rec_data_valid,
+        rec_enable          => rec_enable,
+        rec_input_select    => rec_input_select,
+        rec_stream_valid    => rec_stream_valid,
+        trig_rst            => trig_rst,
+        trig_arm            => trig_arm,
+        trig_int            => trig_int,
+        trig_type           => trig_type,
+        trig_armed          => trig_armed,
+        trig_trigd          => trig_trigd,
+        avg_rst             => avg_rst,
+        avg_width           => avg_width,
+        avg_done            => avg_done,
+        avg_active          => avg_active,
+        avg_err             => avg_err,
+        core_rst            => core_rst,
+        core_start          => core_start,
+        core_n              => core_n,
+        core_scale_sch      => core_scale_sch,
+        core_scale_schi     => core_scale_schi,
+        core_cmul_sch       => core_cmul_sch,
+        core_L              => core_L,
+        core_iq             => core_iq,
+        core_ov_fft         => core_ov_fft,
+        core_ov_ifft        => core_ov_ifft,
+        core_ov_cmul        => core_ov_cmul,
+        core_busy           => core_busy,
+        core_done           => core_done,
+        tx_rst              => tx_rst,
+        tx_deskew           => tx_deskew,
+        tx_dc_balance       => tx_dc_balance,
+        tx_muli             => tx_muli,
+        tx_mulq             => tx_mulq,
+        tx_toggle_buf       => tx_toggle_buf,
+        tx_toggled          => tx_toggled,
+        tx_frame_offset     => tx_frame_offset,
+        tx_resync           => tx_resync,
+        tx_cmul_ovfl        => tx_cmul_ovfl,
+        tx_busy             => tx_busy,
+        mem_req             => mem_req,
+        mem_ack             => mem_ack,
 
         sample_clk          => sample_clk,
-        pll_locked          => pll_locked,
-
-        fpga2bus_error      => inbuf_error,
-        fpga2bus_wrack      => inbuf_wrack,
-        fpga2bus_rdack      => inbuf_rdack,
-        fpga2bus_data       => inbuf_data,
-        bus2fpga_rnw        => bus2fpga_rnw,
-        bus2fpga_cs         => bus2fpga_cs,
-        bus2fpga_be         => bus2fpga_be,
-        bus2fpga_data       => bus2fpga_data,
-        bus2fpga_addr       => bus2fpga_addr,
-        bus2fpga_reset      => bus2fpga_reset,
-        bus2fpga_clk        => bus2fpga_clk
-    );
-
-    inst_outbuf: entity work.outbuf
-    port map(
-        txn                 => oserdes_txn,
-        txp                 => oserdes_txp,
-        txclkn              => oserdes_txclkn,
-        txclkp              => oserdes_txclkp,
-        depth               => depth,
-        depth_req           => depth_req,
-        mem_req             => mem_req,
-        mem_ack             => outbuf_mem_ack,
-        tx_deskew           => tx_deskew,
-        rst                 => tx_rst,
-        frame_clk           => frame_clk_i,
-        dc_balance          => dc_balance,
-        clk                 => sample_clk,
-        pll_locked          => pll_locked,
-        muli                => muli,
-        muli_req            => muli_req,
-        mulq                => mulq,
-        mulq_req            => mulq_req,
-        toggle_buf          => toggle_buf,
-        buf_used            => buf_used,
-
-        fpga2bus_error      => outbuf_error,
-        fpga2bus_wrack      => outbuf_wrack,
-        fpga2bus_rdack      => outbuf_rdack,
-        fpga2bus_data       => outbuf_data,
-        bus2fpga_rnw        => bus2fpga_rnw,
-        bus2fpga_cs         => bus2fpga_cs,
-        bus2fpga_be         => bus2fpga_be,
-        bus2fpga_data       => bus2fpga_data,
-        bus2fpga_addr       => bus2fpga_addr,
-        bus2fpga_reset      => bus2fpga_reset,
-        bus2fpga_clk        => bus2fpga_clk
-    );
-
-    inst_proc2fpga: entity work.proc2fpga
-    port map(
-    ----- clk domain inbuf_reciever_clk_i
-        rx_polarity          => rx_polarity,
-        rx_descramble        => rx_descramble,
-        rx_rxeqmix           => rx_rxeqmix,
-        rx_data_valid        => rx_data_valid,
-        rx_enable            => rx_enable,
-        rx_input_select      => rx_input_select,
-        rx_input_select_req  => rx_input_select_req,
-        rx_stream_valid      => rx_stream_valid,
-        depth                => depth,
-        depth_req            => depth_req,
-        width                => width,
-        width_req            => width_req,
-        arm                  => arm,
-        rx_rst               => rx_rst,
-        tx_rst               => tx_rst,
-        avg_done             => avg_done,
-        locked               => locked,
-        tx_deskew            => tx_deskew,
-        mem_req              => mem_req,
-        mem_ack              => mem_ack,
-        dc_balance           => dc_balance,
-        muli                 => muli,
-        muli_req             => muli_req,
-        mulq                 => mulq,
-        mulq_req             => mulq_req,
-        buf_used             => buf_used,
-        toggle_buf           => toggle_buf,
+        core_clk            => core_clk,
 
     ----- proc interface
-        fpga2bus_intr        => fpga2bus_intr,
-        fpga2bus_error       => proc2fpga_error,
-        fpga2bus_wrack       => proc2fpga_wrack,
-        fpga2bus_rdack       => proc2fpga_rdack,
-        fpga2bus_data        => proc2fpga_data,
-        bus2fpga_wrce        => bus2fpga_wrce,
-        bus2fpga_rdce        => bus2fpga_rdce,
-        bus2fpga_be          => bus2fpga_be,
-        bus2fpga_data        => bus2fpga_data,
-        bus2fpga_addr        => bus2fpga_addr,
-        bus2fpga_reset       => bus2fpga_reset,
-        bus2fpga_clk         => bus2fpga_clk
+        fpga2bus_intr       => fpga2bus_intr,
+        fpga2bus_error      => proc2fpga_error,
+        fpga2bus_wrack      => proc2fpga_wrack,
+        fpga2bus_rdack      => proc2fpga_rdack,
+        fpga2bus_data       => proc2fpga_data,
+        bus2fpga_wrce       => bus2fpga_wrce,
+        bus2fpga_rdce       => bus2fpga_rdce,
+        bus2fpga_be         => bus2fpga_be,
+        bus2fpga_data       => bus2fpga_data,
+        bus2fpga_addr       => bus2fpga_addr,
+        bus2fpga_reset      => bus2fpga_reset,
+        bus2fpga_clk        => bus2fpga_clk
     );
 
     fpga2bus_wrack <= or_many(outbuf_wrack & inbuf_wrack & proc2fpga_wrack);
