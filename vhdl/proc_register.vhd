@@ -91,7 +91,6 @@ port(
     bus2fpga_rdce       : in  std_logic_vector(3 downto 0);
     bus2fpga_be         : in  std_logic_vector(3 downto 0);
     bus2fpga_data       : in  std_logic_vector(31 downto 0);
-    bus2fpga_addr       : in  std_logic_vector(15 downto 0);
     bus2fpga_reset      : in  std_logic;
     bus2fpga_clk        : in  std_logic
 );
