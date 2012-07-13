@@ -5,23 +5,27 @@ entity toggle is
 port(
     toggle_in  : in  std_logic;
     toggle_out : out std_logic;
+    busy       : out std_logic;
     clk_from   : in  std_logic;
-    clk_to     : in  std_logic;
+    clk_to     : in  std_logic
 );
 end toggle;
 
 architecture Structural of toggle is
-    signal in_level     : std_logic;
-    signal in_level_s   : std_logic;
-    signal in_level_r   : std_logic;
+    signal toggle_in_r  : std_logic := '0';
+    signal in_level     : std_logic := '0';
+    signal in_level_s   : std_logic := '0';
+    signal in_level_sr  : std_logic := '0';
+    signal in_level_srs : std_logic := '0';
 begin
 
 in_level_p: process(clk_from)
 begin
     if rising_edge(clk_from) then
-        if toggle_in = '1' then
+        if toggle_in = '1' and toggle_in_r = '0' then
             in_level <= not in_level;
         end if;
+        toggle_in_r <= toggle_in;
     end if;
 end process in_level_p;
 
@@ -35,11 +39,19 @@ port map(
 in_level_r_p: process(clk_to)
 begin
     if rising_edge(clk_to) then
-        in_level_r <= in_level_s;
+        in_level_sr <= in_level_s;
     end if;
 end process in_level_r_p;
 
-toggle_out <= in_level_s xor in_level_r;
+in_level_srs_p: entity work.flag
+port map(
+    flag_in     => in_level_sr,
+    flag_out    => in_level_srs,
+    clk         => clk_from
+);
+
+toggle_out <= in_level_s xor in_level_sr;
+busy <= in_level xor in_level_srs;
 
 end Structural;
 
