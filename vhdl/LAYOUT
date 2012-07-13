@@ -23,5 +23,6 @@ top
 |     +- outbuf_mem
 |     +- transmitter
 |        +- balance
-+- proc2fpga
++- proc_register
++- proc_mem
 +- CPU
