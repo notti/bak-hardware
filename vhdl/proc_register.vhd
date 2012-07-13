@@ -103,19 +103,34 @@ architecture Structural of proc_register is
     signal slv_reg                  : reg;
 
     signal rec_input_select_wr      : std_logic;
+    signal rec_input_select_wr_s    : std_logic;
     signal rec_rst_value            : std_logic;
 
+    signal trig_type_wr             : std_logic;
+    signal trig_arm_value           : std_logic;
+    signal trig_int_value           : std_logic;
+    signal trig_rst_value           : std_logic;
 
-    signal rx_input_select_req_r : std_logic;
-    signal muli_req_r            : std_logic;
-    signal mulq_req_r            : std_logic;
-    signal arm_r                 : std_logic;
-    signal rx_rst_r              : std_logic;
-	signal tx_deskew_r           : std_logic;
-	signal tx_rst_r              : std_logic;
-	signal toggle_buf_r			 : std_logic;
-	signal width_req_r			 : std_logic;
-	signal depth_req_r           : std_logic;
+    signal avg_rst_value            : std_logic;
+
+    signal core_start_value         : std_logic;
+    signal core_rst_value           : std_logic;
+
+    signal tx_muli_wr               : std_logic;
+    signal tx_mulq_wr               : std_logic;
+
+    signal tx_deskew_value          : std_logic;
+    signal tx_toggle_value          : std_logic;
+    signal tx_resync_value          : std_logic;
+    signal tx_rst_value             : std_logic;
+
+    signal busy                     : std_logic_vector(14 downto 0);
+
+    signal trig_trigd_synced        : std_logic;
+    signal avg_done_synced          : std_logic;
+    signal core_done_synced         : std_logic;
+    signal tx_toggled_synced        : std_logic;
+    signal tx_cmul_ovfl_synced      : std_logic;
 begin
 
 -- x  rec_enable(0)                    1 0
@@ -178,8 +193,8 @@ begin
 -- x  avg_width(0)                     0 0
 -- x  avg_width(1)                     0 1
 -- r  avg_active                       0 2
--- r  avg_done                         0 3
--- r  avg_err                          0 4
+-- r  avg_err                          0 3
+-- 0  0                                0 4
 -- 0  0                                0 5
 -- 0  0                                0 6
 -- t  rst                 sample_clk   0 7
@@ -195,7 +210,7 @@ begin
 -- x  core_scale_sch(8)                0 0
 -- x  core_scale_sch(9)                0 1
 -- x  core_scale_sch(10)               0 2
--- x  core_scale_sch(10)               0 3
+-- x  core_scale_sch(11)               0 3
 -- 0  0                                0 4
 -- 0  0                                0 5
 -- 0  0                                0 6
@@ -211,7 +226,7 @@ begin
 -- x  core_scale_schi(8)               0 0
 -- x  core_scale_schi(9)               0 1
 -- x  core_scale_schi(10)              0 2
--- x  core_scale_schi(10)              0 3
+-- x  core_scale_schi(11)              0 3
 -- 0  0                                0 4
 -- 0  0                                0 5
 -- 0  0                                0 6
@@ -228,7 +243,7 @@ begin
 -- x  core_L(8)                        0 0
 -- x  core_L(9)                        0 1
 -- x  core_L(10)                       0 2
--- x  core_L(10)                       0 3
+-- x  core_L(11)                       0 3
 -- 0  0                                0 4
 -- 0  0                                0 5
 -- 0  0                                0 6
@@ -243,10 +258,10 @@ begin
 -- 0  0                                0 7
 -- x  core_iq                          0 0
 -- t  core_start          core_clk     0 1  r  core_busy           bus2fpga_clk
--- r  core_done           bus2fpga_clk 0 2
--- r  core_ov_fft         bus2fpga_clk 0 3
--- r  core_ov_ifft        bus2fpga_clk 0 4
--- r  core_ov_cmul        bus2fpga_clk 0 5
+-- r  core_ov_fft         bus2fpga_clk 0 2
+-- r  core_ov_ifft        bus2fpga_clk 0 3
+-- r  core_ov_cmul        bus2fpga_clk 0 4
+-- 0  0                                0 5
 -- 0  0                                0 6
 -- t  core_rst            core_clk     0 7
 -------------------------------------------------------------------------------
@@ -357,14 +372,14 @@ begin
         slv_reg(0)((i+1)*8-1 downto i*8) <= "00" & rec_data_valid_s & recv_reg;
     end generate;
 
-    rec_input_select_wr <= '1' when bus2fpga_wrce = "100000" and bus2fpga_be(3) = '1' else
-                           '1' when bus2fpga_reset = '1' else
+    rec_input_select_wr <= '1' when (bus2fpga_wrce = "100000" and bus2fpga_be(3) = '1') or bus2fpga_reset = '1' else
                            '0';
     sync_rec_input_select: entity work.value
     port map(
-        value_in    => slv_reg(0)(25 downto 24), --OK?
+        value_in    => slv_reg(0)(25 downto 24),
         value_out   => rec_input_select,
         value_wr    => rec_input_select_wr,
+        busy        => busy(0),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -375,16 +390,18 @@ begin
         clk         => bus2fpga_clk
     );
     rec_rst_value <= bus2fpga_data(31) when bus2fpga_wrce = "100000" and bus2fpga_be(3) = '1' else
+                     '1' when bus2fpga_reset = '1';
                      '0';
     sync_rec_rst: entity work.toggle
     port map(
         toggle_in   => rec_rst_value,
         toggle_out  => rec_rst,
+        busy        => busy(1),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     )
     slv_reg(0)(31 downto 27) <= "00000";
-    rec_write_proc: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_wrce) is
+    write_proc0: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_wrce) is
     begin
         if rising_edge(bus2fpga_clk) then
             if bus2fpga_reset = '1' then
@@ -395,44 +412,354 @@ begin
                 end if;
             end if;
         end if;
-    end process rec_write_proc;
+    end process write_proc0;
 -------------------------------------------------------------------------------
     depth <= slv_reg(1)(15 downto 0);
-    
-    
-    
-    
---    mem_write_proc: process(bus2fpga_clk) is
---    begin
---        if rising_edge(bus2fpga_clk) then
---            if bus2fpga_reset = '1' then
---                slv_reg1(17 downto 0) <= (others => '0');
---                mem_req <= '0';
---				depth_req_r <= '0';
---				width_req_r <= '0';
---            else
---                if bus2fpga_wrce = "0100" then
---                    if bus2fpga_be(0) = '1' then
---                        slv_reg1(7 downto 0) <= bus2fpga_data(7 downto 0);
---						depth_req_r <= not depth_req_r;
---                    end if;
---                    if bus2fpga_be(1) = '1' then
---                        slv_reg1(15 downto 8) <= bus2fpga_data(15 downto 8);
---						depth_req_r <= not depth_req_r;
---                    end if;
---                    if bus2fpga_be(2) = '1' then
---                        slv_reg1(17 downto 16) <= bus2fpga_data(17 downto 16);
---						width_req_r <= not width_req_r;
---                    end if;
---                    if bus2fpga_be(3) = '1' then
---                        mem_req <= bus2fpga_data(28);
---                    end if;
---                end if;
---            end if;
---        end if;
---    end process mem_write_proc;
 
-    slave_reg_read_proc : process(bus2fpga_rdce, slv_reg0, slv_reg1, slv_reg2, slv_reg3) is
+    trig_type_wr <= '1' when (bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1') or bus2fpga_reset = '1' else
+                    '0';
+    sync_trig_type: entity work.value
+    port map(
+        value_in    => slv_reg(1)(17 downto 16),
+        value_out   => trig_type,
+        value_wr    => trig_type_wr,
+        busy        => busy(2),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    trig_arm_value <= bus2fpga_data(18) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
+                      '0';
+    sync_trig_arm: entity work.toggle
+    port map(
+        toggle_in   => trig_arm_value;
+        toggle_out  => trig_arm,
+        busy        => busy(3),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    trig_int_value  <= bus2fpga_data(19) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
+                       '0';
+    sync_trig_int: entity work.toggle
+    port map(
+        toggle_in   => trig_int_value,
+        toggle_out  => trig_int,
+        busy        => busy(4),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    trig_rst_value  <= bus2fpga_data(23) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
+                       '1' when bus2fpga_reset = '1' else
+                       '0';
+    sync_trig_rst: entity work.toggle
+    port map(
+        toggle_in   => trig_rst_value,
+        toggle_out  => trig_rst,
+        busy        => busy(5),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    
+    avg_width <= slv_reg(1)(25 downto 24);
+    avg_rst_value  <= bus2fpga_data(31) when bus2fpga_wrce = "010000" and bus2fpga_be(3) = '1' else
+                       '1' when bus2fpga_reset = '1' else
+                       '0';
+    sync_avg_rst: entity work.toggle
+    port map(
+        toggle_in   => avg_rst_value,
+        toggle_out  => avg_rst,
+        busy        => busy(6),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    
+    write_proc1: process(bus2fpga_clk)
+    begin
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' then
+                slv_reg(1)(17 downto 0) <= (others => '0');
+                slv_reg(1)(25 downto 24) <= (others => '0');
+            else
+                if bus2fpga_wrce = "010000" then
+                    if bus2fpga_be(0) = '1' then
+                        slv_reg(1)(7 downto 0) <= bus2fpga_data(7 downto 0);
+                    end if;
+                    if bus2fpga_be(1) = '1' then
+                        slv_reg(1)(15 downto 8) <= bus2fpga_data(15 downto 8);
+                    end if;
+                    if bus2fpga_be(2) = '1' then
+                        slv_reg(1)(17 downto 16) <= bus2fpga_data(17 downto 16);
+                    end if;
+                    if bus2fpga_be(3) = '1' then
+                        slv_reg(1)(25 downto 24) <= bus2fpga_data(25 downto 24);
+                    end if;
+                end if;
+            end if;
+        end if;
+    end process write_proc1;
+
+    sync_trig_armed: entity work.flag
+    port map(
+        flag_in     => trig_armed,
+        flag_out    => slv_reg(1)(18),
+        clk         => bus2fpga_clk
+    )
+    sync_avg_active: entity work.flag
+    port map(
+        flag_in     => avg_active,
+        flag_out    => slv_reg(1)(26),
+        clk         => bus2fpga_clk
+    );
+    sync_avg_err: entity work.flag
+    port map(
+        flag_in     => avg_err,
+        flag_out    => slv_reg(1)(27),
+        clk         => bus2fpga_clk
+    );
+    slv_reg(1)(23 downto 19) <= (others => '0');
+    slv_reg(1)(31 downto 28) <= (others => '0');
+-------------------------------------------------------------------------------
+    core_scale_sch  <= slv_reg(1)(11 downto 0);
+    core_scale_schi <= slv_reg(1)(27 downto 16);
+    
+    write_proc2: process(bus2fpga_clk)
+    begin
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' then
+                slv_reg(2)(11 downto 0) <= (others => '0');
+                slv_reg(2)(27 downto 16) <= (others => '0');
+            else
+                if bus2fpga_wrce = "001000" then
+                    if bus2fpga_be(0) = '1' then
+                        slv_reg(2)(7 downto 0) <= bus2fpga_data(7 downto 0);
+                    end if;
+                    if bus2fpga_be(1) = '1' then
+                        slv_reg(2)(11 downto 8) <= bus2fpga_data(11 downto 8);
+                    end if;
+                    if bus2fpga_be(2) = '1' then
+                        slv_reg(2)(23 downto 16) <= bus2fpga_data(23 downto 16);
+                    end if;
+                    if bus2fpga_be(3) = '1' then
+                        slv_reg(2)(27 downto 24) <= bus2fpga_data(27 downto 24);
+                    end if;
+                end if;
+            end if;
+        end if;
+    end process write_proc2;
+
+    slv_reg(2)(15 downto 12) <= (others => '0');
+    slv_reg(2)(31 downto 28) <= (others => '0');
+-------------------------------------------------------------------------------
+    core_L <= slv_reg(3)(11 downto 0);
+    core_n <= slv_reg(3)(20 downto 16);
+    core_iq <= slv_reg(3)(24);
+
+    core_start_value    <= bus2fpga_data(25) when bus2fpga_wrce = "000100" and bus2fpga_be(3) = '1' else
+                           '0';
+    sync_core_start: entity work.toggle
+    port map(
+        toggle_in   => core_start_value,
+        toggle_out  => core_start,
+        busy        => busy(7),
+        clk_from    => bus2fpga_clk,
+        clk_to      => core_clk
+    );
+
+    core_rst_value  <= bus2fpga_data(31) when bus2fpga_wrce = "000100" and bus2fpga_be(3) = '1' else
+                       '1' when bus2fpga_reset = '1' else
+                       '0';
+    sync_core_rst: entity work.toggle
+    port map(
+        value_in    => core_rst_value,
+        value_out   => core_rst,
+        busy        => busy(8),
+        clk_from    => bus2fpga_clk,
+        clk_to      => core_clk
+    );
+
+    write_proc3: process(bus2fpga_clk)
+    begin
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' then
+                slv_reg(3)(11 downto 0) <= (others => '0');
+                slv_reg(3)(20 downto 16) <= (others => '0');
+                slv_reg(3)(24) <= '0';
+            else
+                if bus2fpga_wrce = "000100" then
+                    if bus2fpga_be(0) = '1' then
+                        slv_reg(3)(7 downto 0) <= bus2fpga_data(7 downto 0);
+                    end if;
+                    if bus2fpga_be(1) = '1' then
+                        slv_reg(3)(11 downto 8) <= bus2fpga_data(11 downto 8);
+                    end if;
+                    if bus2fpga_be(2) = '1' then
+                        slv_reg(3)(20 downto 16) <= bus2fpga_data(20 downto 16);
+                    end if;
+                    if bus2fpga_be(3) = '1' then
+                        slv_reg(3)(24) <= bus2fpga_data(24);
+                    end if;
+                end if;
+            end if;
+        end if;
+    end process write_proc3;
+
+    sync_core_busy: entity work.flag
+    port map(
+        flag_in     => core_busy,
+        flag_out    => slv_reg(3)(25),
+        clk         => bus2fpga_clk
+    );
+    sync_core_ov_fft: entity work.flag
+    port map(
+        flag_in     => core_ov_fft,
+        flag_out    => slv_reg(3)(26),
+        clk         => bus2fpga_clk
+    );
+    sync_core_ov_ifft: entity work.flag
+    port map(
+        flag_in     => core_ov_ifft,
+        flag_out    => slv_reg(3)(27),
+        clk         => bus2fpga_clk
+    );
+    sync_core_ov_cmul: entity work.flag
+    port map(
+        flag_in     => core_ov_cmul,
+        flag_out    => slv_reg(3)(28),
+        clk         => bus2fpga_clk
+    );
+
+    slv_reg(3)(15 downto 12) <= (others => '0');
+    slv_reg(3)(23 downto 21) <= (others => '0');
+    slv_reg(3)(30 downto 29) <= (others => '0');
+-------------------------------------------------------------------------------
+    tx_muli_wr <= '1' when (bus2fpga_wrce = "000010" and (bus2fpga_be(0) = '1' or bus2fpga_be(1) = '1')) or bus2fpga_reset = '1' else
+                  '0';
+    sync_tx_muli: entity work.value
+    port map(
+        value_in    => slv_reg(4)(15 downto 0),
+        value_out   => tx_muli,
+        value_wr    => tx_muli_wr,
+        busy        => busy(9),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    tx_mulq_wr <= '1' when (bus2fpga_wrce = "000010" and (bus2fpga_be(2) = '1' or bus2fpga_be(3) = '1')) or bus2fpga_reset = '1' else
+                  '0';
+    sync_tx_mulq: entity work.value
+    port map(
+        value_in    => slv_reg(4)(15 downto 0),
+        value_out   => tx_mulq,
+        value_wr    => tx_mulq_wr,
+        busy        => busy(10),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+
+    write_proc4: process(bus2fpga_clk)
+    begin
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' then
+                slv_reg(4)(31 downto 0) <= (others => '0');
+            else
+                if bus2fpga_wrce = "000010" then
+                    if bus2fpga_be(0) = '1' then
+                        slv_reg(4)(7 downto 0) <= bus2fpga_data(7 downto 0);
+                    end if;
+                    if bus2fpga_be(1) = '1' then
+                        slv_reg(4)(15 downto 8) <= bus2fpga_data(15 downto 8);
+                    end if;
+                    if bus2fpga_be(2) = '1' then
+                        slv_reg(4)(23 downto 16) <= bus2fpga_data(23 downto 16);
+                    end if;
+                    if bus2fpga_be(3) = '1' then
+                        slv_reg(4)(31 downto 24) <= bus2fpga_data(31 downto 24);
+                    end if;
+                end if;
+            end if;
+        end if;
+    end process write_proc4;
+-------------------------------------------------------------------------------
+    tx_frame_offset <= slv_reg(5)(15 downto 0);
+
+    tx_deskew_value <= bus2fpga_data(16) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
+                       '0';
+    sync_tx_deskew: entity work.toggle
+    port map(
+        toggle_in   => tx_deskew_value,
+        toggle_out  => tx_deskew,
+        busy        => busy(11),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    sync_tx_dc_balance: entity work.flag
+    port map(
+        flag_in     => slv_reg(5)(17),
+        flag_out    => tx_dc_balance,
+        clk         => sample_clk
+    );
+    tx_toggle_value <= bus2fpga_data(18) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
+                       '0';
+    sync_tx_toggle: entity work.toggle
+    port map(
+        toggle_in   => tx_toggle_value,
+        toggle_out  => tx_toggle,
+        busy        => busy(12),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    tx_resync_value <= bus2fpga_data(19) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
+                       '0';
+    sync_tx_resync: entity work.toggle
+    port map(
+        toggle_in   => tx_resync_value,
+        toggle_out  => tx_resync,
+        busy        => busy(13),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    tx_rst_value  <= bus2fpga_data(23) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
+                     '1' when bus2fpga_reset = '1' else
+                     '0';
+    sync_tx_rst: entity work.toggle
+    port map(
+        value_in    => tx_rst_value,
+        value_out   => tx_rst,
+        busy        => busy(14),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+    write_proc5: process(bus2fpga_clk)
+    begin
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' then
+                slv_reg(5)(15 downto 0) <= (others => '0');
+                slv_reg(5)(17) <= '0';
+            else
+                if bus2fpga_wrce = "000001" then
+                    if bus2fpga_be(0) = '1' then
+                        slv_reg(5)(7 downto 0) <= bus2fpga_data(7 downto 0);
+                    end if;
+                    if bus2fpga_be(1) = '1' then
+                        slv_reg(5)(15 downto 8) <= bus2fpga_data(15 downto 8);
+                    end if;
+                    if bus2fpga_be(2) = '1' then
+                        slv_reg(5)(17) <= bus2fpga_data(17);
+                    end if;
+                end if;
+            end if;
+        end if;
+    end process write_proc5;
+
+    sync_tx_busy: entity work.flag
+    port map(
+        flag_in     => tx_busy,
+        flag_out    => slv_reg(5)(18),
+        clk         => bus2fpga_clk
+    );
+
+    slv_reg(5)(16) <= '0';
+    slv_reg(5)(31 downto 19) <= (others => '0');
+--=============================================================================
+    slave_reg_read_proc: process(bus2fpga_rdce, slv_reg)
     begin
         case bus2fpga_rdce is
             when "100000" => fpga2bus_data <= slv_reg(0);
@@ -445,10 +772,56 @@ begin
         end case;
     end process slave_reg_read_proc;
 
-    fpga2bus_intr(31 downto 0) <= (others=>'0'); --TODO
+
+    sync_trig_trigd: entity work.flag
+    port map(
+        flag_in     => trig_trigd,
+        flag_out    => trig_trigd_synced,
+        clk         => bus2fpga_clk
+    );
+    sync_avg_done: entity work.flag
+    port map(
+        flag_in     => avg_done,
+        flag_out    => avg_done_synced,
+        clk         => bus2fpga_clk
+    );
+    sync_core_done: entity work.flag
+    port map(
+        flag_in     => core_done,
+        flag_out    => core_done_synced,
+        clk         => bus2fpga_clk
+    );
+    sync_tx_toggled: entity work.flag
+    port map(
+        flag_in     => tx_toggled,
+        flag_out    => tx_toggled_synced,
+        clk         => bus2fpga_clk
+    );
+    sync_tx_cmul_ovfl: entity work.flag
+    port map(
+        flag_in     => tx_cmul_ovfl,
+        flag_out    => tx_cmul_ovfl_synced,
+        clk         => bus2fpga_clk
+    );
+
+    fpga2bus_intr <= (
+        0  => slv_reg(0)(5),
+        1  => not slv_reg(0)(5),
+        2  => slv_reg(0)(13),
+        3  => not slv_reg(0)(13),
+        4  => slv_reg(0)(21),
+        5  => not slv_reg(0)(21),
+        6  => slv_reg(0)(26),
+        7  => not slv_reg(0)(26),
+        8  => trig_trigd_synced,
+        9  => avg_done_synced,
+        10 => core_done_synced,
+        11 => tx_toggled_synced,
+        12 => tx_cmul_ovfl_synced,
+        others => '0');
 
     fpga2bus_rdack <= or_many(bus2fpga_rdce);
-    fpga2bus_wrack <= or_many(bus2fpga_wrce);
+    fpga2bus_wrack <= or_many(bus2fpga_wrce) and not or_many(busy);
     fpga2bus_error <= '0';
 
 end Structural;
