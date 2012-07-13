@@ -1,3 +1,2 @@
-top.vhd
-proc2fpga.vhd
+proc_memory.vhd
 overlap_add.vhd -- nochmal testen
