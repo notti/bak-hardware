@@ -1,11 +1,5 @@
 -----------------------------------------------------------
--- Project			: 
--- File				: top.vhd
--- Author			: Gernot Vormayr
--- created			: July, 3rd 2009
--- last mod. by		        : 
--- last mod. on		        : 
--- contents			: Top level entity
+--Top level entity
 -----------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
@@ -133,6 +127,8 @@ PORT(
     );
 END COMPONENT;
 
+    signal inbuf_trigger_synced: std_logic;
+
     signal depth               : std_logic_vector(15 downto 0);
     signal rec_rst             : std_logic;
     signal rec_polarity        : std_logic_vector(2 downto 0);
@@ -180,83 +176,63 @@ END COMPONENT;
     signal mem_req             : std_logic;
     signal mem_ack             : std_logic;
 
+    signal mem_dinia           : std_logic_vector(15 downto 0);
+    signal mem_addria          : std_logic_vector(15 downto 0);
+    signal mem_weaia           : std_logic;
+    signal mem_doutia          : std_logic_vector(15 downto 0);
+    signal mem_dinib           : std_logic_vector(15 downto 0);
+    signal mem_addrib          : std_logic_vector(15 downto 0);
+    signal mem_weaib           : std_logic;
+    signal mem_doutib          : std_logic_vector(15 downto 0);
+    signal mem_dinh            : std_logic_vector(31 downto 0);
+    signal mem_addrh           : std_logic_vector(15 downto 0);
+    signal mem_weh             : std_logic_vector(3 downto 0);
+    signal mem_douth           : std_logic_vector(31 downto 0);
+    signal mem_dinoi           : std_logic_vector(31 downto 0);
+    signal mem_addroi          : std_logic_vector(15 downto 0);
+    signal mem_weoi            : std_logic_vector(3 downto 0);
+    signal mem_doutoi          : std_logic_vector(31 downto 0);
+    signal mem_addroa          : std_logic_vector(15 downto 0);
+    signal mem_doutoa          : std_logic_vector(31 downto 0)
+
     signal core_clk            : std_logic;
     signal sample_clk          : std_logic;
 
+    signal fpga2bus_intr       : std_logic_vector(31 downto 0);
+    signal reg_wrack           : std_logic;
+    signal reg_rdack           : std_logic;
+    signal reg_data            : std_logic_vector(31 downto 0);
+    signal reg_error           : std_logic;
 
+    signal mem_wrack           : std_logic;
+    signal mem_rdack           : std_logic;
+    signal mem_data            : std_logic_vector(31 downto 0);
+    signal mem_error           : std_logic;
 
-
-
-
---inbuf
-    signal rx_polarity       : std_logic_vector(2 downto 0);
-    signal rx_descramble     : std_logic_vector(2 downto 0);
-    signal rx_rxeqmix        : t_cfg_array(2 downto 0);
-    signal rx_data_valid     : std_logic_vector(2 downto 0);
-    signal rx_enable         : std_logic_vector(2 downto 0);
-    signal rx_input_select   : std_logic_vector(1 downto 0);
-    signal rx_input_select_req : std_logic;
-    signal rx_stream_valid   : std_logic;
-    signal depth             : std_logic_vector(15 downto 0);
-    signal depth_req         : std_logic;
-    signal width             : std_logic_vector(1 downto 0);
-    signal width_req         : std_logic;
-    signal arm               : std_logic;
-    signal rx_rst            : std_logic;
-    signal avg_done          : std_logic;
-    signal locked            : std_logic;
-    signal mem_req           : std_logic;
-    signal inbuf_mem_ack     : std_logic;
-    signal inbuf_wrack       : std_logic;
-    signal inbuf_rdack       : std_logic;
-    signal inbuf_data        : std_logic_vector(31 downto 0);
-    signal inbuf_error       : std_logic;
-    signal frame_clk_i       : std_logic;
-    signal sample_clk        : std_logic;
-    signal refclk_unbuffered : std_logic;
-    signal refclk            : std_logic;
-    signal pll_locked        : std_logic;
---outbuf
-    signal tx_deskew         : std_logic;
-    signal tx_rst            : std_logic;
-    signal dc_balance        : std_logic;
-    signal muli              : std_logic_vector(15 downto 0);
-    signal muli_req          : std_logic;
-    signal mulq              : std_logic_vector(15 downto 0);
-    signal mulq_req          : std_logic;
-    signal buf_used          : std_logic;
-    signal toggle_buf        : std_logic;
-    signal outbuf_mem_ack    : std_logic;
-    signal outbuf_wrack      : std_logic;
-    signal outbuf_rdack      : std_logic;
-    signal outbuf_data       : std_logic_vector(31 downto 0);
-    signal outbuf_error      : std_logic;
---proc2fpga
-    signal mem_ack           : std_logic;
-    signal proc2fpga_wrack   : std_logic;
-    signal proc2fpga_rdack   : std_logic;
-    signal proc2fpga_data    : std_logic_vector(31 downto 0);
-    signal proc2fpga_error   : std_logic;
---processor 
-    signal fpga2bus_intr     : std_logic_vector(31 downto 0);
-    signal fpga2bus_error    : std_logic;
-    signal fpga2bus_wrack    : std_logic;
-    signal fpga2bus_rdack    : std_logic;
-    signal fpga2bus_data     : std_logic_vector(31 downto 0);
-    signal bus2fpga_wrce     : std_logic_vector(3 downto 0);
-    signal bus2fpga_rdce     : std_logic_vector(3 downto 0);
-    signal bus2fpga_be       : std_logic_vector(3 downto 0);
-    signal bus2fpga_data     : std_logic_vector(31 downto 0);
-    signal bus2fpga_rnw      : std_logic;
-    signal bus2fpga_cs       : std_logic_vector(3 downto 0);
-    signal bus2fpga_addr     : std_logic_vector(15 downto 0);
-    signal bus2fpga_reset    : std_logic;
-    signal bus2fpga_clk      : std_logic;
-    signal in_trigger        : std_logic;
+    signal fpga2bus_error      : std_logic;
+    signal fpga2bus_wrack      : std_logic;
+    signal fpga2bus_rdack      : std_logic;
+    signal fpga2bus_data       : std_logic_vector(31 downto 0);
+    signal bus2fpga_wrce       : std_logic_vector(5 downto 0);
+    signal bus2fpga_rdce       : std_logic_vector(5 downto 0);
+    signal bus2fpga_be         : std_logic_vector(3 downto 0);
+    signal bus2fpga_data       : std_logic_vector(31 downto 0);
+    signal bus2fpga_rnw        : std_logic;
+    signal bus2fpga_cs         : std_logic_vector(3 downto 0);
+    signal bus2fpga_addr       : std_logic_vector(15 downto 0);
+    signal bus2fpga_reset      : std_logic;
+    signal bus2fpga_clk        : std_logic;
 
 --    attribute KEEP_HIERARCHY : string;
 --    attribute KEEP_HIERARCHY of Structural: architecture is "yes";
 begin
+
+    sync_inbuf_trigger: entity work.flag
+    port map(
+        flag_in     => inbuf_trigger,
+        flag_out    => inbuf_trigger_synced,
+        clk         => sample_clk
+    );
 
     main_inst: entity work.main
     port map(
@@ -277,7 +253,7 @@ begin
         rec_stream_valid    => rec_stream_valid,
         trig_rst            => trig_rst,
         trig_arm            => trig_arm,
-        trig_ext            => inbuf_trigger, -- sync, debounce
+        trig_ext            => inbuf_trigger_synced,
         trig_int            => trig_int,
         trig_type           => trig_type,
         trig_armed          => trig_armed,
@@ -319,25 +295,25 @@ begin
         mem_req             => mem_req,
         mem_ack             => mem_ack,
 
-        mem_clk             => ,   -- in  std_logic;
-        mem_dinia           => ,   -- in  std_logic_vector(15 downto 0);
-        mem_addria          => ,   -- in  std_logic_vector(15 downto 0);
-        mem_weaia           => ,   -- in  std_logic;
-        mem_doutia          => ,   -- out std_logic_vector(15 downto 0);
-        mem_dinib           => ,   -- in  std_logic_vector(15 downto 0);
-        mem_addrib          => ,   -- in  std_logic_vector(15 downto 0);
-        mem_weaib           => ,   -- in  std_logic;
-        mem_doutib          => ,   -- out std_logic_vector(15 downto 0);
-        mem_dinh            => ,   -- in  std_logic_vector(31 downto 0);
-        mem_addrh           => ,   -- in  std_logic_vector(15 downto 0);
-        mem_weh             => ,   -- in  std_logic_vector(3 downto 0);
-        mem_douth           => ,   -- out std_logic_vector(31 downto 0);
-        mem_dinoi           => ,   -- in  std_logic_vector(31 downto 0);
-        mem_addroi          => ,   -- in  std_logic_vector(15 downto 0);
-        mem_weoi            => ,   -- in  std_logic_vector(3 downto 0);
-        mem_doutoi          => ,   -- out std_logic_vector(31 downto 0);
-        mem_addroa          => ,   -- in  std_logic_vector(15 downto 0);
-        mem_doutoa          => ,   -- out std_logic_vector(31 downto 0)
+        mem_clk             => bus2fpga_clk,
+        mem_dinia           => mem_dinia,
+        mem_addria          => mem_addria,
+        mem_weaia           => mem_weaia,
+        mem_doutia          => mem_doutia,
+        mem_dinib           => mem_dinib,
+        mem_addrib          => mem_addrib,
+        mem_weaib           => mem_weaib,
+        mem_doutib          => mem_doutib,
+        mem_dinh            => mem_dinh,
+        mem_addrh           => mem_addrh,
+        mem_weh             => mem_weh,
+        mem_douth           => mem_douth,
+        mem_dinoi           => mem_dinoi,
+        mem_addroi          => mem_addroi,
+        mem_weoi            => mem_weoi,
+        mem_doutoi          => mem_doutoi,
+        mem_addroa          => mem_addroa,
+        mem_doutoa          => mem_doutoa,
         sample_clk          => sample_clk,
         core_clk            => core_clk
     );
@@ -397,12 +373,45 @@ begin
 
     ----- proc interface
         fpga2bus_intr       => fpga2bus_intr,
-        fpga2bus_error      => proc2fpga_error,
-        fpga2bus_wrack      => proc2fpga_wrack,
-        fpga2bus_rdack      => proc2fpga_rdack,
-        fpga2bus_data       => proc2fpga_data,
+        fpga2bus_error      => reg_error,
+        fpga2bus_wrack      => reg_wrack,
+        fpga2bus_rdack      => reg_rdack,
+        fpga2bus_data       => reg_data,
         bus2fpga_wrce       => bus2fpga_wrce,
         bus2fpga_rdce       => bus2fpga_rdce,
+        bus2fpga_be         => bus2fpga_be,
+        bus2fpga_data       => bus2fpga_data,
+        bus2fpga_reset      => bus2fpga_reset,
+        bus2fpga_clk        => bus2fpga_clk
+    );
+
+    inst_proc_memory: entity work.proc_memory
+    port map(
+        mem_dinia           => mem_dinia,
+        mem_addria          => mem_addria,
+        mem_weaia           => mem_weaia,
+        mem_doutia          => mem_doutia,
+        mem_dinib           => mem_dinib,
+        mem_addrib          => mem_addrib,
+        mem_weaib           => mem_weaib,
+        mem_doutib          => mem_doutib,
+        mem_dinh            => mem_dinh,
+        mem_addrh           => mem_addrh,
+        mem_weh             => mem_weh,
+        mem_douth           => mem_douth,
+        mem_dinoi           => mem_dinoi,
+        mem_addroi          => mem_addroi,
+        mem_weoi            => mem_weoi,
+        mem_doutoi          => mem_doutoi,
+        mem_addroa          => mem_addroa,
+        mem_doutoa          => mem_doutoa,
+
+        fpga2bus_error      => mem_error,
+        fpga2bus_wrack      => mem_wrack,
+        fpga2bus_rdack      => mem_rdack,
+        fpga2bus_data       => mem_data,
+        bus2fpga_rnw        => bus2fpga_rnw,
+        bus2fpga_cs         => bus2fpga_cs,
         bus2fpga_be         => bus2fpga_be,
         bus2fpga_data       => bus2fpga_data,
         bus2fpga_addr       => bus2fpga_addr,
@@ -410,14 +419,12 @@ begin
         bus2fpga_clk        => bus2fpga_clk
     );
 
-    fpga2bus_wrack <= or_many(outbuf_wrack & inbuf_wrack & proc2fpga_wrack);
-    fpga2bus_rdack <= or_many(outbuf_rdack & inbuf_rdack & proc2fpga_rdack);
-    fpga2bus_data  <= proc2fpga_data when or_many(bus2fpga_rdce) = '1' else
-                      inbuf_data when bus2fpga_cs = "0001" else
-                      outbuf_data when bus2fpga_cs = "0100" or bus2fpga_cs = "1000" else
+    fpga2bus_wrack <= mem_wrack or reg_wrack;
+    fpga2bus_rdack <= mem_rdack or reg_rdack;
+    fpga2bus_data  <= reg_data when or_many(bus2fpga_rdce) = '1' else
+                      mem_data when or_many(bus2fpga_cs) = '1' and bus2fpga_rnw = '1' else
                       (others => '0');
-    fpga2bus_error <= inbuf_error or outbuf_error or proc2fpga_error;
-    mem_ack <= inbuf_mem_ack and outbuf_mem_ack;
+    fpga2bus_error <= mem_error or reg_error; 
 
     Inst_system: system PORT MAP(
         fpga_0_Hard_Ethernet_MAC_PHY_MII_INT        => fpga_0_Hard_Ethernet_MAC_PHY_MII_INT,
