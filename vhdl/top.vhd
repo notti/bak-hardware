@@ -44,6 +44,14 @@ port(
     fpga_0_DDR2_SDRAM_DDR2_DQ                   : INOUT std_logic_vector(63 downto 0);
     fpga_0_SysACE_CompactFlash_SysACE_MPD_pin   : INOUT std_logic_vector(15 downto 0);
     fpga_0_Hard_Ethernet_MAC_MDIO_0_pin         : INOUT std_logic;
+    GPIO_LEDs_GPIO_IO                           : INOUT std_logic_vector(0 to 9);
+    IIC_DDR2_Scl                                : INOUT std_logic;
+    IIC_DDR2_Sda                                : INOUT std_logic;
+    IIC_SMBUS_Scl                               : INOUT std_logic;
+    IIC_SMBUS_Sda                               : INOUT std_logic;
+    GPIO_PushButtons_GPIO_IO                    : INOUT std_logic_vector(0 to 4);
+    GPIO_DirectionLEDs_GPIO_IO                  : INOUT std_logic_vector(0 to 4);
+    GPIO_DIP_GPIO_IO                            : INOUT std_logic_vector(0 to 7);
     fpga_0_RS232_Uart_1_sout_pin                : OUT std_logic;
     fpga_0_DDR2_SDRAM_DDR2_ODT_pin              : OUT std_logic_vector(1 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_A_pin                : OUT std_logic_vector(12 downto 0);
@@ -72,59 +80,67 @@ end top;
 architecture Structural of top is
 COMPONENT system
 PORT(
-    fpga_0_Hard_Ethernet_MAC_PHY_MII_INT        : IN  std_logic;
-    fpga_0_RS232_Uart_1_sin_pin                 : IN  std_logic;
-    fpga_0_SysACE_CompactFlash_SysACE_CLK_pin   : IN  std_logic;
-    fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin : IN  std_logic;
-    fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin   : IN  std_logic;
-    fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin  : IN  std_logic;
-    fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin   : IN  std_logic;
-    fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin     : IN  std_logic_vector(7 downto 0);
-    fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin   : IN  std_logic;
-    sys_clk_pin                                 : IN  std_logic;
-    sys_rst_pin                                 : IN  std_logic;
-    proc2fpga_0_fpga2bus_intr_pin               : IN  std_logic_vector(31 downto 0);
-    proc2fpga_0_fpga2bus_error_pin              : IN  std_logic;
-    proc2fpga_0_fpga2bus_wrack_pin              : IN  std_logic;
-    proc2fpga_0_fpga2bus_rdack_pin              : IN  std_logic;
-    proc2fpga_0_fpga2bus_data_pin               : IN  std_logic_vector(31 downto 0);
-    fpga_0_DDR2_SDRAM_DDR2_DQS                  : INOUT std_logic_vector(7 downto 0);
-    fpga_0_DDR2_SDRAM_DDR2_DQS_N                : INOUT std_logic_vector(7 downto 0);
-    fpga_0_DDR2_SDRAM_DDR2_DQ                   : INOUT std_logic_vector(63 downto 0);
-    fpga_0_SysACE_CompactFlash_SysACE_MPD_pin   : INOUT std_logic_vector(15 downto 0);
-    fpga_0_Hard_Ethernet_MAC_MDIO_0_pin         : INOUT std_logic;
-    fpga_0_RS232_Uart_1_sout_pin                : OUT std_logic;
-    fpga_0_DDR2_SDRAM_DDR2_ODT_pin              : OUT std_logic_vector(1 downto 0);
-    fpga_0_DDR2_SDRAM_DDR2_A_pin                : OUT std_logic_vector(12 downto 0);
-    fpga_0_DDR2_SDRAM_DDR2_BA_pin               : OUT std_logic_vector(1 downto 0);
-    fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin            : OUT std_logic;
-    fpga_0_DDR2_SDRAM_DDR2_CKE_pin              : OUT std_logic_vector(0 to 0);
-    fpga_0_DDR2_SDRAM_DDR2_CS_N_pin             : OUT std_logic_vector(0 to 0);
-    fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin            : OUT std_logic;
-    fpga_0_DDR2_SDRAM_DDR2_WE_N_pin             : OUT std_logic;
-    fpga_0_DDR2_SDRAM_DDR2_CK_pin               : OUT std_logic_vector(1 downto 0);
-    fpga_0_DDR2_SDRAM_DDR2_CK_N_pin             : OUT std_logic_vector(1 downto 0);
-    fpga_0_DDR2_SDRAM_DDR2_DM_pin               : OUT std_logic_vector(7 downto 0);
-    fpga_0_SysACE_CompactFlash_SysACE_MPA_pin   : OUT std_logic_vector(6 downto 0);
-    fpga_0_SysACE_CompactFlash_SysACE_CEN_pin   : OUT std_logic;
-    fpga_0_SysACE_CompactFlash_SysACE_OEN_pin   : OUT std_logic;
-    fpga_0_SysACE_CompactFlash_SysACE_WEN_pin   : OUT std_logic;
+    fpga_0_Hard_Ethernet_MAC_PHY_MII_INT : IN std_logic;
+    fpga_0_RS232_Uart_1_sin_pin : IN std_logic;
+    fpga_0_SysACE_CompactFlash_SysACE_CLK_pin : IN std_logic;
+    fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin : IN std_logic;
+    fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin : IN std_logic;
+    fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin : IN std_logic;
+    fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin : IN std_logic;
+    fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin : IN std_logic_vector(7 downto 0);
+    fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin : IN std_logic;
+    sys_clk_pin : IN std_logic;
+    sys_rst_pin : IN std_logic;
+    proc2fpga_0_fpga2bus_intr_pin : IN std_logic_vector(15 downto 0);
+    proc2fpga_0_fpga2bus_error_pin : IN std_logic;
+    proc2fpga_0_fpga2bus_wrack_pin : IN std_logic;
+    proc2fpga_0_fpga2bus_rdack_pin : IN std_logic;
+    proc2fpga_0_fpga2bus_data_pin : IN std_logic_vector(31 downto 0);
+    fpga_0_DDR2_SDRAM_DDR2_DQS : INOUT std_logic_vector(7 downto 0);
+    fpga_0_DDR2_SDRAM_DDR2_DQS_N : INOUT std_logic_vector(7 downto 0);
+    fpga_0_DDR2_SDRAM_DDR2_DQ : INOUT std_logic_vector(63 downto 0);
+    fpga_0_SysACE_CompactFlash_SysACE_MPD_pin : INOUT std_logic_vector(15 downto 0);
+    fpga_0_Hard_Ethernet_MAC_MDIO_0_pin : INOUT std_logic;
+    GPIO_LEDs_GPIO_IO : INOUT std_logic_vector(0 to 9);
+    IIC_DDR2_Scl : INOUT std_logic;
+    IIC_DDR2_Sda : INOUT std_logic;
+    IIC_SMBUS_Scl : INOUT std_logic;
+    IIC_SMBUS_Sda : INOUT std_logic;
+    GPIO_PushButtons_GPIO_IO : INOUT std_logic_vector(0 to 4);
+    GPIO_DirectionLEDs_GPIO_IO : INOUT std_logic_vector(0 to 4);
+    GPIO_DIP_GPIO_IO : INOUT std_logic_vector(0 to 7);
+    fpga_0_RS232_Uart_1_sout_pin : OUT std_logic;
+    fpga_0_DDR2_SDRAM_DDR2_ODT_pin : OUT std_logic_vector(1 downto 0);
+    fpga_0_DDR2_SDRAM_DDR2_A_pin : OUT std_logic_vector(12 downto 0);
+    fpga_0_DDR2_SDRAM_DDR2_BA_pin : OUT std_logic_vector(1 downto 0);
+    fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin : OUT std_logic;
+    fpga_0_DDR2_SDRAM_DDR2_CKE_pin : OUT std_logic_vector(0 to 0);
+    fpga_0_DDR2_SDRAM_DDR2_CS_N_pin : OUT std_logic_vector(0 to 0);
+    fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin : OUT std_logic;
+    fpga_0_DDR2_SDRAM_DDR2_WE_N_pin : OUT std_logic;
+    fpga_0_DDR2_SDRAM_DDR2_CK_pin : OUT std_logic_vector(1 downto 0);
+    fpga_0_DDR2_SDRAM_DDR2_CK_N_pin : OUT std_logic_vector(1 downto 0);
+    fpga_0_DDR2_SDRAM_DDR2_DM_pin : OUT std_logic_vector(7 downto 0);
+    fpga_0_SysACE_CompactFlash_SysACE_MPA_pin : OUT std_logic_vector(6 downto 0);
+    fpga_0_SysACE_CompactFlash_SysACE_CEN_pin : OUT std_logic;
+    fpga_0_SysACE_CompactFlash_SysACE_OEN_pin : OUT std_logic;
+    fpga_0_SysACE_CompactFlash_SysACE_WEN_pin : OUT std_logic;
     fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin : OUT std_logic;
-    fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin     : OUT std_logic_vector(7 downto 0);
-    fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin   : OUT std_logic;
-    fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin  : OUT std_logic;
-    fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin   : OUT std_logic;
-    fpga_0_Hard_Ethernet_MAC_MDC_0_pin          : OUT std_logic;
-    proc2fpga_0_bus2fpga_wrce_pin               : OUT std_logic_vector(3 downto 0);
-    proc2fpga_0_bus2fpga_rdce_pin               : OUT std_logic_vector(3 downto 0);
-    proc2fpga_0_bus2fpga_be_pin                 : OUT std_logic_vector(3 downto 0);
-    proc2fpga_0_bus2fpga_data_pin               : OUT std_logic_vector(31 downto 0);
-    proc2fpga_0_bus2fpga_rnw_pin                : OUT std_logic;
-    proc2fpga_0_bus2fpga_cs_pin                 : OUT std_logic_vector(3 downto 0);
-    proc2fpga_0_bus2fpga_addr_pin               : OUT std_logic_vector(15 downto 0);
-    proc2fpga_0_bus2fpga_reset_pin              : OUT std_logic;
-    proc2fpga_0_bus2fpga_clk_pin                : OUT std_logic
-    );
+    fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin : OUT std_logic_vector(7 downto 0);
+    fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin : OUT std_logic;
+    fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin : OUT std_logic;
+    fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin : OUT std_logic;
+    fpga_0_Hard_Ethernet_MAC_MDC_0_pin : OUT std_logic;
+    proc2fpga_0_bus2fpga_wrce_pin : OUT std_logic_vector(5 downto 0);
+    proc2fpga_0_bus2fpga_rdce_pin : OUT std_logic_vector(5 downto 0);
+    proc2fpga_0_bus2fpga_be_pin : OUT std_logic_vector(3 downto 0);
+    proc2fpga_0_bus2fpga_data_pin : OUT std_logic_vector(31 downto 0);
+    proc2fpga_0_bus2fpga_rnw_pin : OUT std_logic;
+    proc2fpga_0_bus2fpga_cs_pin : OUT std_logic_vector(3 downto 0);
+    proc2fpga_0_bus2fpga_addr_pin : OUT std_logic_vector(15 downto 0);
+    proc2fpga_0_bus2fpga_reset_pin : OUT std_logic;
+    proc2fpga_0_bus2fpga_clk_pin : OUT std_logic
+);
 END COMPONENT;
 
     signal inbuf_trigger_synced: std_logic;
@@ -198,7 +214,7 @@ END COMPONENT;
     signal core_clk            : std_logic;
     signal sample_clk          : std_logic;
 
-    signal fpga2bus_intr       : std_logic_vector(31 downto 0);
+    signal fpga2bus_intr       : std_logic_vector(15 downto 0);
     signal reg_wrack           : std_logic;
     signal reg_rdack           : std_logic;
     signal reg_data            : std_logic_vector(31 downto 0);
@@ -465,6 +481,14 @@ begin
         fpga_0_Hard_Ethernet_MAC_MDIO_0_pin         => fpga_0_Hard_Ethernet_MAC_MDIO_0_pin,
         sys_clk_pin                                 => sys_clk_pin,
         sys_rst_pin                                 => sys_rst_pin,
+		GPIO_LEDs_GPIO_IO				            => GPIO_LEDs_GPIO_IO,
+		IIC_DDR2_Scl				                => IIC_DDR2_Scl,
+		IIC_DDR2_Sda				                => IIC_DDR2_Sda,
+		IIC_SMBUS_Scl				                => IIC_SMBUS_Scl,
+		IIC_SMBUS_Sda				                => IIC_SMBUS_Sda,
+		GPIO_PushButtons_GPIO_IO				    => GPIO_PushButtons_GPIO_IO,
+		GPIO_DirectionLEDs_GPIO_IO				    => GPIO_DirectionLEDs_GPIO_IO,
+		GPIO_DIP_GPIO_IO				            => GPIO_DIP_GPIO_IO,
         proc2fpga_0_fpga2bus_intr_pin               => fpga2bus_intr,
         proc2fpga_0_fpga2bus_error_pin              => fpga2bus_error,
         proc2fpga_0_fpga2bus_wrack_pin              => fpga2bus_wrack,
