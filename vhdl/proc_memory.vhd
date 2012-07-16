@@ -51,9 +51,13 @@ architecture Structural of proc_memory is
 
 begin
     -- memi  read rmwrite
+    --       2    2+1
     -- memh  read write
+    --       1    1
     -- memoi read write
+    --       2    1 
     -- memoa read
+    --       2
 
 
     fpga2bus_rdack <= or_many(bus2fpga_rdce);
