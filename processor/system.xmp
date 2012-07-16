@@ -27,14 +27,8 @@ FpgaImpMode: 0
 EnableParTimingError: 1
 EnableResetOptimization: 0
 ShowLicenseDialog: 1
-ICacheAddr: DDR2_SDRAM,
-ICacheAddr: xps_bram_if_cntlr_1,
-ICacheAddr: DDR2_SDRAM,C_MEM_BASEADDR
-ICacheAddr: xps_bram_if_cntlr_0,C_BASEADDR
-DCacheAddr: DDR2_SDRAM,
-DCacheAddr: xps_bram_if_cntlr_1,
-DCacheAddr: DDR2_SDRAM,C_MEM_BASEADDR
-DCacheAddr: xps_bram_if_cntlr_0,C_BASEADDR
+ICacheAddr: DDR2_SDRAM,,xps_bram_if_cntlr_1,,DDR2_SDRAM,C_MEM_BASEADDR,xps_bram_if_cntlr_0,C_BASEADDR
+DCacheAddr: DDR2_SDRAM,,xps_bram_if_cntlr_1,,DDR2_SDRAM,C_MEM_BASEADDR,xps_bram_if_cntlr_0,C_BASEADDR
 Processor: ppc440_0
 BootLoop: 1
 XmdStub: 0

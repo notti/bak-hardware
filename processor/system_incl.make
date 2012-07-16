@@ -83,8 +83,8 @@ CORE_STATE_DEVELOPMENT_FILES = /opt/Xilinx/10.1/EDK/hw/XilinxProcessorIPLib/pcor
 /opt/Xilinx/10.1/EDK/hw/XilinxProcessorIPLib/pcores/plbv46_slave_single_v1_00_a/hdl/vhdl/plb_slave_attachment.vhd \
 /opt/Xilinx/10.1/EDK/hw/XilinxProcessorIPLib/pcores/plbv46_slave_single_v1_00_a/hdl/vhdl/plbv46_slave_single.vhd \
 /opt/Xilinx/10.1/EDK/hw/XilinxProcessorIPLib/pcores/interrupt_control_v2_00_a/hdl/vhdl/interrupt_control.vhd \
-/home/notti/fpga/bakk/processor/pcores/proc2fpga_v2_00_a/hdl/vhdl/user_logic.vhd \
-/home/notti/fpga/bakk/processor/pcores/proc2fpga_v2_00_a/hdl/vhdl/proc2fpga.vhd
+/home/notti/fpga/bakk/processor/pcores/proc2fpga_v3_00_a/hdl/vhdl/user_logic.vhd \
+/home/notti/fpga/bakk/processor/pcores/proc2fpga_v3_00_a/hdl/vhdl/proc2fpga.vhd
 
 WRAPPER_NGC_FILES = implementation/ppc440_0_wrapper.ngc \
 implementation/plb_v46_0_wrapper.ngc \
@@ -99,6 +99,12 @@ implementation/proc_sys_reset_0_wrapper.ngc \
 implementation/xps_intc_0_wrapper.ngc \
 implementation/xps_bram_if_cntlr_0_wrapper.ngc \
 implementation/bram_block_0_wrapper.ngc \
+implementation/iic_ddr2_wrapper.ngc \
+implementation/gpio_leds_wrapper.ngc \
+implementation/iic_smbus_wrapper.ngc \
+implementation/gpio_dip_wrapper.ngc \
+implementation/gpio_pushbuttons_wrapper.ngc \
+implementation/gpio_directionleds_wrapper.ngc \
 implementation/proc2fpga_0_wrapper.ngc
 
 POSTSYN_NETLIST = implementation/$(SYSTEM).ngc
