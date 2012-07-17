@@ -4,7 +4,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity value is
 port(
     value_in  : in  std_logic_vector;
-    value_out : out std_logic_vector(value_in'range);
+    value_out : out std_logic_vector;
     value_wr  : in  std_logic;
     busy      : out std_logic;
     clk_from  : in  std_logic;
