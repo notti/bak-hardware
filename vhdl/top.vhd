@@ -20,7 +20,6 @@ port(
     gtx_txn                                     : out std_logic_vector(3 downto 0);
     gtx_txp                                     : out std_logic_vector(3 downto 0);
     inbuf_trigger                               : in  std_logic;
-    push_south                                  : in  std_logic;
     frame_clk                                   : out std_logic;
 -- signals for oserdes transmitter
     oserdes_txn                                 : out std_logic_vector(7 downto 0);
@@ -209,7 +208,7 @@ END COMPONENT;
     signal mem_weoi            : std_logic_vector(3 downto 0);
     signal mem_doutoi          : std_logic_vector(31 downto 0);
     signal mem_addroa          : std_logic_vector(15 downto 0);
-    signal mem_doutoa          : std_logic_vector(31 downto 0)
+    signal mem_doutoa          : std_logic_vector(31 downto 0);
 
     signal core_clk            : std_logic;
     signal sample_clk          : std_logic;
@@ -504,8 +503,6 @@ begin
         proc2fpga_0_bus2fpga_reset_pin              => bus2fpga_reset,
         proc2fpga_0_bus2fpga_clk_pin                => bus2fpga_clk
     );
-
-    frame_clk <= frame_clk_i;
 
 end Structural;
 

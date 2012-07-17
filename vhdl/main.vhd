@@ -113,11 +113,11 @@ port(
 	mem_doutoi			: out std_logic_vector(31 downto 0);
 
 	mem_addroa			: in  std_logic_vector(15 downto 0);
-	mem_doutoa			: out std_logic_vector(31 downto 0)
+	mem_doutoa			: out std_logic_vector(31 downto 0);
 
 -- clk out
     sample_clk          : out std_logic;
-    core_clk            : out std_logic;
+    core_clk            : out std_logic
 );
 end main;
 
@@ -248,7 +248,7 @@ begin
 		rec_enable          => rec_enable,
 		rec_input_select    => rec_input_select,
 		rec_stream_valid    => rec_stream_valid,
-		sample_clk_i        => sample_clk_i,
+		sample_clk          => sample_clk_i,
 		sample_rst          => sample_rst,
 		trig_rst            => trig_rst,
 		trig_arm            => trig_arm_i,

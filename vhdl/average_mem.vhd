@@ -70,7 +70,6 @@ architecture Structural of average_mem is
     signal max          : std_logic_vector(15 downto 0);
     signal max_1        : std_logic_vector(15 downto 0);
     signal width_i      : std_logic_vector(1 downto 0);
-    signal depth_i      : std_logic_vector(15 downto 0);
 begin
 
     done <=   '1' when state = FINISHED else
@@ -79,6 +78,17 @@ begin
 		      '0';
     active <= '1' when state = FIRST or state = RUN else
               '0';
+
+    reg: process (clk, state, depth, width)
+    begin
+        if rising_edge(clk) then
+            if state = IDLE and trig = '1' then
+                max <= depth - 1;
+                max_1 <= depth - 3;
+                width_i <= width;
+            end if;
+        end if;
+    end process reg;
 
     process (clk)
     begin
@@ -91,7 +101,7 @@ begin
         end if;
     end process;
 
-    fsm_b: process (clk, state, trig, width_i, frame_cnt, cycle_cnt)
+    fsm_b: process (clk, state, trig, width_i, frame_cnt, cycle_cnt, depth, width, data_valid, max, max_1)
     begin
         case state is
             when IDLE =>
@@ -100,10 +110,6 @@ begin
                 else
                     next_state <= IDLE;
                 end if;
-                max <= depth - 1;
-                max_1 <= depth - 3;
-                width_i <= width;
-                depth_i <= depth;
             when FIRST =>
 				if data_valid = '0' then
 					next_state <= FAILED;
