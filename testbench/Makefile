@@ -8,6 +8,7 @@ tb_mul: mul.o
 tb_cmul: cmul.o mul.o
 tb_average_mem: average_mem.o inbuf_mem.o
 tb_toggle: toggle.o
+tb_proc_memory: proc_memory.o
 
 %: %.o
 	$(GHDL) -e $(GHDLFLAGS) $@
@@ -45,4 +46,4 @@ vpath %.vhd ../vhdl:../wizard:.
 cmul.o: mul.o
 overlap_add.o: wave.o cmul.o cadd.o fft_fsm.o scratch.o fft.o
 average_mem.o: inbuf_mem.o
-toggle.o: flag.o
+toggle.o: flag.o procedures.o
