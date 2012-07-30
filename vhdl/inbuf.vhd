@@ -119,7 +119,7 @@ begin
 
 	mux_process: process(sample_clk_i, rec_data_i, rec_input_select, rec_data_valid_i)
 	begin
-		if sample_clk_i'event and sample_clk_i = '1' then
+		if rising_edge(sample_clk_i) then
 			case rec_input_select is
 				when "00" => data_i <= rec_data_i(0); stream_valid_i <= rec_data_valid_i(0);
 				when "01" => data_i <= rec_data_i(1); stream_valid_i <= rec_data_valid_i(1);
@@ -146,7 +146,7 @@ begin
     begin
         if avg_rst_i = '1' then
             wave_index <= (others => '0');
-        elsif sample_clk_i'event and sample_clk_i = '1' then
+        elsif rising_edge(sample_clk_i) then
             if trig = '1' then
                 wave_index <= wave_index_i;
             end if;

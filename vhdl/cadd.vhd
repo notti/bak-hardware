@@ -34,7 +34,7 @@ begin
     ovfl_im <= (a_im(15) and b_im(15) and (not c_im_i(15))) or ((not a_im(15)) and (not b_im(15)) and c_im_i(15));
     add_p: process(clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             ovfl <= ovfl_re or ovfl_im;
             c_re <= c_re_i;
             c_im <= c_im_i;

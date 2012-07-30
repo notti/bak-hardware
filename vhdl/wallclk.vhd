@@ -31,7 +31,7 @@ begin
 
     cnt_p: process(clk, rst)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if rst = '1' then
                 cnt_wave <= X"0";
                 cnt_frame <= X"0000";

@@ -48,7 +48,7 @@ begin
     ovfl_re <= (a_re_b_re(15) and (not a_im_b_im(15)) and (not c_re_i(15))) or ((not a_re_b_re(15)) and a_im_b_im(15) and c_re_i(15));
     process(clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             c_re <= c_re_i;
             c_im <= c_im_i;
             ovfl <= ovfl_im or ovfl_re or ovfla or ovflb or ovflc or ovfld;

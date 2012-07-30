@@ -43,7 +43,7 @@ begin
              (others => '0');
     process(clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             c <= c_i;
             ovfl <= ovfl_i;
         end if;
