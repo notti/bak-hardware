@@ -204,32 +204,32 @@ begin
 -- t  rst                 sample_clk   0 7
 -------------------------------------------------------------------------------
 -- x  core_scale_sch(0)                0 0
--- x  core_scale_sch(1)                0 1
+-- x  core_scale_sch(1)                1 1
 -- x  core_scale_sch(2)                0 2
--- x  core_scale_sch(3)                0 3
+-- x  core_scale_sch(3)                1 3
 -- x  core_scale_sch(4)                0 4
--- x  core_scale_sch(5)                0 5
+-- x  core_scale_sch(5)                1 5
 -- x  core_scale_sch(6)                0 6
--- x  core_scale_sch(7)                0 7
+-- x  core_scale_sch(7)                1 7
 -- x  core_scale_sch(8)                0 0
--- x  core_scale_sch(9)                0 1
--- x  core_scale_sch(10)               0 2
+-- x  core_scale_sch(9)                1 1
+-- x  core_scale_sch(10)               1 2
 -- x  core_scale_sch(11)               0 3
 -- 0  0                                0 4
 -- 0  0                                0 5
 -- 0  0                                0 6
 -- 0  0                                0 7
 -- x  core_scale_schi(0)               0 0
--- x  core_scale_schi(1)               0 1
+-- x  core_scale_schi(1)               1 1
 -- x  core_scale_schi(2)               0 2
--- x  core_scale_schi(3)               0 3
+-- x  core_scale_schi(3)               1 3
 -- x  core_scale_schi(4)               0 4
--- x  core_scale_schi(5)               0 5
+-- x  core_scale_schi(5)               1 5
 -- x  core_scale_schi(6)               0 6
--- x  core_scale_schi(7)               0 7
+-- x  core_scale_schi(7)               1 7
 -- x  core_scale_schi(8)               0 0
--- x  core_scale_schi(9)               0 1
--- x  core_scale_schi(10)              0 2
+-- x  core_scale_schi(9)               1 1
+-- x  core_scale_schi(10)              1 2
 -- x  core_scale_schi(11)              0 3
 -- 0  0                                0 4
 -- 0  0                                0 5
@@ -251,7 +251,7 @@ begin
 -- 0  0                                0 4
 -- 0  0                                0 5
 -- x  core_cmul_sch(0)                 0 6
--- x  core_cmul_sch(0)                 0 7
+-- x  core_cmul_sch(0)                 1 7
 -- x  core_n(0)                        0 0
 -- x  core_n(1)                        0 1
 -- x  core_n(2)                        0 2
@@ -524,8 +524,8 @@ begin
     begin
         if rising_edge(bus2fpga_clk) then
             if bus2fpga_reset = '1' then
-                slv_reg(2)(11 downto 0) <= (others => '0');
-                slv_reg(2)(27 downto 16) <= (others => '0');
+                slv_reg(2)(11 downto 0) <= "011010101010";
+                slv_reg(2)(27 downto 16) <= "011010101010";
             else
                 if bus2fpga_wrce = "001000" then
                     if bus2fpga_be(0) = '1' then
@@ -581,6 +581,7 @@ begin
         if rising_edge(bus2fpga_clk) then
             if bus2fpga_reset = '1' then
                 slv_reg(3)(11 downto 0) <= (others => '0');
+                slv_reg(3)(15 downto 14) <= "10";
                 slv_reg(3)(20 downto 16) <= (others => '0');
                 slv_reg(3)(24) <= '0';
             else
