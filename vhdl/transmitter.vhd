@@ -128,96 +128,114 @@ architecture Structural of transmitter is
 begin
     in_start_p: process(ckf, locked_i)
     begin
-        if locked_i = '0' then
-            in_start <= '0';
-        elsif rising_edge(ckf) then
-            in_start <= '1';
+        if rising_edge(ckf) then
+            if locked_i = '0' then
+                in_start <= '0';
+            else
+                in_start <= '1';
+            end if;
         end if;
     end process in_start_p;
     frame_scan_p: process(clk, in_start, buf_cycle)
     begin
-        if in_start = '0' then
-            frame_scan <= '0';
-        elsif rising_edge(clk) and buf_cycle = "11" then
-            frame_scan <= '1';
+        if rising_edge(clk) and buf_cycle = "11" then
+            if in_start = '0' then
+                frame_scan <= '0';
+            else
+                frame_scan <= '1';
+            end if;
         end if;
     end process;
     frame_sync_p: process(clk, ckf, rst)
     begin
-        if rst = '1' then
-            ckf_dly <= '0';
-        elsif rising_edge(clk) then
-            ckf_dly <= ckf;
+        if rising_edge(clk) then
+            if rst = '1' then
+                ckf_dly <= '0';
+            else
+                ckf_dly <= ckf;
+            end if;
         end if;
     end process;
     frame_sync <= ckf and not ckf_dly;
     buf_cycle_p: process(clk, in_start)
     begin
-        if in_start = '0' then
-            buf_cycle <= "10";
-        elsif rising_edge(clk) then
-            buf_cycle <= buf_cycle + 1;
+        if rising_edge(clk) then
+            if in_start = '0' then
+                buf_cycle <= "10";
+            else
+                buf_cycle <= buf_cycle + 1;
+            end if;
         end if;
     end process buf_cycle_p;
     out_run_p: process(ckf, rst, in_start)
     begin
-        if rst = '1' then
-            out_run <= '0';
-        elsif rising_edge(ckf) then
-            out_run <= in_start;
+        if rising_edge(ckf) then
+            if rst = '1' then
+                out_run <= '0';
+            else
+                out_run <= in_start;
+            end if;
         end if;
     end process out_run_p;
     out_cycle_p: process(ckm, out_run, out_cycle)
     begin
-        if out_run = '0' then
-            out_cycle <= (others => '0');
-        elsif rising_edge(ckm) then
-            out_cycle <= (out_cycle + 1) mod 7;
+        if rising_edge(ckm) then
+            if out_run = '0' then
+                out_cycle <= (others => '0');
+            else
+                out_cycle <= (out_cycle + 1) mod 7;
+            end if;
         end if;
     end process;
     out_en_p: process(ckm, rst, out_run)
     begin
-        if rst = '1' then
-            out_en <= '0';
-        elsif rising_edge(ckm) then
-            out_en <= out_run;
+        if rising_edge(ckm) then
+            if rst = '1' then
+                out_en <= '0';
+            else
+                out_en <= out_run;
+            end if;
         end if;
     end process;
     deskew_cnt_p: process(clk, deskew_state)
     begin
-        if not (deskew_state = OUT_DESKEW) then
-            deskew_cnt <= (others => '0');
-        elsif rising_edge(clk) then
-            deskew_cnt <= deskew_cnt + 1;
+        if rising_edge(clk) then
+            if not (deskew_state = OUT_DESKEW) then
+                deskew_cnt <= (others => '0');
+            else
+                deskew_cnt <= deskew_cnt + 1;
+            end if;
         end if;
     end process;
     deskew_p: process(clk, rst, frame_scan, dc_balance, deskew_cnt, deskew, deskew_state, in_start)
     begin
-        if rst = '1' or dc_balance = '0' then
-            deskew_state <= RESET;
-        elsif rising_edge(clk) then
-            case deskew_state is
-                when RESET =>
-                    if in_start = '1' then
-                        deskew_state <= OUT_DESKEW;
-                    end if;
-                    deskew_out <= '0';
-                when OUT_DESKEW =>
-                    if and_many(deskew_cnt) = '1' then
-                        deskew_state <= OUT_DATA;
-                    end if;
-                    deskew_out <= '1';
-                when OUT_DATA =>
-                    if deskew = '1' then
-                        deskew_state <= DESKEW_SYNC;
-                    end if;
-                    deskew_out <= '0';
-                when DESKEW_SYNC =>
-                    if frame_sync = '1' then
-                        deskew_state <= OUT_DESKEW;
-                    end if;
-                    deskew_out <= '0';
-            end case;
+        if rising_edge(clk) then
+            if rst = '1' or dc_balance = '0' then
+                deskew_state <= RESET;
+            else
+                case deskew_state is
+                    when RESET =>
+                        if in_start = '1' then
+                            deskew_state <= OUT_DESKEW;
+                        end if;
+                        deskew_out <= '0';
+                    when OUT_DESKEW =>
+                        if and_many(deskew_cnt) = '1' then
+                            deskew_state <= OUT_DATA;
+                        end if;
+                        deskew_out <= '1';
+                    when OUT_DATA =>
+                        if deskew = '1' then
+                            deskew_state <= DESKEW_SYNC;
+                        end if;
+                        deskew_out <= '0';
+                    when DESKEW_SYNC =>
+                        if frame_sync = '1' then
+                            deskew_state <= OUT_DESKEW;
+                        end if;
+                        deskew_out <= '0';
+                end case;
+            end if;
         end if;
     end process;
 
@@ -269,19 +287,21 @@ begin
 
         outdata_short_p: process(ckm, out_run, out_cycle, outdata_long)
         begin
-            if out_run = '0' then
-                outdata_short <= (others => '0');
-            elsif rising_edge(ckm) then
-                case out_cycle is
-                    when "000" => outdata_short <= outdata_long(0)(6 downto 3);
-                    when "001" => outdata_short <= outdata_long(0)(2 downto 0) & outdata_long(1)(6 downto 6);
-                    when "010" => outdata_short <= outdata_long(1)(5 downto 2);
-                    when "011" => outdata_short <= outdata_long(1)(1 downto 0) & outdata_long(2)(6 downto 5);
-                    when "100" => outdata_short <= outdata_long(2)(4 downto 1);
-                    when "101" => outdata_short <= outdata_long(2)(0 downto 0) & outdata_long(3)(6 downto 4);
-                    when "110" => outdata_short <= outdata_long(3)(3 downto 0);
-                    when others => null;
-                end case;
+            if rising_edge(ckm) then
+                if out_run = '0' then
+                    outdata_short <= (others => '0');
+                else
+                    case out_cycle is
+                        when "000" => outdata_short <= outdata_long(0)(6 downto 3);
+                        when "001" => outdata_short <= outdata_long(0)(2 downto 0) & outdata_long(1)(6 downto 6);
+                        when "010" => outdata_short <= outdata_long(1)(5 downto 2);
+                        when "011" => outdata_short <= outdata_long(1)(1 downto 0) & outdata_long(2)(6 downto 5);
+                        when "100" => outdata_short <= outdata_long(2)(4 downto 1);
+                        when "101" => outdata_short <= outdata_long(2)(0 downto 0) & outdata_long(3)(6 downto 4);
+                        when "110" => outdata_short <= outdata_long(3)(3 downto 0);
+                        when others => null;
+                    end case;
+                end if;
             end if;
         end process outdata_short_p;
 
@@ -393,19 +413,21 @@ begin
 
         outdata_short_p: process(ckm, out_run, out_cycle, outdata_long)
         begin
-            if out_run = '0' then
-                outdata_short <= (others => '0');
-            elsif rising_edge(ckm) then
-                case out_cycle is
-                    when "000" => outdata_short <= outdata_long(0)(6 downto 3);
-                    when "001" => outdata_short <= outdata_long(0)(2 downto 0) & outdata_long(1)(6 downto 6);
-                    when "010" => outdata_short <= outdata_long(1)(5 downto 2);
-                    when "011" => outdata_short <= outdata_long(1)(1 downto 0) & outdata_long(2)(6 downto 5);
-                    when "100" => outdata_short <= outdata_long(2)(4 downto 1);
-                    when "101" => outdata_short <= outdata_long(2)(0 downto 0) & outdata_long(3)(6 downto 4);
-                    when "110" => outdata_short <= outdata_long(3)(3 downto 0);
-                    when others => null;
-                end case;
+            if rising_edge(ckm) then
+                if out_run = '0' then
+                    outdata_short <= (others => '0');
+                else
+                    case out_cycle is
+                        when "000" => outdata_short <= outdata_long(0)(6 downto 3);
+                        when "001" => outdata_short <= outdata_long(0)(2 downto 0) & outdata_long(1)(6 downto 6);
+                        when "010" => outdata_short <= outdata_long(1)(5 downto 2);
+                        when "011" => outdata_short <= outdata_long(1)(1 downto 0) & outdata_long(2)(6 downto 5);
+                        when "100" => outdata_short <= outdata_long(2)(4 downto 1);
+                        when "101" => outdata_short <= outdata_long(2)(0 downto 0) & outdata_long(3)(6 downto 4);
+                        when "110" => outdata_short <= outdata_long(3)(3 downto 0);
+                        when others => null;
+                    end case;
+                end if;
             end if;
         end process outdata_short_p;
 

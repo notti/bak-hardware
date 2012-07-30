@@ -55,10 +55,12 @@ begin
 
 	next_state_process: process(clk, rst, enable)
 	begin
-		if rst='1' or enable='0' then
-			state <= RESET;
-		elsif rising_edge(clk) then
-			state <= next_state;
+        if rising_edge(clk) then
+            if rst = '1' or enable = '0' then
+                state <= RESET;
+            else
+                state <= next_state;
+            end if;
 		end if;
 	end process next_state_process;
 
@@ -97,37 +99,45 @@ begin
 
 	pwr_on_cnt_r_process: process(clk, state)
 	begin
-		if not(state=POWERON) then
-			pwr_on_cnt_r <= (others => '0');
-		elsif rising_edge(clk) then
-			pwr_on_cnt_r <= pwr_on_cnt_r + 1;
+		if rising_edge(clk) then
+            if not (state = POWERON) then
+                pwr_on_cnt_r <= (others => '0');
+            else
+                pwr_on_cnt_r <= pwr_on_cnt_r + 1;
+            end if;
 		end if;
 	end process pwr_on_cnt_r_process;
 
 	blank_cnt_r_process: process(clk, state)
 	begin
-		if not(state=BLANK_CLK) then
-			blank_cnt_r <= (others => '0');
-		elsif rising_edge(clk) then
-			blank_cnt_r <= blank_cnt_r + 1;
+		if rising_edge(clk) then
+            if not (state = BLANK_CLK) then
+		    	blank_cnt_r <= (others => '0');
+            else
+                blank_cnt_r <= blank_cnt_r + 1;
+            end if;
 		end if;
 	end process blank_cnt_r_process;
 
 	aligned_cnt_r_process: process(clk, rst, state, aligned, valid)
 	begin
-		if (not(state=WAIT_SYNC)) or aligned = '0' or valid = '0' then
-			aligned_cnt_r <= (others => '0');
-		elsif rising_edge(clk) then
-			aligned_cnt_r <= aligned_cnt_r + 1;
+		if rising_edge(clk) then
+            if (not (state = WAIT_SYNC)) or aligned = '0' or valid = '0' then
+                aligned_cnt_r <= (others => '0');
+            else
+                aligned_cnt_r <= aligned_cnt_r + 1;
+            end if;
 		end if;
 	end process aligned_cnt_r_process;
 
 	wait_cnt_r_process: process(clk, rst, state)
 	begin
-		if not(state=WAIT_SYNC) then
-			wait_cnt_r <= (others => '0');
-		elsif rising_edge(clk) then
-			wait_cnt_r <= wait_cnt_r + 1;
+		if rising_edge(clk) then
+            if not (state = WAIT_SYNC) then
+                wait_cnt_r <= (others => '0');
+            else
+                wait_cnt_r <= wait_cnt_r + 1;
+            end if;
 		end if;
 	end process wait_cnt_r_process;
 

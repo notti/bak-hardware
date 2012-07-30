@@ -223,26 +223,28 @@ begin
 
     fsm_p1: process(clk, rst)
     begin
-        if rst = '1' then
-            state <= INACTIVE;
-        elsif rising_edge(clk) then
-            case state is
-                when INACTIVE  =>
-                    if start = '1' then
-                        state <= PREPARE;
-                    else
-                        state <= INACTIVE;
-                    end if;
-                when PREPARE => state <= START_FFT_IFFT;
-                when START_FFT_IFFT => state <= WAIT_COMPLETE;
-                when WAIT_COMPLETE =>
-                    if ifft_done(CADD2Y) = '1' and last_cycle_x = '1' then
-                        state <= COMPLETE;
-                    else
-                        state <= WAIT_COMPLETE;
-                    end if;
-                when COMPLETE => state <= INACTIVE;
-            end case;
+        if rising_edge(clk) then
+            if rst = '1' then
+                state <= INACTIVE;
+            else
+                case state is
+                    when INACTIVE  =>
+                        if start = '1' then
+                            state <= PREPARE;
+                        else
+                            state <= INACTIVE;
+                        end if;
+                    when PREPARE => state <= START_FFT_IFFT;
+                    when START_FFT_IFFT => state <= WAIT_COMPLETE;
+                    when WAIT_COMPLETE =>
+                        if ifft_done(CADD2Y) = '1' and last_cycle_x = '1' then
+                            state <= COMPLETE;
+                        else
+                            state <= WAIT_COMPLETE;
+                        end if;
+                    when COMPLETE => state <= INACTIVE;
+                end case;
+            end if;
         end if;
     end process fsm_p1;
 

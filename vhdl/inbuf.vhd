@@ -144,11 +144,13 @@ begin
 
     wave_index_p: process(sample_clk_i, avg_rst_i, trig, wave_index_i)
     begin
-        if avg_rst_i = '1' then
-            wave_index <= (others => '0');
-        elsif rising_edge(sample_clk_i) then
-            if trig = '1' then
-                wave_index <= wave_index_i;
+        if rising_edge(sample_clk_i) then
+            if avg_rst_i = '1' then
+                wave_index <= (others => '0');
+            else
+                if trig = '1' then
+                    wave_index <= wave_index_i;
+                end if;
             end if;
         end if;
     end process wave_index_p;
