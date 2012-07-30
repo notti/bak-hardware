@@ -156,10 +156,10 @@ architecture Structural of main is
 	signal avg_active_i		   : std_logic;
 	signal trig_arm_i		   : std_logic;
 
-    signal clk_fb              : std_logic; -- feedback clk DCM
+--    signal clk_fb              : std_logic; -- feedback clk DCM
     signal core_clk_i          : std_logic; -- sample_clk_i*2
-    signal core_clku           : std_logic;
-	signal dcm_locked		   : std_logic;
+--    signal core_clku           : std_logic;
+--	signal dcm_locked		   : std_logic;
 
 	signal core_start_i		   : std_logic;
 	signal core_rst_i		   : std_logic;
@@ -284,45 +284,49 @@ begin
 	frame_clk  <= frame_clk_i;
     sample_clk <= sample_clk_i;
 
-    core_clk_gen: DCM_BASE
-    generic map (
-        CLKIN_DIVIDE_BY_2     => FALSE,
-        CLKIN_PERIOD          => 10.0,
-        CLK_FEEDBACK          => "1X",
-        DCM_PERFORMANCE_MODE  => "MAX_SPEED",
-        DFS_FREQUENCY_MODE    => "LOW",
-        DLL_FREQUENCY_MODE    => "LOW",
-        DUTY_CYCLE_CORRECTION => TRUE,
-        FACTORY_JF            => X"F0F0",
-        PHASE_SHIFT           => 0,
-        STARTUP_WAIT          => FALSE
-	)
-	port map (
-        CLK0                  => clk_fb,
-        CLK180                => open,
-        CLK270                => open,
-        CLK2X                 => core_clku,
-        CLK2X180              => open,
-        CLK90                 => open,
-        CLKDV                 => open,
-        CLKFX                 => open,
-        CLKFX180              => open,
-        LOCKED                => dcm_locked,
-        CLKFB                 => clk_fb,
-        CLKIN                 => sample_clk_i,
-        RST                   => sample_rst
-    );
+--    core_clk_gen: DCM_BASE
+--    generic map (
+--        CLKIN_DIVIDE_BY_2     => FALSE,
+--        CLKIN_PERIOD          => 10.0,
+--        CLK_FEEDBACK          => "1X",
+--        DCM_PERFORMANCE_MODE  => "MAX_SPEED",
+--        DFS_FREQUENCY_MODE    => "LOW",
+--        DLL_FREQUENCY_MODE    => "LOW",
+--        DUTY_CYCLE_CORRECTION => TRUE,
+--        FACTORY_JF            => X"F0F0",
+--        PHASE_SHIFT           => 0,
+--        STARTUP_WAIT          => FALSE
+--	)
+--	port map (
+--        CLK0                  => clk_fb,
+--        CLK180                => open,
+--        CLK270                => open,
+--        CLK2X                 => core_clku,
+--        CLK2X180              => open,
+--        CLK90                 => open,
+--        CLKDV                 => open,
+--        CLKFX                 => open,
+--        CLKFX180              => open,
+--        LOCKED                => dcm_locked,
+--        CLKFB                 => clk_fb,
+--        CLKIN                 => sample_clk_i,
+--        RST                   => sample_rst
+--    );
+--
+--    core_clk_buf: BUFG
+--    port map
+--    (
+--        I            => core_clku,
+--        O            => core_clk_i
+--    );
+--
+--    core_clk <= core_clk_i;
 
-    core_clk_buf: BUFG
-    port map
-    (
-        I            => core_clku,
-        O            => core_clk_i
-    );
+    core_clk <= sample_clk_i;
+    core_clk_i <= sample_clk_i;
+    core_rst_i <= core_rst or sample_rst;
 
-    core_clk <= core_clk_i;
-
-	core_rst_i   <= core_rst or not dcm_locked;
+--	core_rst_i   <= core_rst or not dcm_locked;
 	core_start_i <= core_start when mem_extern = '0' and trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and tx_busy_i = '0' else
 					'0';
 
