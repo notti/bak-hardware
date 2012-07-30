@@ -174,7 +174,7 @@ begin
 
 	mem_extern_process: process(sample_clk_i, sample_rst, mem_req, trig_armed_i, trig_trigd_i, avg_active_i, core_busy_i, tx_busy_i)
 	begin
-		if sample_clk_i'event and sample_clk_i = '1' then
+		if rising_edge(sample_clk_i) then
 			if sample_rst = '1' or mem_req = '0' then
 				mem_extern <= '0';
 			elsif mem_req = '1' and trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and core_busy_i = '0' and tx_busy_i = '0' then

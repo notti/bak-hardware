@@ -92,7 +92,7 @@ begin
 
     process (clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if rst = '1' then
                 state <= IDLE;
             else
@@ -137,7 +137,7 @@ begin
 
     counter: process (clk)
     begin
-        if clk='1' and clk'event then
+        if rising_edge(clk) then
             if state = IDLE or frame_cnt = max then
                 frame_cnt <= (others => '0');
             elsif state = FIRST or state = RUN then

@@ -32,7 +32,7 @@ begin
     begin
         if rst = '1' then
             state <= INACTIVE;
-        elsif clk = '1' and clk'event then
+        elsif rising_edge(clk) then
             case state is
                 when INACTIVE  =>
                     if run = '1' then

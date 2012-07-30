@@ -27,7 +27,7 @@ architecture Structural of trigger is
 begin
     process(clk, rst)
     begin
-        if clk'event and clk = '1' then
+        if rising_edge(clk) then
             if rst = '1' then
                 state <= RESET;
             else

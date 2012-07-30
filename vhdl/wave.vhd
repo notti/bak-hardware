@@ -33,7 +33,7 @@ architecture Structural of wave is
 begin
     cnt_p: process(clk, rst)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if rst = '1' then
                 cnt <= wave_index;
             elsif run = '1' then
@@ -48,7 +48,7 @@ begin
 
     mul_p: process(clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             i_long <= data*c(conv_integer(cnt));
             q_long <= data*s(conv_integer(cnt));
             data_r <= data;

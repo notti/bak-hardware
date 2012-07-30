@@ -89,7 +89,7 @@ begin
 
     depth_r_proc: process(clk, rst, depth)
     begin
-        if clk'event and clk = '1' then
+        if rising_edge(clk) then
             if rst = '1' or resync = '1' then
                 depth_r <= depth - 1;
             end if;
@@ -98,7 +98,7 @@ begin
 
     do_sync_process: process(clk, rst, resync, frame_clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if rst = '1' or resync = '1' then
                 do_sync <= '1';
             elsif frame_clk = '1' and do_sync = '1' then
@@ -109,7 +109,7 @@ begin
 
     frame_addr_process: process(clk, depth_r, rst, do_sync, frame_offset, frame_addr)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if frame_addr = depth_r or rst = '1' then
                 frame_addr <= (others => '0');
             elsif frame_clk = '1' and do_sync = '1' then
@@ -122,7 +122,7 @@ begin
 
     active_process: process(clk, rst, toggle_buf, do_toggle, frame_addr, depth_r)
     begin
-        if clk'event and clk = '1' then
+        if rising_edge(clk) then
             if rst = '1' then
                 do_toggle <= '0';
                 active <= '0';
@@ -139,7 +139,7 @@ begin
 
     active_r_process: process(clk, rst, active)
     begin
-        if clk'event and clk = '1' then
+        if rising_edge(clk) then
             if rst = '1' then
                 active_r <= '0';
             else

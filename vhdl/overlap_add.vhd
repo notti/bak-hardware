@@ -225,7 +225,7 @@ begin
     begin
         if rst = '1' then
             state <= INACTIVE;
-        elsif clk = '1' and clk'event then
+        elsif rising_edge(clk) then
             case state is
                 when INACTIVE  =>
                     if start = '1' then
@@ -271,7 +271,7 @@ begin
 
     prepare_p: process(clk, state)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if state = PREPARE then
                 L_i <= L;
                 Lmax_i <= L - 1;
@@ -289,7 +289,7 @@ begin
 
     state_p: process(clk, state)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if state = PREPARE then
                 offset_x <= (others => '0');
                 last_cycle_x <= '0';
@@ -330,7 +330,7 @@ begin
 
     process(clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if state = PREPARE  or ifft_write = '1' then
                 last_cycle_yr(0) <= '0';
                 last_y_cnt <= (others => '0');
@@ -351,7 +351,7 @@ begin
 
     lgni_p: process(clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if scratch_fill(Y2SCRATCH) = '0' then
                 lgni <= '0';
             else
@@ -364,7 +364,7 @@ begin
 
     delays: process(clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             --scratch2fft_g: for i in SCRATCH2FFT downto 1 loop
             --    scratch_re_out(i) <= scratch_re_out(i-1);
             --    scratch_im_out(i) <= scratch_im_out(i-1);
@@ -469,7 +469,7 @@ begin
 
     zero_pad_p: process(clk)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if xn_index_i = X"000" then
                 zero_pad <= '0';
             elsif xn_index_i = Lmax_i then
@@ -538,7 +538,7 @@ begin
 
     y2scratch_p: process(clk, ifft_write, ifft_busy)
     begin
-        if clk = '1' and clk'event then
+        if rising_edge(clk) then
             if ifft_write = '1' or rst = '1' then
                 y2scratch_i <= '0';
                 scratch_fill_cnt(0) <= (others => '0');
