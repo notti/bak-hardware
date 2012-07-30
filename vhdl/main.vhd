@@ -39,7 +39,7 @@ port(
     trig_arm            : in  std_logic;
     trig_ext            : in  std_logic;
     trig_int            : in  std_logic;
-	trig_type		    : in  std_logic_vector(1 downto 0);
+	trig_type		    : in  std_logic;
     trig_armed          : out std_logic;
     trig_trigd          : out std_logic;
 	frame_clk			: out std_logic;

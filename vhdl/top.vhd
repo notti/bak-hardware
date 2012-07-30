@@ -156,7 +156,7 @@ END COMPONENT;
     signal trig_rst            : std_logic;
     signal trig_arm            : std_logic;
     signal trig_int            : std_logic;
-    signal trig_type           : std_logic_vector(1 downto 0);
+    signal trig_type           : std_logic;
     signal trig_armed          : std_logic;
     signal trig_trigd          : std_logic;
     signal avg_rst             : std_logic;

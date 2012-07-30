@@ -46,7 +46,7 @@ port(
 
 -- value
     rec_input_select    : out std_logic_vector(1 downto 0);
-    trig_type           : out std_logic_vector(1 downto 0);
+    trig_type           : out std_logic;
     tx_muli             : out std_logic_vector(15 downto 0);
     tx_mulq             : out std_logic_vector(15 downto 0);
 
@@ -109,7 +109,6 @@ architecture Structural of proc_register is
     signal rec_input_select_wr      : std_logic;
     signal rec_rst_value            : std_logic;
 
-    signal trig_type_wr             : std_logic;
     signal trig_arm_value           : std_logic;
     signal trig_int_value           : std_logic;
     signal trig_rst_value           : std_logic;
@@ -129,7 +128,7 @@ architecture Structural of proc_register is
 
     signal mem_req_r                : std_logic;
 
-    signal busy                     : std_logic_vector(14 downto 0);
+    signal busy                     : std_logic_vector(13 downto 0);
 
     signal trig_trigd_synced        : std_logic;
     signal avg_done_synced          : std_logic;
@@ -187,8 +186,8 @@ begin
 -- x  depth(13)                        0 5
 -- x  depth(14)                        0 6
 -- x  depth(15)                        0 7
--- x  trig_type(0)        sample_clk   0 0
--- x  trig_type(1)        sample_clk   0 1
+-- x  trig_type           sample_clk   0 0
+-- 0                                   0 1
 -- t  trig_arm            sample_clk   0 2  r  trig_armed          bus2fpga_clk 
 -- t  trig_int            sample_clk   0 3
 -- 0  0                                0 4
@@ -421,16 +420,11 @@ begin
 -------------------------------------------------------------------------------
     depth <= slv_reg(1)(15 downto 0);
 
-    trig_type_wr <= '1' when (bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1') or bus2fpga_reset = '1' else
-                    '0';
-    sync_trig_type: entity work.value
+    sync_trig_type: entity work.flag
     port map(
-        value_in    => slv_reg(1)(17 downto 16),
-        value_out   => trig_type,
-        value_wr    => trig_type_wr,
-        busy        => busy(2),
-        clk_from    => bus2fpga_clk,
-        clk_to      => sample_clk
+        flag_in    => slv_reg(1)(16),
+        flag_out   => trig_type,
+        clk        => sample_clk
     );
     trig_arm_value <= bus2fpga_data(18) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
                       '0';
@@ -438,7 +432,7 @@ begin
     port map(
         toggle_in   => trig_arm_value,
         toggle_out  => trig_arm,
-        busy        => busy(3),
+        busy        => busy(2),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -448,7 +442,7 @@ begin
     port map(
         toggle_in   => trig_int_value,
         toggle_out  => trig_int,
-        busy        => busy(4),
+        busy        => busy(3),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -459,7 +453,7 @@ begin
     port map(
         toggle_in   => trig_rst_value,
         toggle_out  => trig_rst,
-        busy        => busy(5),
+        busy        => busy(4),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -472,7 +466,7 @@ begin
     port map(
         toggle_in   => avg_rst_value,
         toggle_out  => avg_rst,
-        busy        => busy(6),
+        busy        => busy(5),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -565,7 +559,7 @@ begin
     port map(
         toggle_in   => core_start_value,
         toggle_out  => core_start,
-        busy        => busy(7),
+        busy        => busy(6),
         clk_from    => bus2fpga_clk,
         clk_to      => core_clk
     );
@@ -577,7 +571,7 @@ begin
     port map(
         toggle_in   => core_rst_value,
         toggle_out  => core_rst,
-        busy        => busy(8),
+        busy        => busy(7),
         clk_from    => bus2fpga_clk,
         clk_to      => core_clk
     );
@@ -645,7 +639,7 @@ begin
         value_in    => slv_reg(4)(15 downto 0),
         value_out   => tx_muli,
         value_wr    => tx_muli_wr,
-        busy        => busy(9),
+        busy        => busy(8),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -656,7 +650,7 @@ begin
         value_in    => slv_reg(4)(15 downto 0),
         value_out   => tx_mulq,
         value_wr    => tx_mulq_wr,
-        busy        => busy(10),
+        busy        => busy(9),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -693,7 +687,7 @@ begin
     port map(
         toggle_in   => tx_deskew_value,
         toggle_out  => tx_deskew,
-        busy        => busy(11),
+        busy        => busy(10),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -709,7 +703,7 @@ begin
     port map(
         toggle_in   => tx_toggle_value,
         toggle_out  => tx_toggle_buf,
-        busy        => busy(12),
+        busy        => busy(11),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -719,7 +713,7 @@ begin
     port map(
         toggle_in   => tx_resync_value,
         toggle_out  => tx_resync,
-        busy        => busy(13),
+        busy        => busy(12),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -730,7 +724,7 @@ begin
     port map(
         toggle_in   => tx_rst_value,
         toggle_out  => tx_rst,
-        busy        => busy(14),
+        busy        => busy(13),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
