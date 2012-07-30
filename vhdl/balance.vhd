@@ -110,13 +110,15 @@ begin
         else
             inv <= '1';
         end if;
-        if rst = '1' then
-            overall_balance <= (others => '0');
-        elsif rising_edge(clk) and en = '1' then
-            if inv = '1' then
-                overall_balance <= overall_balance + 1 - bal;
+        if rising_edge(clk) and en = '1' then
+            if rst = '1' then
+                overall_balance <= (others => '0');
             else
-                overall_balance <= overall_balance + bal - 1;
+                if inv = '1' then
+                    overall_balance <= overall_balance + 1 - bal;
+                else
+                    overall_balance <= overall_balance + bal - 1;
+                end if;
             end if;
         end if;
     end process;

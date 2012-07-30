@@ -339,12 +339,14 @@ begin
 		-- reset delay
 		reset_delay_process: process(usrclk_i, resetdone_i(i))
 		begin
-			if resetdone_i(i) = '0' then
-				resetdone_r(i)  <= '0';
-				resetdone_r2(i) <= '0';
-			elsif rising_edge(usrclk_i) then
-				resetdone_r(i)  <= resetdone_i(i);
-				resetdone_r2(i) <= resetdone_r(i);
+			if rising_edge(usrclk_i) then
+                if resetdone_i(i) = '0' then
+                    resetdone_r(i)  <= '0';
+                    resetdone_r2(i) <= '0';
+                else
+                    resetdone_r(i)  <= resetdone_i(i);
+                    resetdone_r2(i) <= resetdone_r(i);
+                end if;
 			end if;
 		end process;
 
@@ -380,10 +382,12 @@ begin
 
 		datavalidaligned_r_process: process(usrclk_i, resetdone_i(i))
 		begin
-			if resetdone_i(i) = '0' then
-				datavalidaligned_r(i) <= '0';
-			elsif rising_edge(usrclk_i) then
-				datavalidaligned_r(i) <= datavalidaligned_i(i);
+			if rising_edge(usrclk_i) then
+                if resetdone_i(i) = '0' then
+                    datavalidaligned_r(i) <= '0';
+                else
+                    datavalidaligned_r(i) <= datavalidaligned_i(i);
+                end if;
 			end if;
 		end process;
 

@@ -30,37 +30,39 @@ begin
 
     fft_p1: process(clk, rst)
     begin
-        if rst = '1' then
-            state <= INACTIVE;
-        elsif rising_edge(clk) then
-            case state is
-                when INACTIVE  =>
-                    if run = '1' then
-                        state <= START_FFT;
-                    else
-                        state <= INACTIVE;
-                    end if;
-                when START_FFT => state <= FEED_FFT;
-                when FEED_FFT  =>
-                    if wdone = '1' then
-                        state <= WAIT_FFT;
-                    else
-                        state <= FEED_FFT;
-                    end if;
-                when WAIT_FFT  => 
-                    if edone = '1' then
-                        state <= READ_FFT;
-                    else
-                        state <= WAIT_FFT;
-                    end if;
-                when READ_FFT  =>
-                    if rdone = '1' then
-                        state <= DONE_FFT;
-                    else
-                        state <= READ_FFT;
-                    end if;
-                when DONE_FFT  => state <= INACTIVE;
-            end case;
+        if rising_edge(clk) then
+            if rst = '1' then
+                state <= INACTIVE;
+            else
+                case state is
+                    when INACTIVE  =>
+                        if run = '1' then
+                            state <= START_FFT;
+                        else
+                            state <= INACTIVE;
+                        end if;
+                    when START_FFT => state <= FEED_FFT;
+                    when FEED_FFT  =>
+                        if wdone = '1' then
+                            state <= WAIT_FFT;
+                        else
+                            state <= FEED_FFT;
+                        end if;
+                    when WAIT_FFT  => 
+                        if edone = '1' then
+                            state <= READ_FFT;
+                        else
+                            state <= WAIT_FFT;
+                        end if;
+                    when READ_FFT  =>
+                        if rdone = '1' then
+                            state <= DONE_FFT;
+                        else
+                            state <= READ_FFT;
+                        end if;
+                    when DONE_FFT  => state <= INACTIVE;
+                end case;
+            end if;
         end if;
     end process fft_p1;
 
