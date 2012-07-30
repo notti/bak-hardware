@@ -39,7 +39,7 @@ port(
     trig_arm            : in  std_logic;
     trig_ext            : in  std_logic;
     trig_int            : in  std_logic;
-	trig_type		    : in  std_logic_vector(1 downto 0);
+	trig_type		    : in  std_logic;
     trig_armed          : out std_logic;
     trig_trigd          : out std_logic;
 
@@ -161,7 +161,7 @@ begin
     port map(
         clk         => sample_clk_i,
         rst         => trig_rst_i,
-        typ         => trig_type(0),
+        typ         => trig_type,
         trigger_ext => trig_ext,
         trigger_int => trig_int,
         frame_trg   => frame_trg,
