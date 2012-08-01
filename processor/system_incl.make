@@ -92,7 +92,6 @@ implementation/ddr2_sdram_wrapper.ngc \
 implementation/rs232_uart_1_wrapper.ngc \
 implementation/hard_ethernet_mac_wrapper.ngc \
 implementation/sysace_compactflash_wrapper.ngc \
-implementation/hard_ethernet_mac_fifo_wrapper.ngc \
 implementation/clock_generator_0_wrapper.ngc \
 implementation/jtagppc_cntlr_0_wrapper.ngc \
 implementation/proc_sys_reset_0_wrapper.ngc \
