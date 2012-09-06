@@ -92,6 +92,7 @@ implementation/ddr2_sdram_wrapper.ngc \
 implementation/rs232_uart_1_wrapper.ngc \
 implementation/hard_ethernet_mac_wrapper.ngc \
 implementation/sysace_compactflash_wrapper.ngc \
+implementation/hard_ethernet_mac_fifo_wrapper.ngc \
 implementation/clock_generator_0_wrapper.ngc \
 implementation/jtagppc_cntlr_0_wrapper.ngc \
 implementation/proc_sys_reset_0_wrapper.ngc \
@@ -104,7 +105,9 @@ implementation/iic_smbus_wrapper.ngc \
 implementation/gpio_dip_wrapper.ngc \
 implementation/gpio_pushbuttons_wrapper.ngc \
 implementation/gpio_directionleds_wrapper.ngc \
-implementation/proc2fpga_0_wrapper.ngc
+implementation/proc2fpga_0_wrapper.ngc \
+implementation/chipscope_plbv46_iba_0_wrapper.ngc \
+implementation/chipscope_icon_0_wrapper.ngc
 
 POSTSYN_NETLIST = implementation/$(SYSTEM).ngc
 
