@@ -1,0 +1,12 @@
+_xmsgs
+main_xdb
+*.restore
+*.ngc
+xlnx_auto*
+*.bmm
+*log
+*html
+templates
+*tcl
+*twr
+top*

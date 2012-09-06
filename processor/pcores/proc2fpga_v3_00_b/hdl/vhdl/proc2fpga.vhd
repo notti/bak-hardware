@@ -33,9 +33,9 @@
 --
 ------------------------------------------------------------------------------
 -- Filename:          proc2fpga.vhd
--- Version:           2.00.a
+-- Version:           3.00.b
 -- Description:       Top level design, instantiates library components and user logic.
--- Date:              Mon Jan 31 15:17:30 2011 (by Create and Import Peripheral Wizard)
+-- Date:              Tue Aug 21 22:56:36 2012 (by Create and Import Peripheral Wizard)
 -- VHDL Standard:     VHDL'93
 ------------------------------------------------------------------------------
 -- Naming Conventions:
@@ -70,11 +70,11 @@ use proc_common_v2_00_a.soft_reset;
 library interrupt_control_v2_00_a;
 use interrupt_control_v2_00_a.interrupt_control;
 
-library plbv46_slave_single_v1_00_a;
-use plbv46_slave_single_v1_00_a.plbv46_slave_single;
+library plbv46_slave_burst_v1_00_a;
+use plbv46_slave_burst_v1_00_a.plbv46_slave_burst;
 
-library proc2fpga_v2_00_a;
-use proc2fpga_v2_00_a.user_logic;
+library proc2fpga_v3_00_b;
+use proc2fpga_v3_00_b.user_logic;
 
 ------------------------------------------------------------------------------
 -- Entity section
@@ -165,10 +165,10 @@ entity proc2fpga is
     C_SPLB_MID_WIDTH               : integer              := 3;
     C_SPLB_NATIVE_DWIDTH           : integer              := 32;
     C_SPLB_P2P                     : integer              := 0;
-    C_SPLB_SUPPORT_BURSTS          : integer              := 0;
+    C_SPLB_SUPPORT_BURSTS          : integer              := 1;
     C_SPLB_SMALLEST_MASTER         : integer              := 32;
     C_SPLB_CLK_PERIOD_PS           : integer              := 10000;
-    C_INCLUDE_DPHASE_TIMER         : integer              := 1;
+    C_INCLUDE_DPHASE_TIMER         : integer              := 0;
     C_FAMILY                       : string               := "virtex5";
     C_MEM0_BASEADDR                : std_logic_vector     := X"FFFFFFFF";
     C_MEM0_HIGHADDR                : std_logic_vector     := X"00000000";
@@ -190,14 +190,17 @@ entity proc2fpga is
     bus2fpga_rnw                        : out std_logic;
     bus2fpga_data                       : out std_logic_vector(31 downto 0);
     bus2fpga_be                         : out std_logic_vector(3 downto 0);
-    bus2fpga_rdce                       : out std_logic_vector(3 downto 0);
-    bus2fpga_wrce                       : out std_logic_vector(3 downto 0);
+    bus2fpga_rdce                       : out std_logic_vector(5 downto 0);
+    bus2fpga_wrce                       : out std_logic_vector(5 downto 0);
+    bus2fpga_burst                      : out std_logic;
+    bus2fpga_rdreq                      : out std_logic;
+    bus2fpga_wrreq                      : out std_logic;
+    fpga2bus_addrack                    : in  std_logic;
     fpga2bus_data                       : in  std_logic_vector(31 downto 0);
     fpga2bus_rdack                      : in  std_logic;
     fpga2bus_wrack                      : in  std_logic;
     fpga2bus_error                      : in  std_logic;
-    fpga2bus_intr                       : in  std_logic_vector(31 downto 0);
-   
+    fpga2bus_intr                       : in  std_logic_vector(15 downto 0);
     -- ADD USER PORTS ABOVE THIS LINE ------------------
 
     -- DO NOT EDIT BELOW THIS LINE ---------------------
@@ -293,7 +296,7 @@ architecture IMP of proc2fpga is
   ------------------------------------------
   -- Array of desired number of chip enables for each address range
   ------------------------------------------
-  constant USER_SLV_NUM_REG               : integer              := 4;
+  constant USER_SLV_NUM_REG               : integer              := 6;
   constant USER_NUM_REG                   : integer              := USER_SLV_NUM_REG;
   constant RST_NUM_CE                     : integer              := 1;
   constant INTR_NUM_CE                    : integer              := 16;
@@ -311,14 +314,28 @@ architecture IMP of proc2fpga is
     );
 
   ------------------------------------------
-  -- Ratio of bus clock to core clock (for use in dual clock systems)
-  -- 1 = ratio is 1:1
-  -- 2 = ratio is 2:1
+  -- Cache line addressing mode (for cacheline read operations)
+  -- 0 = target word first on reads
+  -- 1 = line word first on reads
   ------------------------------------------
-  constant IPIF_BUS2CORE_CLK_RATIO        : integer              := 1;
+  constant IPIF_CACHLINE_ADDR_MODE        : integer              := 0;
 
   ------------------------------------------
-  -- Width of the slave data bus (32 only)
+  -- Number of storage locations for the write buffer
+  -- Valid depths are 0, 16, 32, or 64
+  -- 0 = no write buffer implemented
+  ------------------------------------------
+  constant IPIF_WR_BUFFER_DEPTH           : integer              := 16;
+
+  ------------------------------------------
+  -- The type out of the Bus2IP_BurstLength signal
+  -- 0 = length is in actual byte number
+  -- 1 = length is in data beats - 1
+  ------------------------------------------
+  constant IPIF_BURSTLENGTH_TYPE          : integer              := 0;
+
+  ------------------------------------------
+  -- Width of the slave data bus (32, 64, or 128)
   ------------------------------------------
   constant USER_SLV_DWIDTH                : integer              := C_SPLB_NATIVE_DWIDTH;
 
@@ -343,7 +360,7 @@ architecture IMP of proc2fpga is
   -- 5 = positive edge detect
   -- 6 = negative edge detect
   ------------------------------------------
-  constant USER_NUM_INTR                  : integer              := 32;
+  constant USER_NUM_INTR                  : integer              := 16;
   constant USER_INTR_CAPTURE_MODE         : integer              := 5;
 
   constant INTR_IP_INTR_MODE_ARRAY        : INTEGER_ARRAY_TYPE   := 
@@ -363,23 +380,7 @@ architecture IMP of proc2fpga is
       12 => USER_INTR_CAPTURE_MODE,
       13 => USER_INTR_CAPTURE_MODE,
       14 => USER_INTR_CAPTURE_MODE,
-      15 => USER_INTR_CAPTURE_MODE,
-      16 => USER_INTR_CAPTURE_MODE,
-      17 => USER_INTR_CAPTURE_MODE,
-      18 => USER_INTR_CAPTURE_MODE,
-      19 => USER_INTR_CAPTURE_MODE,
-      20 => USER_INTR_CAPTURE_MODE,
-      21 => USER_INTR_CAPTURE_MODE,
-      22 => USER_INTR_CAPTURE_MODE,
-      23 => USER_INTR_CAPTURE_MODE,
-      24 => USER_INTR_CAPTURE_MODE,
-      25 => USER_INTR_CAPTURE_MODE,
-      26 => USER_INTR_CAPTURE_MODE,
-      27 => USER_INTR_CAPTURE_MODE,
-      28 => USER_INTR_CAPTURE_MODE,
-      29 => USER_INTR_CAPTURE_MODE,
-      30 => USER_INTR_CAPTURE_MODE,
-      31 => USER_INTR_CAPTURE_MODE 
+      15 => USER_INTR_CAPTURE_MODE 
     );
 
   ------------------------------------------
@@ -423,11 +424,16 @@ architecture IMP of proc2fpga is
   signal ipif_IP2Bus_Data               : std_logic_vector(0 to IPIF_SLV_DWIDTH-1);
   signal ipif_IP2Bus_WrAck              : std_logic;
   signal ipif_IP2Bus_RdAck              : std_logic;
+  signal ipif_IP2Bus_AddrAck            : std_logic;
   signal ipif_IP2Bus_Error              : std_logic;
   signal ipif_Bus2IP_Addr               : std_logic_vector(0 to C_SPLB_AWIDTH-1);
   signal ipif_Bus2IP_Data               : std_logic_vector(0 to IPIF_SLV_DWIDTH-1);
   signal ipif_Bus2IP_RNW                : std_logic;
   signal ipif_Bus2IP_BE                 : std_logic_vector(0 to IPIF_SLV_DWIDTH/8-1);
+  signal ipif_Bus2IP_Burst              : std_logic;
+  signal ipif_Bus2IP_BurstLength        : std_logic_vector(0 to log2(16*(C_SPLB_DWIDTH/8)));
+  signal ipif_Bus2IP_WrReq              : std_logic;
+  signal ipif_Bus2IP_RdReq              : std_logic;
   signal ipif_Bus2IP_CS                 : std_logic_vector(0 to ((IPIF_ARD_ADDR_RANGE_ARRAY'length)/2)-1);
   signal ipif_Bus2IP_RdCE               : std_logic_vector(0 to calc_num_ce(IPIF_ARD_NUM_CE_ARRAY)-1);
   signal ipif_Bus2IP_WrCE               : std_logic_vector(0 to calc_num_ce(IPIF_ARD_NUM_CE_ARRAY)-1);
@@ -442,6 +448,8 @@ architecture IMP of proc2fpga is
   signal intr_IP2Bus_Error              : std_logic;
   signal user_Bus2IP_RdCE               : std_logic_vector(0 to USER_NUM_REG-1);
   signal user_Bus2IP_WrCE               : std_logic_vector(0 to USER_NUM_REG-1);
+  signal user_Bus2IP_BurstLength        : std_logic_vector(0 to 8)   := (others => '0');
+  signal user_IP2Bus_AddrAck            : std_logic;
   signal user_IP2Bus_Data               : std_logic_vector(0 to USER_SLV_DWIDTH-1);
   signal user_IP2Bus_RdAck              : std_logic;
   signal user_IP2Bus_WrAck              : std_logic;
@@ -451,17 +459,20 @@ architecture IMP of proc2fpga is
 begin
 
   ------------------------------------------
-  -- instantiate plbv46_slave_single
+  -- instantiate plbv46_slave_burst
   ------------------------------------------
-  PLBV46_SLAVE_SINGLE_I : entity plbv46_slave_single_v1_00_a.plbv46_slave_single
+  PLBV46_SLAVE_BURST_I : entity plbv46_slave_burst_v1_00_a.plbv46_slave_burst
     generic map
     (
       C_ARD_ADDR_RANGE_ARRAY         => IPIF_ARD_ADDR_RANGE_ARRAY,
       C_ARD_NUM_CE_ARRAY             => IPIF_ARD_NUM_CE_ARRAY,
       C_SPLB_P2P                     => C_SPLB_P2P,
-      C_BUS2CORE_CLK_RATIO           => IPIF_BUS2CORE_CLK_RATIO,
+      C_CACHLINE_ADDR_MODE           => IPIF_CACHLINE_ADDR_MODE,
+      C_WR_BUFFER_DEPTH              => IPIF_WR_BUFFER_DEPTH,
+      C_BURSTLENGTH_TYPE             => IPIF_BURSTLENGTH_TYPE,
       C_SPLB_MID_WIDTH               => C_SPLB_MID_WIDTH,
       C_SPLB_NUM_MASTERS             => C_SPLB_NUM_MASTERS,
+      C_SPLB_SMALLEST_MASTER         => C_SPLB_SMALLEST_MASTER,
       C_SPLB_AWIDTH                  => C_SPLB_AWIDTH,
       C_SPLB_DWIDTH                  => C_SPLB_DWIDTH,
       C_SIPIF_DWIDTH                 => IPIF_SLV_DWIDTH,
@@ -517,11 +528,16 @@ begin
       IP2Bus_Data                    => ipif_IP2Bus_Data,
       IP2Bus_WrAck                   => ipif_IP2Bus_WrAck,
       IP2Bus_RdAck                   => ipif_IP2Bus_RdAck,
+      IP2Bus_AddrAck                 => ipif_IP2Bus_AddrAck,
       IP2Bus_Error                   => ipif_IP2Bus_Error,
       Bus2IP_Addr                    => ipif_Bus2IP_Addr,
       Bus2IP_Data                    => ipif_Bus2IP_Data,
       Bus2IP_RNW                     => ipif_Bus2IP_RNW,
       Bus2IP_BE                      => ipif_Bus2IP_BE,
+      Bus2IP_Burst                   => ipif_Bus2IP_Burst,
+      Bus2IP_BurstLength             => ipif_Bus2IP_BurstLength,
+      Bus2IP_WrReq                   => ipif_Bus2IP_WrReq,
+      Bus2IP_RdReq                   => ipif_Bus2IP_RdReq,
       Bus2IP_CS                      => ipif_Bus2IP_CS,
       Bus2IP_RdCE                    => ipif_Bus2IP_RdCE,
       Bus2IP_WrCE                    => ipif_Bus2IP_WrCE
@@ -593,7 +609,7 @@ begin
   ------------------------------------------
   -- instantiate User Logic
   ------------------------------------------
-  USER_LOGIC_I : entity proc2fpga_v2_00_a.user_logic
+  USER_LOGIC_I : entity proc2fpga_v3_00_b.user_logic
     generic map
     (
       -- MAP USER GENERICS BELOW THIS LINE ---------------
@@ -618,12 +634,15 @@ begin
       bus2fpga_be                    => bus2fpga_be,
       bus2fpga_rdce                  => bus2fpga_rdce,
       bus2fpga_wrce                  => bus2fpga_wrce,
+      bus2fpga_burst                 => bus2fpga_burst,
+      bus2fpga_rdreq                 => bus2fpga_rdreq,
+      bus2fpga_wrreq                 => bus2fpga_wrreq,
+      fpga2bus_addrack               => fpga2bus_addrack,
       fpga2bus_data                  => fpga2bus_data,
       fpga2bus_rdack                 => fpga2bus_rdack,
       fpga2bus_wrack                 => fpga2bus_wrack,
       fpga2bus_error                 => fpga2bus_error,
       fpga2bus_intr                  => fpga2bus_intr,
-      --USER ports mapped here
       -- MAP USER PORTS ABOVE THIS LINE ------------------
 
       Bus2IP_Clk                     => ipif_Bus2IP_Clk,
@@ -635,6 +654,11 @@ begin
       Bus2IP_BE                      => ipif_Bus2IP_BE,
       Bus2IP_RdCE                    => user_Bus2IP_RdCE,
       Bus2IP_WrCE                    => user_Bus2IP_WrCE,
+      Bus2IP_Burst                   => ipif_Bus2IP_Burst,
+      Bus2IP_BurstLength             => user_Bus2IP_BurstLength,
+      Bus2IP_RdReq                   => ipif_Bus2IP_RdReq,
+      Bus2IP_WrReq                   => ipif_Bus2IP_WrReq,
+      IP2Bus_AddrAck                 => user_IP2Bus_AddrAck,
       IP2Bus_Data                    => user_IP2Bus_Data,
       IP2Bus_RdAck                   => user_IP2Bus_RdAck,
       IP2Bus_WrAck                   => user_IP2Bus_WrAck,
@@ -661,11 +685,14 @@ begin
 
   end process IP2BUS_DATA_MUX_PROC;
 
+  ipif_IP2Bus_AddrAck <= ipif_Bus2IP_Burst and user_IP2Bus_AddrAck;
   ipif_IP2Bus_WrAck <= user_IP2Bus_WrAck or rst_IP2Bus_WrAck or intr_IP2Bus_WrAck;
   ipif_IP2Bus_RdAck <= user_IP2Bus_RdAck or intr_IP2Bus_RdAck;
   ipif_IP2Bus_Error <= user_IP2Bus_Error or rst_IP2Bus_Error or intr_IP2Bus_Error;
 
   user_Bus2IP_RdCE <= ipif_Bus2IP_RdCE(USER_CE_INDEX to USER_CE_INDEX+USER_NUM_REG-1);
   user_Bus2IP_WrCE <= ipif_Bus2IP_WrCE(USER_CE_INDEX to USER_CE_INDEX+USER_NUM_REG-1);
+
+  user_Bus2IP_BurstLength(8-log2(16*(C_SPLB_DWIDTH/8)) to 8) <= ipif_Bus2IP_BurstLength;
 
 end IMP;
