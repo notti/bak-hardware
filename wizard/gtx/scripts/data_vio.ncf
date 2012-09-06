@@ -1,5 +1,0 @@
-#
-# Clock constraints
-#
-NET "clk" TNM_NET = D_CLK ;
-
