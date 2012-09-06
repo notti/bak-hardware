@@ -3,9 +3,9 @@ XmpVersion: 10.1.03
 VerMgmt: 10.1.03
 IntStyle: ise
 ModuleSearchPath: /home/notti/fpga/bakk
-MHS File: system.mhs
-MSS File: system.mss
-NPL File: projnav/system.ise
+MHS File: processor.mhs
+MSS File: processor.mss
+NPL File: projnav/processor.ise
 Architecture: virtex5
 Device: xc5vfx70t
 Package: ff1136
@@ -14,7 +14,7 @@ UserCmd1:
 UserCmd1Type: 0
 UserCmd2: 
 UserCmd2Type: 0
-TopInst: system_i
+TopInst: processor_i
 GenSimTB: 0
 InsertNoPads: 0
 WarnForEAArch: 1
@@ -22,13 +22,15 @@ HdlLang: vhdl
 Simulator: mti
 SimModel: BEHAVIORAL
 MixLangSim: 1
-UcfFile: data/system.ucf
+UcfFile: data/processor.ucf
 FpgaImpMode: 0
 EnableParTimingError: 1
 EnableResetOptimization: 0
 ShowLicenseDialog: 1
-ICacheAddr: DDR2_SDRAM,,xps_bram_if_cntlr_1,,DDR2_SDRAM,C_MEM_BASEADDR,xps_bram_if_cntlr_0,C_BASEADDR
-DCacheAddr: DDR2_SDRAM,,xps_bram_if_cntlr_1,,DDR2_SDRAM,C_MEM_BASEADDR,xps_bram_if_cntlr_0,C_BASEADDR
+ICacheAddr: DDR2_SDRAM,
+ICacheAddr: xps_bram_if_cntlr_1,
+DCacheAddr: DDR2_SDRAM,
+DCacheAddr: xps_bram_if_cntlr_1,
 Processor: ppc440_0
 BootLoop: 1
 XmdStub: 0

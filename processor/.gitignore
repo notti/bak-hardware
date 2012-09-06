@@ -1,10 +1,10 @@
-blkdiagram
-data
-etc
-report
-__xps
 *log
-hdl
+*opt
 implementation
+__xps
+blkdiagram
+bootloops
+hdl
+ppc440_0
+*.make
 synthesis
-platgen.opt

@@ -24,9 +24,9 @@
 --
 ------------------------------------------------------------------------------
 -- Filename:          user_logic.vhd
--- Version:           1.00.a
+-- Version:           3.00.b
 -- Description:       User logic.
--- Date:              Sun Mar 28 16:45:41 2010 (by Create and Import Peripheral Wizard)
+-- Date:              Tue Aug 21 22:56:36 2012 (by Create and Import Peripheral Wizard)
 -- VHDL Standard:     VHDL'93
 ------------------------------------------------------------------------------
 -- Naming Conventions:
@@ -81,6 +81,11 @@ use proc_common_v2_00_a.proc_common_pkg.all;
 --   Bus2IP_BE                    -- Bus to IP byte enables
 --   Bus2IP_RdCE                  -- Bus to IP read chip enable
 --   Bus2IP_WrCE                  -- Bus to IP write chip enable
+--   Bus2IP_Burst                 -- Bus to IP burst-mode qualifier
+--   Bus2IP_BurstLength           -- Bus to IP burst length
+--   Bus2IP_RdReq                 -- Bus to IP read request
+--   Bus2IP_WrReq                 -- Bus to IP write request
+--   IP2Bus_AddrAck               -- IP to Bus address acknowledgement
 --   IP2Bus_Data                  -- IP to Bus data bus
 --   IP2Bus_RdAck                 -- IP to Bus read transfer acknowledgement
 --   IP2Bus_WrAck                 -- IP to Bus write transfer acknowledgement
@@ -99,33 +104,32 @@ entity user_logic is
     -- Bus protocol parameters, do not add to or delete
     C_SLV_AWIDTH                   : integer              := 32;
     C_SLV_DWIDTH                   : integer              := 32;
-    C_NUM_REG                      : integer              := 8;
-    C_NUM_MEM                      : integer              := 3;
-    C_NUM_INTR                     : integer              := 32
+    C_NUM_REG                      : integer              := 6;
+    C_NUM_MEM                      : integer              := 4;
+    C_NUM_INTR                     : integer              := 16
     -- DO NOT EDIT ABOVE THIS LINE ---------------------
   );
   port
   (
     -- ADD USER PORTS BELOW THIS LINE ------------------
-    bus_clk                        : out std_logic;
-    bus_reset                      : out std_logic;
-    bus_be                         : out std_logic_vector(3 downto 0);
-    bus_error                      : in  std_logic;
-
-    reg_wr                         : out std_logic_vector(7 downto 0);
-    reg_rd                         : out std_logic_vector(7 downto 0);
-    reg_ip2bus_data                : in  std_logic_vector(31 downto 0);
-    reg_bus2ip_data                : out std_logic_vector(31 downto 0);
-
-    intr                           : in  std_logic_vector(31 downto 0);
-
-    mem_select                     : out std_logic_vector(2 downto 0);
-    mem_read_enable                : out std_logic;
-    mem_read_ack                   : in  std_logic;
-    mem_write_ack                  : in  std_logic;
-    mem_address                    : out std_logic_vector(15 downto 0);
-    mem_ip2bus_data                : in  std_logic_vector(31 downto 0);
-    mem_bus2ip_data                : out std_logic_vector(31 downto 0);
+    bus2fpga_clk                        : out std_logic;
+    bus2fpga_reset                      : out std_logic;
+    bus2fpga_addr                       : out std_logic_vector(15 downto 0);
+    bus2fpga_cs                         : out std_logic_vector(3 downto 0);
+    bus2fpga_rnw                        : out std_logic;
+    bus2fpga_data                       : out std_logic_vector(31 downto 0);
+    bus2fpga_be                         : out std_logic_vector(3 downto 0);
+    bus2fpga_rdce                       : out std_logic_vector(5 downto 0);
+    bus2fpga_wrce                       : out std_logic_vector(5 downto 0);
+    bus2fpga_burst                      : out std_logic;
+    bus2fpga_rdreq                      : out std_logic;
+    bus2fpga_wrreq                      : out std_logic;
+    fpga2bus_addrack                    : in  std_logic;
+    fpga2bus_data                       : in  std_logic_vector(31 downto 0);
+    fpga2bus_rdack                      : in  std_logic;
+    fpga2bus_wrack                      : in  std_logic;
+    fpga2bus_error                      : in  std_logic;
+    fpga2bus_intr                       : in  std_logic_vector(15 downto 0);
     -- ADD USER PORTS ABOVE THIS LINE ------------------
 
     -- DO NOT EDIT BELOW THIS LINE ---------------------
@@ -139,6 +143,11 @@ entity user_logic is
     Bus2IP_BE                      : in  std_logic_vector(0 to C_SLV_DWIDTH/8-1);
     Bus2IP_RdCE                    : in  std_logic_vector(0 to C_NUM_REG-1);
     Bus2IP_WrCE                    : in  std_logic_vector(0 to C_NUM_REG-1);
+    Bus2IP_Burst                   : in  std_logic;
+    Bus2IP_BurstLength             : in  std_logic_vector(0 to 8);
+    Bus2IP_RdReq                   : in  std_logic;
+    Bus2IP_WrReq                   : in  std_logic;
+    IP2Bus_AddrAck                 : out std_logic;
     IP2Bus_Data                    : out std_logic_vector(0 to C_SLV_DWIDTH-1);
     IP2Bus_RdAck                   : out std_logic;
     IP2Bus_WrAck                   : out std_logic;
@@ -158,11 +167,6 @@ end entity user_logic;
 ------------------------------------------------------------------------------
 
 architecture IMP of user_logic is
-
-  signal slv_read_ack                   : std_logic;
-  signal slv_write_ack                  : std_logic;
-  signal mem_address_i                  : std_logic_vector(0 to 15);
-
   function reverse(a: in std_logic_vector) return std_logic_vector is
       variable result: std_logic_vector(a'reverse_range);
   begin
@@ -171,35 +175,27 @@ architecture IMP of user_logic is
       end loop;
       return result;
   end;
-
+  signal mem_address : std_logic_vector(0 to 15);
 begin
 
-  bus_clk          <= Bus2IP_Clk;
-  bus_reset        <= Bus2IP_Reset;
-  bus_be           <= reverse(Bus2IP_BE);
-  IP2Bus_Error     <= bus_error;
-
-  reg_wr           <= reverse(Bus2IP_WrCE(0 to 7));
-  reg_rd           <= reverse(Bus2IP_RdCE(0 to 7));
-  reg_bus2ip_data  <= reverse(Bus2IP_Data);
-
-  IP2Bus_IntrEvent <= reverse(intr);
-
-  mem_select       <= reverse(Bus2IP_CS);
-  mem_read_enable  <= ( Bus2IP_CS(0) or Bus2IP_CS(1) or Bus2IP_CS(2) ) and Bus2IP_RNW;
-  mem_address_i    <= Bus2IP_Addr(C_SLV_AWIDTH-18 to C_SLV_AWIDTH-3);
-  mem_address      <= reverse(mem_address_i);
-  mem_bus2ip_data  <= reverse(Bus2IP_Data);
-
-  slv_write_ack    <= Bus2IP_WrCE(0) or Bus2IP_WrCE(1) or Bus2IP_WrCE(2) or Bus2IP_WrCE(3) or Bus2IP_WrCE(4) or Bus2IP_WrCE(5) or Bus2IP_WrCE(6) or Bus2IP_WrCE(7);
-  slv_read_ack     <= Bus2IP_RdCE(0) or Bus2IP_RdCE(1) or Bus2IP_RdCE(2) or Bus2IP_RdCE(3) or Bus2IP_RdCE(4) or Bus2IP_RdCE(5) or Bus2IP_RdCE(6) or Bus2IP_RdCE(7);
-
-
-  IP2Bus_Data  <= reverse(reg_ip2bus_data) when slv_read_ack = '1' else
-                  reverse(mem_ip2bus_data) when mem_read_ack = '1' else
-                  (others => '0');
-
-  IP2Bus_WrAck <= slv_write_ack or mem_write_ack;
-  IP2Bus_RdAck <= slv_read_ack or mem_read_ack;
+    bus2fpga_clk     <= Bus2IP_Clk;
+    bus2fpga_reset   <= Bus2IP_RESET;
+    mem_address      <= BUS2IP_Addr(C_SLV_AWIDTH-18 to C_SLV_AWIDTH-3);
+    bus2fpga_addr    <= reverse(mem_address);
+    bus2fpga_cs      <= Bus2IP_CS;
+    bus2fpga_rnw     <= Bus2IP_RNW;
+    bus2fpga_data    <= reverse(Bus2IP_Data);
+    bus2fpga_be      <= reverse(Bus2IP_BE);
+    bus2fpga_rdce    <= reverse(Bus2IP_RdCE);
+    bus2fpga_wrce    <= reverse(Bus2IP_WrCE);
+    IP2Bus_Data      <= reverse(fpga2bus_data);
+    IP2Bus_RdAck     <= fpga2bus_rdack;
+    IP2Bus_WrAck     <= fpga2bus_wrack;
+    IP2Bus_Error     <= fpga2bus_error;
+    IP2Bus_IntrEvent <= reverse(fpga2bus_intr);
+    bus2fpga_burst   <= Bus2IP_Burst;
+    bus2fpga_rdreq   <= Bus2IP_RdReq;
+    bus2fpga_wrreq   <= Bus2IP_WrReq;
+    IP2Bus_AddrAck   <= fpga2bus_addrack;
 
 end IMP;

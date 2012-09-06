@@ -1,7 +1,7 @@
 
 # ##############################################################################
 # Created by Base System Builder Wizard for Xilinx EDK 10.1.03 Build EDK_K_SP3.6
-# Mon Mar 15 16:26:19 2010
+# Sun Aug 19 20:57:07 2012
 # Target Board:  Xilinx Virtex 5 ML507 Evaluation Platform Rev A
 # Family:    virtex5
 # Device:    xc5vfx70t
@@ -10,7 +10,7 @@
 # Processor: ppc440_0
 # Processor clock frequency: 400.00 MHz
 # Bus clock frequency: 100.00 MHz
-# On Chip Memory :  64 KB
+# On Chip Memory :   8 KB
 # Total Off Chip Memory : 256 MB
 # ##############################################################################
  PARAMETER VERSION = 2.1.0
@@ -19,6 +19,10 @@
  PORT fpga_0_Hard_Ethernet_MAC_PHY_MII_INT = fpga_0_Hard_Ethernet_MAC_PHY_MII_INT, DIR = I, SENSITIVITY = LEVEL_LOW, SIGIS = INTERRUPT
  PORT fpga_0_RS232_Uart_1_sin_pin = fpga_0_RS232_Uart_1_sin, DIR = I
  PORT fpga_0_RS232_Uart_1_sout_pin = fpga_0_RS232_Uart_1_sout, DIR = O
+ PORT fpga_0_LEDs_8Bit_GPIO_IO_pin = fpga_0_LEDs_8Bit_GPIO_IO, DIR = IO, VEC = [0:7]
+ PORT fpga_0_LEDs_Positions_GPIO_IO_pin = fpga_0_LEDs_Positions_GPIO_IO, DIR = IO, VEC = [0:4]
+ PORT fpga_0_Push_Buttons_5Bit_GPIO_IO_pin = fpga_0_Push_Buttons_5Bit_GPIO_IO, DIR = IO, VEC = [0:4]
+ PORT fpga_0_DIP_Switches_8Bit_GPIO_IO_pin = fpga_0_DIP_Switches_8Bit_GPIO_IO, DIR = IO, VEC = [0:7]
  PORT fpga_0_DDR2_SDRAM_DDR2_ODT_pin = fpga_0_DDR2_SDRAM_DDR2_ODT, DIR = O, VEC = [1:0]
  PORT fpga_0_DDR2_SDRAM_DDR2_A_pin = fpga_0_DDR2_SDRAM_DDR2_A, DIR = O, VEC = [12:0]
  PORT fpga_0_DDR2_SDRAM_DDR2_BA_pin = fpga_0_DDR2_SDRAM_DDR2_BA, DIR = O, VEC = [1:0]
@@ -54,19 +58,15 @@
  PORT fpga_0_Hard_Ethernet_MAC_MDIO_0_pin = fpga_0_Hard_Ethernet_MAC_MDIO_0, DIR = IO
  PORT sys_clk_pin = dcm_clk_s, DIR = I, SIGIS = CLK, CLK_FREQ = 100000000
  PORT sys_rst_pin = sys_rst_s, DIR = I, RST_POLARITY = 0, SIGIS = RST
- PORT GPIO_LEDs_GPIO_IO = GPIO_LEDs_GPIO_IO, DIR = IO, VEC = [0:9]
- PORT IIC_DDR2_Scl = IIC_DDR2_Scl, DIR = IO
- PORT IIC_DDR2_Sda = IIC_DDR2_Sda, DIR = IO
- PORT IIC_SMBUS_Scl = IIC_SMBUS_Scl, DIR = IO
- PORT IIC_SMBUS_Sda = IIC_SMBUS_Sda, DIR = IO
- PORT GPIO_PushButtons_GPIO_IO = GPIO_PushButtons_GPIO_IO, DIR = IO, VEC = [0:4]
- PORT GPIO_DirectionLEDs_GPIO_IO = GPIO_DirectionLEDs_GPIO_IO, DIR = IO, VEC = [0:4]
- PORT GPIO_DIP_GPIO_IO = GPIO_DIP_GPIO_IO, DIR = IO, VEC = [0:7]
  PORT proc2fpga_0_fpga2bus_intr_pin = proc2fpga_0_fpga2bus_intr, DIR = I, VEC = [15:0]
  PORT proc2fpga_0_fpga2bus_error_pin = proc2fpga_0_fpga2bus_error, DIR = I
  PORT proc2fpga_0_fpga2bus_wrack_pin = proc2fpga_0_fpga2bus_wrack, DIR = I
  PORT proc2fpga_0_fpga2bus_rdack_pin = proc2fpga_0_fpga2bus_rdack, DIR = I
  PORT proc2fpga_0_fpga2bus_data_pin = proc2fpga_0_fpga2bus_data, DIR = I, VEC = [31:0]
+ PORT proc2fpga_0_fpga2bus_addrack_pin = proc2fpga_0_fpga2bus_addrack, DIR = I
+ PORT proc2fpga_0_bus2fpga_wrreq_pin = proc2fpga_0_bus2fpga_wrreq, DIR = O
+ PORT proc2fpga_0_bus2fpga_rdreq_pin = proc2fpga_0_bus2fpga_rdreq, DIR = O
+ PORT proc2fpga_0_bus2fpga_burst_pin = proc2fpga_0_bus2fpga_burst, DIR = O
  PORT proc2fpga_0_bus2fpga_wrce_pin = proc2fpga_0_bus2fpga_wrce, DIR = O, VEC = [5:0]
  PORT proc2fpga_0_bus2fpga_rdce_pin = proc2fpga_0_bus2fpga_rdce, DIR = O, VEC = [5:0]
  PORT proc2fpga_0_bus2fpga_be_pin = proc2fpga_0_bus2fpga_be, DIR = O, VEC = [3:0]
@@ -84,18 +84,23 @@ BEGIN ppc440_virtex5
  PARAMETER C_PPC440MC_ROW_CONFLICT_MASK = 0x003FFE00
  PARAMETER C_PPC440MC_BANK_CONFLICT_MASK = 0x00C00000
  PARAMETER C_PPC440MC_CONTROL = 0xf810008f
+ PARAMETER C_NUM_DMA = 1
  PARAMETER C_IDCR_BASEADDR = 0b0000000000
  PARAMETER C_IDCR_HIGHADDR = 0b0011111111
  BUS_INTERFACE MPLB = plb_v46_0
  BUS_INTERFACE PPC440MC = ppc440_0_PPC440MC
+ BUS_INTERFACE LLDMA0 = Hard_Ethernet_MAC_LLINK0
  BUS_INTERFACE JTAGPPC = jtagppc_cntlr_0_0
  BUS_INTERFACE RESETPPC = ppc_reset_bus
  PORT CPMC440CLK = proc_clk_s
  PORT CPMPPCMPLBCLK = sys_clk_s
  PORT CPMPPCS0PLBCLK = sys_clk_s
  PORT CPMINTERCONNECTCLKNTO1 = net_vcc
+ PORT CPMDMA0LLCLK = sys_clk_s
  PORT CPMMCCLK = clk_200mhz_s
  PORT CPMINTERCONNECTCLK = ppc440_0_CPMINTERCONNECTCLK
+ PORT DMA0TXIRQ = ppc440_0_DMA0TXIRQ
+ PORT DMA0RXIRQ = ppc440_0_DMA0RXIRQ
  PORT EICC440EXTIRQ = EICC440EXTIRQ
 END
 
@@ -167,6 +172,24 @@ BEGIN ppc440mc_ddr2
  PORT mi_mcreset = sys_bus_reset
 END
 
+BEGIN xps_bram_if_cntlr
+ PARAMETER INSTANCE = xps_bram_if_cntlr_1
+ PARAMETER C_SPLB_NATIVE_DWIDTH = 64
+ PARAMETER C_SPLB_P2P = 0
+ PARAMETER C_SPLB_SUPPORT_BURSTS = 1
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_BASEADDR = 0xffffe000
+ PARAMETER C_HIGHADDR = 0xffffffff
+ BUS_INTERFACE SPLB = plb_v46_0
+ BUS_INTERFACE PORTA = xps_bram_if_cntlr_1_port
+END
+
+BEGIN bram_block
+ PARAMETER INSTANCE = xps_bram_if_cntlr_1_bram
+ PARAMETER HW_VER = 1.00.a
+ BUS_INTERFACE PORTA = xps_bram_if_cntlr_1_port
+END
+
 BEGIN xps_uart16550
  PARAMETER INSTANCE = RS232_Uart_1
  PARAMETER HW_VER = 2.00.b
@@ -177,6 +200,58 @@ BEGIN xps_uart16550
  PORT sin = fpga_0_RS232_Uart_1_sin
  PORT sout = fpga_0_RS232_Uart_1_sout
  PORT IP2INTC_Irpt = RS232_Uart_1_IP2INTC_Irpt
+END
+
+BEGIN xps_gpio
+ PARAMETER INSTANCE = LEDs_8Bit
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_GPIO_WIDTH = 8
+ PARAMETER C_IS_DUAL = 0
+ PARAMETER C_IS_BIDIR = 1
+ PARAMETER C_ALL_INPUTS = 0
+ PARAMETER C_BASEADDR = 0x81400000
+ PARAMETER C_HIGHADDR = 0x8140ffff
+ BUS_INTERFACE SPLB = plb_v46_0
+ PORT GPIO_IO = fpga_0_LEDs_8Bit_GPIO_IO
+END
+
+BEGIN xps_gpio
+ PARAMETER INSTANCE = LEDs_Positions
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_GPIO_WIDTH = 5
+ PARAMETER C_IS_DUAL = 0
+ PARAMETER C_IS_BIDIR = 1
+ PARAMETER C_ALL_INPUTS = 0
+ PARAMETER C_BASEADDR = 0x81420000
+ PARAMETER C_HIGHADDR = 0x8142ffff
+ BUS_INTERFACE SPLB = plb_v46_0
+ PORT GPIO_IO = fpga_0_LEDs_Positions_GPIO_IO
+END
+
+BEGIN xps_gpio
+ PARAMETER INSTANCE = Push_Buttons_5Bit
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_GPIO_WIDTH = 5
+ PARAMETER C_IS_DUAL = 0
+ PARAMETER C_IS_BIDIR = 1
+ PARAMETER C_ALL_INPUTS = 1
+ PARAMETER C_BASEADDR = 0x81440000
+ PARAMETER C_HIGHADDR = 0x8144ffff
+ BUS_INTERFACE SPLB = plb_v46_0
+ PORT GPIO_IO = fpga_0_Push_Buttons_5Bit_GPIO_IO
+END
+
+BEGIN xps_gpio
+ PARAMETER INSTANCE = DIP_Switches_8Bit
+ PARAMETER HW_VER = 1.00.a
+ PARAMETER C_GPIO_WIDTH = 8
+ PARAMETER C_IS_DUAL = 0
+ PARAMETER C_IS_BIDIR = 1
+ PARAMETER C_ALL_INPUTS = 1
+ PARAMETER C_BASEADDR = 0x81460000
+ PARAMETER C_HIGHADDR = 0x8146ffff
+ BUS_INTERFACE SPLB = plb_v46_0
+ PORT GPIO_IO = fpga_0_DIP_Switches_8Bit_GPIO_IO
 END
 
 BEGIN xps_ll_temac
@@ -193,7 +268,7 @@ BEGIN xps_ll_temac
  PARAMETER C_BASEADDR = 0x81c00000
  PARAMETER C_HIGHADDR = 0x81c0ffff
  BUS_INTERFACE SPLB = plb_v46_0
- BUS_INTERFACE LLINK0 = Hard_Ethernet_MACllink0
+ BUS_INTERFACE LLINK0 = Hard_Ethernet_MAC_LLINK0
  PORT TemacPhy_RST_n = fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n
  PORT GMII_TXD_0 = fpga_0_Hard_Ethernet_MAC_GMII_TXD_0
  PORT GMII_TX_EN_0 = fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0
@@ -227,16 +302,6 @@ BEGIN xps_sysace
  PORT SysACE_WEN = fpga_0_SysACE_CompactFlash_SysACE_WEN
  PORT SysACE_MPIRQ = fpga_0_SysACE_CompactFlash_SysACE_MPIRQ
  PORT SysACE_IRQ = SysACE_CompactFlash_SysACE_IRQ
-END
-
-BEGIN xps_ll_fifo
- PARAMETER INSTANCE = Hard_Ethernet_MAC_fifo
- PARAMETER HW_VER = 1.01.a
- PARAMETER C_BASEADDR = 0x81a00000
- PARAMETER C_HIGHADDR = 0x81a0ffff
- BUS_INTERFACE LLINK = Hard_Ethernet_MACllink0
- BUS_INTERFACE SPLB = plb_v46_0
- PORT IP2INTC_Irpt = Hard_Ethernet_MAC_fifo_IP2INTC_Irpt
 END
 
 BEGIN clock_generator
@@ -304,100 +369,12 @@ BEGIN xps_intc
  PARAMETER C_HIGHADDR = 0x8180ffff
  BUS_INTERFACE SPLB = plb_v46_0
  PORT Irq = EICC440EXTIRQ
- PORT Intr = GPIO_PushButtons_IP2INTC_Irpt&GPIO_DIP_IP2INTC_Irpt&IIC_SMBUS_IIC2INTC_Irpt&IIC_DDR2_IIC2INTC_Irpt&proc2fpga_0_IP2INTC_Irpt&RS232_Uart_1_IP2INTC_Irpt&Hard_Ethernet_MAC_TemacIntc0_Irpt&SysACE_CompactFlash_SysACE_IRQ&Hard_Ethernet_MAC_fifo_IP2INTC_Irpt
-END
-
-BEGIN xps_bram_if_cntlr
- PARAMETER INSTANCE = xps_bram_if_cntlr_0
- PARAMETER HW_VER = 1.00.a
- PARAMETER C_BASEADDR = 0xffffe000
- PARAMETER C_HIGHADDR = 0xffffffff
- PARAMETER C_SPLB_NATIVE_DWIDTH = 32
- BUS_INTERFACE SPLB = plb_v46_0
- BUS_INTERFACE PORTA = xps_bram_if_cntlr_0_PORTA
-END
-
-BEGIN bram_block
- PARAMETER INSTANCE = bram_block_0
- PARAMETER HW_VER = 1.00.a
- BUS_INTERFACE PORTA = xps_bram_if_cntlr_0_PORTA
-END
-
-BEGIN xps_iic
- PARAMETER INSTANCE = IIC_DDR2
- PARAMETER HW_VER = 2.00.a
- PARAMETER C_BASEADDR = 0x81620000
- PARAMETER C_HIGHADDR = 0x8162ffff
- BUS_INTERFACE SPLB = plb_v46_0
- PORT Scl = IIC_DDR2_Scl
- PORT Sda = IIC_DDR2_Sda
- PORT IIC2INTC_Irpt = IIC_DDR2_IIC2INTC_Irpt
-END
-
-BEGIN xps_gpio
- PARAMETER INSTANCE = GPIO_LEDs
- PARAMETER HW_VER = 1.00.a
- PARAMETER C_BASEADDR = 0x81650000
- PARAMETER C_HIGHADDR = 0x81650FFF
- PARAMETER C_GPIO_WIDTH = 10
- PARAMETER C_IS_BIDIR = 0
- BUS_INTERFACE SPLB = plb_v46_0
- PORT GPIO_IO = GPIO_LEDs_GPIO_IO
-END
-
-BEGIN xps_iic
- PARAMETER INSTANCE = IIC_SMBUS
- PARAMETER HW_VER = 2.00.a
- PARAMETER C_BASEADDR = 0x81640000
- PARAMETER C_HIGHADDR = 0x8164ffff
- BUS_INTERFACE SPLB = plb_v46_0
- PORT Scl = IIC_SMBUS_Scl
- PORT Sda = IIC_SMBUS_Sda
- PORT IIC2INTC_Irpt = IIC_SMBUS_IIC2INTC_Irpt
-END
-
-BEGIN xps_gpio
- PARAMETER INSTANCE = GPIO_DIP
- PARAMETER HW_VER = 1.00.a
- PARAMETER C_BASEADDR = 0x81651000
- PARAMETER C_HIGHADDR = 0x81651fff
- PARAMETER C_GPIO_WIDTH = 8
- PARAMETER C_INTERRUPT_PRESENT = 1
- PARAMETER C_ALL_INPUTS = 1
- PARAMETER C_IS_BIDIR = 0
- BUS_INTERFACE SPLB = plb_v46_0
- PORT GPIO_IO = GPIO_DIP_GPIO_IO
- PORT IP2INTC_Irpt = GPIO_DIP_IP2INTC_Irpt
-END
-
-BEGIN xps_gpio
- PARAMETER INSTANCE = GPIO_PushButtons
- PARAMETER HW_VER = 1.00.a
- PARAMETER C_BASEADDR = 0x81652000
- PARAMETER C_HIGHADDR = 0x81652fff
- PARAMETER C_GPIO_WIDTH = 5
- PARAMETER C_INTERRUPT_PRESENT = 1
- PARAMETER C_ALL_INPUTS = 1
- PARAMETER C_IS_BIDIR = 0
- BUS_INTERFACE SPLB = plb_v46_0
- PORT GPIO_IO = GPIO_PushButtons_GPIO_IO
- PORT IP2INTC_Irpt = GPIO_PushButtons_IP2INTC_Irpt
-END
-
-BEGIN xps_gpio
- PARAMETER INSTANCE = GPIO_DirectionLEDs
- PARAMETER HW_VER = 1.00.a
- PARAMETER C_BASEADDR = 0x81653000
- PARAMETER C_HIGHADDR = 0x81653fff
- PARAMETER C_GPIO_WIDTH = 5
- PARAMETER C_IS_BIDIR = 0
- BUS_INTERFACE SPLB = plb_v46_0
- PORT GPIO_IO = GPIO_DirectionLEDs_GPIO_IO
+ PORT Intr = proc2fpga_0_IP2INTC_Irpt&ppc440_0_DMA0TXIRQ&ppc440_0_DMA0RXIRQ&RS232_Uart_1_IP2INTC_Irpt&Hard_Ethernet_MAC_TemacIntc0_Irpt&SysACE_CompactFlash_SysACE_IRQ&fpga_0_Hard_Ethernet_MAC_PHY_MII_INT
 END
 
 BEGIN proc2fpga
  PARAMETER INSTANCE = proc2fpga_0
- PARAMETER HW_VER = 3.00.a
+ PARAMETER HW_VER = 3.00.b
  PARAMETER C_BASEADDR = 0x84000000
  PARAMETER C_HIGHADDR = 0x840003FF
  PARAMETER C_MEM0_BASEADDR = 0x84100000
@@ -409,12 +386,15 @@ BEGIN proc2fpga
  PARAMETER C_MEM3_BASEADDR = 0x84400000
  PARAMETER C_MEM3_HIGHADDR = 0x8443FFFF
  BUS_INTERFACE SPLB = plb_v46_0
- PORT IP2INTC_Irpt = proc2fpga_0_IP2INTC_Irpt
  PORT fpga2bus_intr = proc2fpga_0_fpga2bus_intr
  PORT fpga2bus_error = proc2fpga_0_fpga2bus_error
  PORT fpga2bus_wrack = proc2fpga_0_fpga2bus_wrack
  PORT fpga2bus_rdack = proc2fpga_0_fpga2bus_rdack
  PORT fpga2bus_data = proc2fpga_0_fpga2bus_data
+ PORT fpga2bus_addrack = proc2fpga_0_fpga2bus_addrack
+ PORT bus2fpga_wrreq = proc2fpga_0_bus2fpga_wrreq
+ PORT bus2fpga_rdreq = proc2fpga_0_bus2fpga_rdreq
+ PORT bus2fpga_burst = proc2fpga_0_bus2fpga_burst
  PORT bus2fpga_wrce = proc2fpga_0_bus2fpga_wrce
  PORT bus2fpga_rdce = proc2fpga_0_bus2fpga_rdce
  PORT bus2fpga_be = proc2fpga_0_bus2fpga_be
@@ -424,26 +404,6 @@ BEGIN proc2fpga
  PORT bus2fpga_addr = proc2fpga_0_bus2fpga_addr
  PORT bus2fpga_reset = proc2fpga_0_bus2fpga_reset
  PORT bus2fpga_clk = proc2fpga_0_bus2fpga_clk
-END
-
-BEGIN chipscope_plbv46_iba
- PARAMETER INSTANCE = chipscope_plbv46_iba_0
- PARAMETER HW_VER = 1.01.a
- PARAMETER C_USE_MU_1B_MSTR_RST_ERR_STAT = 1
- PARAMETER C_USE_MU_10_ARB_CTL = 1
- PARAMETER C_USE_MU_6A_SLV_CTL = 1
- PARAMETER C_USE_MU_8_SLV_RD_ERR = 1
- PARAMETER C_USE_MU_9_SLV_WR_ERR = 1
- PARAMETER C_USE_MU_11_MSTR_CTL = 1
- PARAMETER C_USE_MU_13_MSTR_BE = 1
- PARAMETER C_USE_MU_12_MSTR_SZ = 1
- BUS_INTERFACE MON_PLB = plb_v46_0
- PORT chipscope_icon_control = chipscope_icon_0_control0
-END
-
-BEGIN chipscope_icon
- PARAMETER INSTANCE = chipscope_icon_0
- PARAMETER HW_VER = 1.02.a
- PORT control0 = chipscope_icon_0_control0
+ PORT IP2INTC_Irpt = proc2fpga_0_IP2INTC_Irpt
 END
 
