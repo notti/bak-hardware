@@ -1,3 +1,11 @@
+# AREA_GROUP "outbuf_mem_0" RANGE=RAMB36_X0Y20:RAMB36_X3Y31, RAMB36_X3Y16:RAMB36_X3Y19, RAMB36_X0Y16:RAMB36_X0Y19;
+# INST "*/outbuf_mem_1/*ram18" AREA_GROUP = "outbuf_mem_0";
+# INST "*/outbuf_mem_1/*ram36" AREA_GROUP = "outbuf_mem_0";
+# AREA_GROUP "outbuf_mem_1" RANGE=RAMB36_X3Y12:RAMB36_X3Y15, RAMB36_X0Y12:RAMB36_X0Y15, RAMB36_X0Y0:RAMB36_X3Y11;
+# INST "*/outbuf_mem_1/*ram18" AREA_GROUP = "outbuf_mem_1";
+# INST "*/outbuf_mem_1/*ram36" AREA_GROUP = "outbuf_mem_1";
+AREA_GROUP "outdata" RANGE=SLICE_X2Y60:SLICE_X15Y99;
+INST "*/transmitter_i/*" AREA_GROUP = "outdata";
 ######################################
 NET gtx_refclk_n  LOC=H15;
 NET gtx_refclk_p  LOC=H14;

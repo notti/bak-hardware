@@ -70,6 +70,9 @@ architecture Structural of average_mem is
     signal max          : std_logic_vector(15 downto 0);
     signal max_1        : std_logic_vector(15 downto 0);
     signal width_i      : std_logic_vector(1 downto 0);
+
+    signal wea_long     : std_logic_vector(18 downto 0);
+    signal web_long     : std_logic_vector(18 downto 0);
 begin
 
     done <=   '1' when state = FINISHED else
@@ -184,19 +187,41 @@ begin
              doutb_i(18 downto 3) when width_i = "11" else
              doutb_i(15 downto 0);
 
-	inbuf_mem_i: inbuf_mem
-	port map(
-		clka  => memclk,
-		dina  => dina_i,
-		addra => addra_i,
-		wea(0)=> wea_i,
-		douta => douta_i,
-		clkb  => memclk,
-		dinb  => dinb_i,
-		addrb => addrb_i,
-		web(0)=> web_i,
-		doutb => doutb_i
-	);
+--	inbuf_mem_i: inbuf_mem
+--	port map(
+--		clka  => memclk,
+--		dina  => dina_i,
+--		addra => addra_i,
+--		wea(0)=> wea_i,
+--		douta => douta_i,
+--		clkb  => memclk,
+--		dinb  => dinb_i,
+--		addrb => addrb_i,
+--		web(0)=> web_i,
+--		doutb => doutb_i
+--	);
+
+    wea_long <= (others => wea_i);
+    web_long <= (others => web_i);
+
+    inbuf_mem_i: entity work.ram48xi
+    generic map(
+        WIDTH               => 19,
+        DOA_REG             => 1,
+        DOB_REG             => 1
+    )
+    port map (
+        clka                => memclk,
+        dina                => dina_i,
+        addra               => addra_i,
+        wea                 => wea_long,
+        douta               => douta_i,
+        clkb                => memclk,
+        dinb                => dinb_i,
+        addrb               => addrb_i,
+        web                 => web_long,
+        doutb               => doutb_i
+    );
 
 end Structural;
 

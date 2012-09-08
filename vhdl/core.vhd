@@ -62,52 +62,69 @@ component h
 	doutb: OUT std_logic_VECTOR(31 downto 0));
 end component;
 
-attribute syn_black_box : boolean;
-attribute syn_black_box of h: component is true;
+-- attribute syn_black_box : boolean;
+-- attribute syn_black_box of h: component is true;
 
 signal addra    : std_logic_vector(11 downto 0);
 signal douta    : std_logic_vector(31 downto 0);
 begin
 
---    overlap_add_inst: entity work.overlap_add
---    port map(
---        clk          => clk,
---        rst          => rst,
---
---        start        => core_start,
---        nfft         => core_n,
---        scale_sch    => core_scale_sch,
---        scale_schi   => core_scale_schi,
---        cmul_sch     => core_cmul_sch,
---        L            => core_L,
---        n            => core_depth,
---        iq           => core_iq,
---
---        wave_index   => wave_index,
---        x_in         => mem_dinx,
---        x_index      => mem_addrx,
---
---        y_re_in      => mem_diny(15 downto 0),
---        y_im_in      => mem_diny(31 downto 16),
---        y_re_out     => mem_douty(15 downto 0),
---        y_im_out     => mem_douty(31 downto 16),
---        y_index      => mem_addry,
---        y_we         => mem_wey,
---
---        h_re_in      => douta(15 downto 0),
---        h_im_in      => douta(31 downto 16),
---        h_index      => addra,
---
---        ovfl_fft     => core_ov_fft,
---        ovfl_ifft    => core_ov_ifft,
---        ovfl_cmul    => core_ov_cmul,
---
---        busy         => core_busy,
---        done         => core_done
---    );
+    overlap_add_inst: entity work.overlap_add
+    port map(
+        clk          => clk,
+        rst          => rst,
+
+        start        => core_start,
+        nfft         => core_n,
+        scale_sch    => core_scale_sch,
+        scale_schi   => core_scale_schi,
+        cmul_sch     => core_cmul_sch,
+        L            => core_L,
+        n            => core_depth,
+        iq           => core_iq,
+
+        wave_index   => wave_index,
+        x_in         => mem_dinx,
+        x_index      => mem_addrx,
+
+        y_re_in      => mem_diny(15 downto 0),
+        y_im_in      => mem_diny(31 downto 16),
+        y_re_out     => mem_douty(15 downto 0),
+        y_im_out     => mem_douty(31 downto 16),
+        y_index      => mem_addry,
+        y_we         => mem_wey,
+
+        h_re_in      => douta(15 downto 0),
+        h_im_in      => douta(31 downto 16),
+        h_index      => addra,
+
+        ovfl_fft     => core_ov_fft,
+        ovfl_ifft    => core_ov_ifft,
+        ovfl_cmul    => core_ov_cmul,
+
+        busy         => core_busy,
+        done         => core_done
+    );
 
     
-    h_inst: h
+--    h_inst: h
+--    port map (
+--        clka       => clk,
+--        dina       => (others => '0'),
+--        addra      => addra,
+--        wea        => (others => '0'),
+--        douta      => douta,
+--        clkb       => mem_clkh,
+--        dinb       => mem_dinh,
+--        addrb      => mem_addrh(11 downto 0),
+--        web        => mem_weh,
+--        doutb      => mem_douth
+--    );
+
+    h_inst: entity work.ram4x32
+    generic map(
+        DOA_REG             => 1,
+        DOB_REG             => 1)
     port map (
         clka       => clk,
         dina       => (others => '0'),
@@ -120,6 +137,5 @@ begin
         web        => mem_weh,
         doutb      => mem_douth
     );
-
 end Structural;
 

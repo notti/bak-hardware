@@ -238,8 +238,8 @@ END COMPONENT;
     signal bus2fpga_reset      : std_logic;
     signal bus2fpga_clk        : std_logic;
 
-    attribute KEEP_HIERARCHY : string;
-    attribute KEEP_HIERARCHY of Structural: architecture is "yes";
+--    attribute KEEP_HIERARCHY : string;
+--    attribute KEEP_HIERARCHY of Structural: architecture is "yes";
 begin
 
     sync_inbuf_trigger: entity work.flag
