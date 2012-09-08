@@ -91,7 +91,7 @@ component scratch
 	douta: OUT std_logic_VECTOR(31 downto 0));
 end component;
 
-    attribute box_type: boolean;
+--    attribute box_type: boolean;
 --    attribute box_type of fft: component is "black_box";
 --    attribute box_type of scratch: component is "black_box";
 --    attribute resource_sharing: string;
@@ -627,12 +627,23 @@ begin
     fft_read_i(0) <= fft_read;
     y_we_i(0) <= ifft_read;
 
-    scratch_i: scratch
+--    scratch_i: scratch
+--	port map (
+--		clka  => clk,
+--		dina  => scratch_din,
+--		addra => scratch_addr,
+--		wea   => scratch_we_i,
+--		douta => scratch_dout
+--    );
+    scratch_i: entity work.ram4x32S
+    generic map(
+        DO_REG             => 0
+    )
 	port map (
 		clka  => clk,
 		dina  => scratch_din,
 		addra => scratch_addr,
-		wea   => scratch_we_i,
+		wea   => scratch_we,
 		douta => scratch_dout
     );
     scratch_din(15 downto 0) <= scratch_re_in;

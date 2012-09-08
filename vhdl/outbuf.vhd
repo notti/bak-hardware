@@ -48,20 +48,6 @@ port(
 end outbuf;
 
 architecture Structural of outbuf is
-    COMPONENT outbuf_mem IS
-        port (
-        clka: IN std_logic;
-        dina: IN std_logic_VECTOR(31 downto 0);
-        addra: IN std_logic_VECTOR(15 downto 0);
-        wea: IN std_logic_VECTOR(3 downto 0);
-        douta: OUT std_logic_VECTOR(31 downto 0);
-        clkb: IN std_logic;
-        dinb: IN std_logic_VECTOR(31 downto 0);
-        addrb: IN std_logic_VECTOR(15 downto 0);
-        web: IN std_logic_VECTOR(3 downto 0);
-        doutb: OUT std_logic_VECTOR(31 downto 0));
-    END COMPONENT;
-
     signal depth_r           : std_logic_vector(15 downto 0);
     signal frame_addr        : std_logic_vector(15 downto 0);
     signal do_sync           : std_logic;
@@ -74,8 +60,8 @@ architecture Structural of outbuf is
     signal dout              : std_logic_vector(31 downto 0);
     signal mem_addr0         : std_logic_vector(15 downto 0);
     signal mem_addr1         : std_logic_vector(15 downto 0);
-    signal mem_we0           : std_logic_vector(3 downto 0);
-    signal mem_we1           : std_logic_vector(3 downto 0);
+    signal mem_we0           : std_logic_vector(31 downto 0);
+    signal mem_we1           : std_logic_vector(31 downto 0);
     signal mem_out0          : std_logic_vector(31 downto 0);
     signal mem_out1          : std_logic_vector(31 downto 0);
 
@@ -150,12 +136,43 @@ begin
 
     toggled <= active xor active_r;
 
-    outbuf_mem_0: outbuf_mem
+--    outbuf_mem_0: outbuf_mem
+--    port map (
+--        clka                => clk,
+--        dina                => (others => '0'),
+--        addra               => frame_addr,
+--        wea                 => (others => '0'),
+--        douta               => dout0,
+--        clkb                => mem_clk,
+--        dinb                => mem_dini,
+--        addrb               => mem_addr0,
+--        web                 => mem_we0,
+--        doutb               => mem_out0
+--    );
+--    outbuf_mem_1: outbuf_mem
+--    port map (
+--        clka                => clk,
+--        dina                => (others => '0'),
+--        addra               => frame_addr,
+--        wea                 => (others => '0'),
+--        douta               => dout1,
+--        clkb                => mem_clk,
+--        dinb                => mem_dini,
+--        addrb               => mem_addr1,
+--        web                 => mem_we1,
+--        doutb               => mem_out1
+--    );
+    outbuf_mem_0: entity work.ram48xi
+    generic map(
+        WIDTH               => 32,
+        DOA_REG             => 1,
+        DOB_REG             => 1
+    )
     port map (
         clka                => clk,
-        dina                => (others => '0'),
+        dina                => "00000000000000000000000000000000",
         addra               => frame_addr,
-        wea                 => (others => '0'),
+        wea                 => "00000000000000000000000000000000",
         douta               => dout0,
         clkb                => mem_clk,
         dinb                => mem_dini,
@@ -163,12 +180,17 @@ begin
         web                 => mem_we0,
         doutb               => mem_out0
     );
-    outbuf_mem_1: outbuf_mem
+    outbuf_mem_1: entity work.ram48xi
+    generic map(
+        WIDTH               => 32,
+        DOA_REG             => 1,
+        DOB_REG             => 1
+    )
     port map (
         clka                => clk,
-        dina                => (others => '0'),
+        dina                => "00000000000000000000000000000000",
         addra               => frame_addr,
-        wea                 => (others => '0'),
+        wea                 => "00000000000000000000000000000000",
         douta               => dout1,
         clkb                => mem_clk,
         dinb                => mem_dini,
@@ -181,10 +203,14 @@ begin
                  mem_addri;
     mem_addr1 <= mem_addra when active = '1' else
                  mem_addri;
-    mem_we0   <= mem_wei when active = '1' else
-                 (others => '0');
-    mem_we1   <= mem_wei when active = '0' else
-                 (others => '0');
+    we_gen: for i in 0 to 3 generate
+    begin
+        mem_we0((i+1)*8-1 downto i*8) <= (others => mem_wei(i)) when active = '1' else
+            (others => '0');
+        mem_we1((i+1)*8-1 downto i*8) <= (others => mem_wei(i)) when active = '0' else
+            (others => '0');
+    end generate;
+
     mem_douti <= mem_out0 when active = '1' else
                  mem_out1;
     mem_douta <= mem_out1 when active = '1' else
