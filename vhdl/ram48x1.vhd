@@ -44,8 +44,6 @@ architecture Structural of ram48x1 is
     signal wea_many : std_logic_vector(0 downto 0);
     signal web_many : std_logic_vector(0 downto 0);
 
-    signal addra36  : std_logic_vector(15 downto 0);
-    signal addrb36  : std_logic_vector(15 downto 0);
 begin
     en36a <= addra(15);
     en18a <= not addra(15);

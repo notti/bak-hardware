@@ -95,11 +95,11 @@ port(
 
 	mem_dinia			: in  std_logic_vector(15 downto 0);
 	mem_addria			: in  std_logic_vector(15 downto 0);
-	mem_weaia			: in  std_logic;
+	mem_weaia			: in  std_logic_vector(1 downto 0);
 	mem_doutia			: out std_logic_vector(15 downto 0);
 	mem_dinib			: in  std_logic_vector(15 downto 0);
 	mem_addrib			: in  std_logic_vector(15 downto 0);
-	mem_weaib			: in  std_logic;
+	mem_weaib			: in  std_logic_vector(1 downto 0);
 	mem_doutib			: out std_logic_vector(15 downto 0);
 
 	mem_dinh			: in  std_logic_vector(31 downto 0);
@@ -130,11 +130,11 @@ architecture Structural of main is
 	signal core_mem_addrx	   : std_logic_vector(15 downto 0);
 	signal mem_dinia_i		   : std_logic_vector(15 downto 0);
 	signal mem_addria_i		   : std_logic_vector(15 downto 0);
-	signal mem_weaia_i		   : std_logic;
+	signal mem_weaia_i		   : std_logic_vector(1 downto 0);
 	signal mem_doutia_i		   : std_logic_vector(15 downto 0);
 	signal mem_dinib_i		   : std_logic_vector(15 downto 0);
 	signal mem_addrib_i		   : std_logic_vector(15 downto 0);
-	signal mem_weaib_i		   : std_logic;
+	signal mem_weaib_i		   : std_logic_vector(1 downto 0);
 	signal mem_doutib_i		   : std_logic_vector(15 downto 0);
 	signal core_mem_diny	   : std_logic_vector(31 downto 0);
 	signal core_mem_addry	   : std_logic_vector(15 downto 0);
@@ -199,7 +199,7 @@ begin
 					 (others => '0');
 	mem_doutia    <= mem_doutia_i when mem_extern = '1' else
 				     (others => '0');
-	mem_weaia_i   <= '0' when mem_extern = '0' else
+	mem_weaia_i   <= (others => '0') when mem_extern = '0' else
 				     mem_weaia;
 	mem_addria_i  <= core_mem_addrx when mem_extern = '0' else
 					 mem_addria;
@@ -207,7 +207,7 @@ begin
 					 (others => '0');
 	mem_doutib    <= mem_doutib_i when mem_extern = '1' else
 				     (others => '0');
-	mem_weaib_i   <= '0' when mem_extern = '0' else
+	mem_weaib_i   <= (others => '0') when mem_extern = '0' else
 				     mem_weaib;
 	mem_addrib_i  <= mem_addrib when mem_extern = '1' else
 					 (others => '0');
@@ -321,9 +321,9 @@ begin
 --    );
 --
 --    core_clk <= core_clk_i;
-
-    core_clk <= sample_clk_i;
     core_clk_i <= sample_clk_i;
+
+    core_clk <= core_clk_i;
     core_rst_i <= core_rst or sample_rst;
 
 --	core_rst_i   <= core_rst or not dcm_locked;

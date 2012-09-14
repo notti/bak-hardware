@@ -27,41 +27,27 @@ port(
     ext          : in std_logic;
     dina         : in std_logic_vector(15 downto 0);
     addra        : in std_logic_vector(15 downto 0);
-    wea          : in std_logic;
+    wea          : in std_logic_vector(1 downto 0);
     douta        : out std_logic_vector(15 downto 0);
     dinb         : in std_logic_vector(15 downto 0);
     addrb        : in std_logic_vector(15 downto 0);
-    web          : in std_logic;
+    web          : in std_logic_vector(1 downto 0);
     doutb        : out std_logic_vector(15 downto 0)
 );
 end average_mem;
 
 architecture Structural of average_mem is
-	component inbuf_mem IS
-		port (
-		clka: IN std_logic;
-		dina: IN std_logic_VECTOR(18 downto 0);
-		addra: IN std_logic_VECTOR(15 downto 0);
-		wea: IN std_logic_VECTOR(0 downto 0);
-		douta: OUT std_logic_VECTOR(18 downto 0);
-		clkb: IN std_logic;
-		dinb: IN std_logic_VECTOR(18 downto 0);
-		addrb: IN std_logic_VECTOR(15 downto 0);
-		web: IN std_logic_VECTOR(0 downto 0);
-		doutb: OUT std_logic_VECTOR(18 downto 0));
-	END component;
-
     type avg_state is (IDLE, FIRST, RUN, FINISHED, FAILED);
     signal state        : avg_state;
     signal next_state   : avg_state;
 
     signal dina_i       : std_logic_vector(18 downto 0);
     signal addra_i      : std_logic_vector(15 downto 0);
-    signal wea_i        : std_logic;
+    signal wea_i        : std_logic_vector(18 downto 0);
     signal douta_i      : std_logic_vector(18 downto 0);
     signal dinb_i       : std_logic_vector(18 downto 0);
     signal addrb_i      : std_logic_vector(15 downto 0);
-    signal web_i        : std_logic;
+    signal web_i        : std_logic_vector(18 downto 0);
     signal doutb_i      : std_logic_vector(18 downto 0);
 
     signal cycle_cnt    : std_logic_vector(1 downto 0);
@@ -71,8 +57,11 @@ architecture Structural of average_mem is
     signal max_1        : std_logic_vector(15 downto 0);
     signal width_i      : std_logic_vector(1 downto 0);
 
-    signal wea_long     : std_logic_vector(18 downto 0);
-    signal web_long     : std_logic_vector(18 downto 0);
+    signal wea_long     : std_logic_vector(15 downto 0);
+    signal web_long     : std_logic_vector(15 downto 0);
+
+    signal wea_shift    : std_logic_vector(18 downto 0);
+    signal web_shift    : std_logic_vector(18 downto 0);
 begin
 
     done <=   '1' when state = FINISHED else
@@ -159,15 +148,28 @@ begin
         end if;
     end process counter;
 
+    wea_long(7 downto 0) <= (others => wea(0));
+    wea_long(15 downto 8) <= (others => wea(1));
+    web_long(7 downto 0) <= (others => web(0));
+    web_long(15 downto 8) <= (others => web(1));
+    wea_shift <= ("00" & wea_long & "0") when width_i = "01" else
+                 ("0" & wea_long & "00") when width_i = "10" else
+                 (wea_long & "000") when width_i = "11" else
+                 ("000" & wea_long);
+    web_shift <= ("00" & web_long & "0") when width_i = "01" else
+                 ("0" & web_long & "00") when width_i = "10" else
+                 (web_long & "000") when width_i = "11" else
+                 ("000" & web_long);
+
     addra_i <= addra when ext = '1' else
                frame_cnt;
     addrb_i <= addrb when ext = '1' else
                read_cnt;
-    wea_i  <= wea when ext = '1' else
-              '1' when state = FIRST or state = RUN else
-              '0';
-    web_i  <= web when ext = '1' else
-              '0';
+    wea_i  <= wea_shift when ext = '1' else
+              (others => '1') when state = FIRST or state = RUN else
+              (others => '0');
+    web_i  <= web_shift when ext = '1' else
+              (others => '0');
     dina_i <= SXT(data, 19) when ext = '0' and cycle_cnt = "00" else
               SXT(data, 19) + doutb_i when ext = '0' and cycle_cnt /= "00" else
               ("00" & dina & "0") when width_i = "01" else
@@ -187,23 +189,6 @@ begin
              doutb_i(18 downto 3) when width_i = "11" else
              doutb_i(15 downto 0);
 
---	inbuf_mem_i: inbuf_mem
---	port map(
---		clka  => memclk,
---		dina  => dina_i,
---		addra => addra_i,
---		wea(0)=> wea_i,
---		douta => douta_i,
---		clkb  => memclk,
---		dinb  => dinb_i,
---		addrb => addrb_i,
---		web(0)=> web_i,
---		doutb => doutb_i
---	);
-
-    wea_long <= (others => wea_i);
-    web_long <= (others => web_i);
-
     inbuf_mem_i: entity work.ram48xi
     generic map(
         WIDTH               => 19,
@@ -214,12 +199,12 @@ begin
         clka                => memclk,
         dina                => dina_i,
         addra               => addra_i,
-        wea                 => wea_long,
+        wea                 => wea_i,
         douta               => douta_i,
         clkb                => memclk,
         dinb                => dinb_i,
         addrb               => addrb_i,
-        web                 => web_long,
+        web                 => web_i,
         doutb               => doutb_i
     );
 
