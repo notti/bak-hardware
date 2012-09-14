@@ -115,6 +115,8 @@ architecture Structural of transmitter is
 	signal CLKOUT1          : std_ulogic;
 	signal CLKOUT2          : std_ulogic;
 
+    signal rst_r            : std_logic;
+
 	
 	function reverse(a: in std_logic_vector) return std_logic_vector is
 		variable result: std_logic_vector(a'length - 1 downto 0);
@@ -187,10 +189,16 @@ begin
             end if;
         end if;
     end process;
+    rst_r_p: process(clk, rst)
+    begin
+        if rising_edge(clk) then
+            rst_r <= rst;
+        end if;
+    end process;
     out_en_p: process(ckm, rst, out_run)
     begin
         if rising_edge(ckm) then
-            if rst = '1' then
+            if rst_r = '1' then -- registered reset signal to prevent timing errors
                 out_en <= '0';
             else
                 out_en <= out_run;

@@ -61,11 +61,11 @@ port(
     mem_clk             : in  std_logic;
     mem_dina            : in  std_logic_vector(15 downto 0);
     mem_addra           : in  std_logic_vector(15 downto 0);
-    mem_wea             : in  std_logic;
+    mem_wea             : in  std_logic_vector(1 downto 0);
     mem_douta           : out std_logic_vector(15 downto 0);
     mem_dinb            : in  std_logic_vector(15 downto 0);
     mem_addrb           : in  std_logic_vector(15 downto 0);
-    mem_web             : in  std_logic;
+    mem_web             : in  std_logic_vector(1 downto 0);
     mem_doutb           : out std_logic_vector(15 downto 0)
 );
 end inbuf;

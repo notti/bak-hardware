@@ -189,11 +189,11 @@ END COMPONENT;
 
     signal mem_dinia           : std_logic_vector(15 downto 0);
     signal mem_addria          : std_logic_vector(15 downto 0);
-    signal mem_weaia           : std_logic;
+    signal mem_weaia           : std_logic_vector(1 downto 0);
     signal mem_doutia          : std_logic_vector(15 downto 0);
     signal mem_dinib           : std_logic_vector(15 downto 0);
     signal mem_addrib          : std_logic_vector(15 downto 0);
-    signal mem_weaib           : std_logic;
+    signal mem_weaib           : std_logic_vector(1 downto 0);
     signal mem_doutib          : std_logic_vector(15 downto 0);
     signal mem_dinh            : std_logic_vector(31 downto 0);
     signal mem_addrh           : std_logic_vector(15 downto 0);

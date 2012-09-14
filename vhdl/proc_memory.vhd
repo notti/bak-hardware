@@ -12,11 +12,11 @@ entity proc_memory is
 port(
     mem_dinia           : out std_logic_vector(15 downto 0);
     mem_addria          : out std_logic_vector(15 downto 0);
-    mem_weaia           : out std_logic;
+    mem_weaia           : out std_logic_vector(1 downto 0);
     mem_doutia          : in  std_logic_vector(15 downto 0);
     mem_dinib           : out std_logic_vector(15 downto 0);
     mem_addrib          : out std_logic_vector(15 downto 0);
-    mem_weaib           : out std_logic;
+    mem_weaib           : out std_logic_vector(1 downto 0);
     mem_doutib          : in  std_logic_vector(15 downto 0);
     mem_dinh            : out std_logic_vector(31 downto 0);
     mem_addrh           : out std_logic_vector(15 downto 0);
@@ -50,20 +50,17 @@ port(
 end proc_memory;
 
 architecture Structural of proc_memory is
-    signal mem0_wraddrack   : std_logic;
-    signal mem0_1wrcycle    : std_logic;
-    signal wr_cycle         : std_logic_vector(1 downto 0);
     signal wrack            : std_logic;
     signal single_wrreq     : std_logic;
 
     signal wrreq            : std_logic;
 
-    signal rnw              : std_logic_vector(2 downto 0);
+    signal rnw              : std_logic_vector(1 downto 0);
 begin
     -- memi  read rmwrite
-    --       2    2+1
+    --       2    1
     -- memh  read write
-    --       1    1
+    --       2    1
     -- memoi read write
     --       2    1 
     -- memoa read
@@ -75,22 +72,10 @@ begin
             if bus2fpga_reset = '1' then
                 rnw <= (others => '0');
             else
-                rnw <= rnw(1 downto 0) & bus2fpga_rnw;
+                rnw <= rnw(0) & bus2fpga_rnw;
             end if;
         end if;
     end process rnw_proc;
-
-    --cnt reset: not (wrreq and chip0) or 3 
-    wr_cycle_proc: process(bus2fpga_clk, bus2fpga_reset, wrreq, bus2fpga_cs, wr_cycle)
-    begin
-        if rising_edge(bus2fpga_clk) then
-            if bus2fpga_reset = '1' or not (wrreq = '1' and bus2fpga_cs = "1000") or wr_cycle = "11" then
-                wr_cycle <= (others => '0');
-            else
-                wr_cycle <= wr_cycle + 1;
-            end if;
-        end if;
-    end process wr_cycle_proc;
 
     single_wr: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_burst, bus2fpga_wrreq, wrack)
     begin
@@ -132,40 +117,20 @@ begin
     mem_weoi    <= bus2fpga_be when bus2fpga_cs = "0010" and wrreq = '1' else
                    (others => '0');
 
-    mem_dinia <= bus2fpga_data(15 downto 0)                             when bus2fpga_be(1 downto 0) = "11" else
-                 mem_doutia(15 downto 8)    & bus2fpga_data(7 downto 0) when bus2fpga_be(1 downto 0) = "01" else
-                 bus2fpga_data(15 downto 8) & mem_doutia(7 downto 0)    when bus2fpga_be(1 downto 0) = "10" else
+    mem_dinia <= bus2fpga_data(15 downto 0);
+    mem_weaia <= bus2fpga_be(1 downto 0) when bus2fpga_cs = "1000" and wrreq = '1' else
                  (others => '0');
-    mem_weaia <= '1' when bus2fpga_cs = "1000" and wrreq = '1' and
-                    (bus2fpga_be(1 downto 0) = "11" or 
-                    ((bus2fpga_be(0) = '1' or bus2fpga_be(1) = '1') and wr_cycle = "10")) else
-                 '0';
-    mem_dinib <= bus2fpga_data(31 downto 16)                               when bus2fpga_be(3 downto 2) = "11" else
-                 mem_doutib(15 downto 8)     & bus2fpga_data(23 downto 16) when bus2fpga_be(3 downto 2) = "01" else
-                 bus2fpga_data(31 downto 24) & mem_doutib(7 downto 0)      when bus2fpga_be(3 downto 2) = "10" else
+    mem_dinib <= bus2fpga_data(31 downto 16);
+    mem_weaib <= bus2fpga_be(3 downto 2) when bus2fpga_cs = "1000" and wrreq = '1' else 
                  (others => '0');
-    mem_weaib <= '1' when bus2fpga_cs = "1000" and wrreq = '1' and
-                    (bus2fpga_be(3 downto 2) = "11" or 
-                    ((bus2fpga_be(3) = '1' or bus2fpga_be(2) = '1') and wr_cycle = "10")) else
-                 '0';
 
 -- ack
 
-    mem0_1wrcycle   <= '1' when (bus2fpga_be(3 downto 2) = "11" or bus2fpga_be(3 downto 2) = "00") and (bus2fpga_be(1 downto 0) = "11" or bus2fpga_be(1 downto 0) = "00") else
-                       '0';
-
-    mem0_wraddrack <= wrreq when mem0_1wrcycle = '1' else
-                      wrreq when mem0_1wrcycle = '0' and wr_cycle = "10" else
-                      '0';
-    fpga2bus_addrack <= bus2fpga_rdreq or wrreq when bus2fpga_cs = "0100" or bus2fpga_cs = "0010" or bus2fpga_cs = "0001" else
-                        bus2fpga_rdreq or mem0_wraddrack when bus2fpga_cs = "1000" else
+    fpga2bus_addrack <= bus2fpga_rdreq or wrreq when or_many(bus2fpga_cs) = '1' else
                         '0';
-    fpga2bus_rdack <= rnw(1) when bus2fpga_rnw = '1' and (bus2fpga_cs = "1000" or bus2fpga_cs = "0010" or bus2fpga_cs = "0001") else
-                      rnw(0) when bus2fpga_rnw = '1' and bus2fpga_cs = "0100" else
+    fpga2bus_rdack <= rnw(1) when bus2fpga_rnw = '1' and or_many(bus2fpga_cs) = '1' else
                       '0';
-    wrack          <= '1' when wrreq = '1' and (bus2fpga_cs = "0100" or bus2fpga_cs = "0010" or bus2fpga_cs = "0001") else
-                      '1' when wrreq = '1' and bus2fpga_cs = "1000" and mem0_1wrcycle = '1' else
-                      '1' when wrreq = '1' and bus2fpga_cs = "1000" and mem0_1wrcycle = '0' and wr_cycle = "10" else
+    wrack          <= '1' when wrreq = '1' and or_many(bus2fpga_cs) = '1' else
                       '0';
     fpga2bus_wrack <= wrack;
     fpga2bus_error <= '0';

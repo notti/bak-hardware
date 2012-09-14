@@ -4,7 +4,7 @@
 # AREA_GROUP "outbuf_mem_1" RANGE=RAMB36_X3Y12:RAMB36_X3Y15, RAMB36_X0Y12:RAMB36_X0Y15, RAMB36_X0Y0:RAMB36_X3Y11;
 # INST "*/outbuf_mem_1/*ram18" AREA_GROUP = "outbuf_mem_1";
 # INST "*/outbuf_mem_1/*ram36" AREA_GROUP = "outbuf_mem_1";
-AREA_GROUP "outdata" RANGE=SLICE_X2Y60:SLICE_X15Y99;
+AREA_GROUP "outdata" RANGE=SLICE_X2Y70:SLICE_X15Y89;
 INST "*/transmitter_i/*" AREA_GROUP = "outdata";
 ######################################
 NET gtx_refclk_n  LOC=H15;
@@ -55,7 +55,6 @@ Net fpga_0_RS232_Uart_1_sout_pin LOC = AG20;
 Net fpga_0_RS232_Uart_1_sout_pin IOSTANDARD=LVCMOS33;
 
 #### Module LEDs_8Bit constraints
-
 Net fpga_0_LEDs_8Bit_GPIO_IO_pin<0> LOC = AE24;
 Net fpga_0_LEDs_8Bit_GPIO_IO_pin<0> IOSTANDARD=LVCMOS18;
 Net fpga_0_LEDs_8Bit_GPIO_IO_pin<0> PULLDOWN;
@@ -98,7 +97,6 @@ Net fpga_0_LEDs_8Bit_GPIO_IO_pin<7> SLEW=SLOW;
 Net fpga_0_LEDs_8Bit_GPIO_IO_pin<7> DRIVE=2;
 
 #### Module LEDs_Positions constraints
-
 Net fpga_0_LEDs_Positions_GPIO_IO_pin<0> LOC=E8;
 Net fpga_0_LEDs_Positions_GPIO_IO_pin<0> IOSTANDARD=LVCMOS33;
 Net fpga_0_LEDs_Positions_GPIO_IO_pin<0> PULLDOWN;
@@ -126,7 +124,6 @@ Net fpga_0_LEDs_Positions_GPIO_IO_pin<4> SLEW=SLOW;
 Net fpga_0_LEDs_Positions_GPIO_IO_pin<4> DRIVE=2;
 
 #### Module Push_Buttons_5Bit constraints
-
 Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<0> LOC = AJ6;
 Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<0> IOSTANDARD=LVCMOS33;
 Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<0> PULLDOWN;
@@ -154,7 +151,6 @@ Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<4> SLEW=SLOW;
 Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<4> DRIVE=2;
 
 #### Module DIP_Switches_8Bit constraints
-
 Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<0> LOC=U25;
 Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<0> IOSTANDARD=LVCMOS18;
 Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<0> PULLDOWN;
@@ -809,3 +805,6 @@ NET "main_inst/outbuf_inst/transmitter_i/CLKOUT0" TNM_NET = main_inst/outbuf_ins
 TIMESPEC TS_main_inst_outbuf_inst_transmitter_i_CLKOUT0 = PERIOD "main_inst/outbuf_inst/transmitter_i/CLKOUT0" 350 MHz HIGH 50%;
 NET "main_inst/outbuf_inst/transmitter_i/CLKOUT1" TNM_NET = main_inst/outbuf_inst/transmitter_i/CLKOUT1;
 TIMESPEC TS_main_inst_outbuf_inst_transmitter_i_CLKOUT1 = PERIOD "main_inst/outbuf_inst/transmitter_i/CLKOUT1" 175 MHz HIGH 50%;
+NET "main_inst/outbuf_inst/transmitter_i/outdata_long*" TNM_NET = outdata_long;
+NET "main_inst/outbuf_inst/transmitter_i/outdata_short*" TNM_NET = outdata_short;
+TIMESPEC TS_outdata = FROM "outdata_long" TO "outdata_short" TS_main_inst_inbuf_inst_receiver_i_refclkout_i * 4 DATAPATHONLY;

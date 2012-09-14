@@ -48,25 +48,8 @@ port(
 end core;
 
 architecture Structural of core is
-component h
-	port (
-	clka: IN std_logic;
-	dina: IN std_logic_VECTOR(31 downto 0);
-	addra: IN std_logic_VECTOR(11 downto 0);
-	wea: IN std_logic_VECTOR(3 downto 0);
-	douta: OUT std_logic_VECTOR(31 downto 0);
-	clkb: IN std_logic;
-	dinb: IN std_logic_VECTOR(31 downto 0);
-	addrb: IN std_logic_VECTOR(11 downto 0);
-	web: IN std_logic_VECTOR(3 downto 0);
-	doutb: OUT std_logic_VECTOR(31 downto 0));
-end component;
-
--- attribute syn_black_box : boolean;
--- attribute syn_black_box of h: component is true;
-
-signal addra    : std_logic_vector(11 downto 0);
-signal douta    : std_logic_vector(31 downto 0);
+    signal addra    : std_logic_vector(11 downto 0);
+    signal douta    : std_logic_vector(31 downto 0);
 begin
 
     overlap_add_inst: entity work.overlap_add
@@ -107,23 +90,9 @@ begin
     );
 
     
---    h_inst: h
---    port map (
---        clka       => clk,
---        dina       => (others => '0'),
---        addra      => addra,
---        wea        => (others => '0'),
---        douta      => douta,
---        clkb       => mem_clkh,
---        dinb       => mem_dinh,
---        addrb      => mem_addrh(11 downto 0),
---        web        => mem_weh,
---        doutb      => mem_douth
---    );
-
     h_inst: entity work.ram4x32
     generic map(
-        DOA_REG             => 1,
+        DOA_REG             => 0,
         DOB_REG             => 1)
     port map (
         clka       => clk,

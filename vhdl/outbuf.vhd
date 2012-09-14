@@ -136,32 +136,6 @@ begin
 
     toggled <= active xor active_r;
 
---    outbuf_mem_0: outbuf_mem
---    port map (
---        clka                => clk,
---        dina                => (others => '0'),
---        addra               => frame_addr,
---        wea                 => (others => '0'),
---        douta               => dout0,
---        clkb                => mem_clk,
---        dinb                => mem_dini,
---        addrb               => mem_addr0,
---        web                 => mem_we0,
---        doutb               => mem_out0
---    );
---    outbuf_mem_1: outbuf_mem
---    port map (
---        clka                => clk,
---        dina                => (others => '0'),
---        addra               => frame_addr,
---        wea                 => (others => '0'),
---        douta               => dout1,
---        clkb                => mem_clk,
---        dinb                => mem_dini,
---        addrb               => mem_addr1,
---        web                 => mem_we1,
---        doutb               => mem_out1
---    );
     outbuf_mem_0: entity work.ram48xi
     generic map(
         WIDTH               => 32,
