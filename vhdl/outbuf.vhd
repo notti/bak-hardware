@@ -189,8 +189,21 @@ begin
                  mem_out1;
     mem_douta <= mem_out1 when active = '1' else
                  mem_out0;
-    dout      <= dout1 when active = '1' else
-                 dout0;
+
+    dout_p: process(clk, dout0, dout1, active, rst)
+    begin
+        if rising_edge(clk) then
+            if rst = '1' then
+                dout <= (others => '0');
+            else
+                if active = '1' then
+                    dout <= dout1;
+                else
+                    dout <= dout0;
+                end if;
+            end if;
+        end if;
+    end process dout_p;
 
     cmul_i: entity work.cmul
     port map(
