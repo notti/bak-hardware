@@ -123,19 +123,17 @@ end main;
 
 architecture Structural of main is
 
+	signal mem_extern_tmp	   : std_logic;
 	signal mem_extern		   : std_logic;
 	signal mem_clk_i		   : std_logic;
 
 	signal core_mem_dinx	   : std_logic_vector(15 downto 0);
 	signal core_mem_addrx	   : std_logic_vector(15 downto 0);
-	signal mem_dinia_i		   : std_logic_vector(15 downto 0);
 	signal mem_addria_i		   : std_logic_vector(15 downto 0);
 	signal mem_weaia_i		   : std_logic_vector(1 downto 0);
 	signal mem_doutia_i		   : std_logic_vector(15 downto 0);
-	signal mem_dinib_i		   : std_logic_vector(15 downto 0);
 	signal mem_addrib_i		   : std_logic_vector(15 downto 0);
 	signal mem_weaib_i		   : std_logic_vector(1 downto 0);
-	signal mem_doutib_i		   : std_logic_vector(15 downto 0);
 	signal core_mem_diny	   : std_logic_vector(31 downto 0);
 	signal core_mem_addry	   : std_logic_vector(15 downto 0);
 	signal core_mem_douty	   : std_logic_vector(31 downto 0);
@@ -175,10 +173,10 @@ begin
 	mem_extern_process: process(sample_clk_i, sample_rst, mem_req, trig_armed_i, trig_trigd_i, avg_active_i, core_busy_i, tx_busy_i)
 	begin
 		if rising_edge(sample_clk_i) then
-			if sample_rst = '1' or mem_req = '0' then
+			if sample_rst = '1' then
 				mem_extern <= '0';
-			elsif mem_req = '1' and trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and core_busy_i = '0' and tx_busy_i = '0' then
-				mem_extern <= '1';
+            elsif trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and core_busy_i = '0' and tx_busy_i = '0' then
+                mem_extern <= mem_req;
 			end if;
 		end if;
 	end process mem_extern_process;
@@ -193,39 +191,25 @@ begin
         S                       => mem_extern
     );
 
-	mem_dinia_i   <= mem_dinia when mem_extern = '1' else
-					 (others => '0');
-	core_mem_dinx <= mem_doutia_i when mem_extern = '0' else
-					 (others => '0');
-	mem_doutia    <= mem_doutia_i when mem_extern = '1' else
+	core_mem_dinx <= mem_doutia_i;
+	mem_doutia    <= mem_doutia_i;
+	mem_weaia_i   <= mem_weaia when mem_extern = '1' else
 				     (others => '0');
-	mem_weaia_i   <= (others => '0') when mem_extern = '0' else
-				     mem_weaia;
-	mem_addria_i  <= core_mem_addrx when mem_extern = '0' else
-					 mem_addria;
-	mem_dinib_i   <= mem_dinib when mem_extern = '1' else
-					 (others => '0');
-	mem_doutib    <= mem_doutib_i when mem_extern = '1' else
+	mem_addria_i  <= mem_addria when mem_extern = '1' else
+					 core_mem_addrx;
+	mem_weaib_i   <= mem_weaib when mem_extern = '1' else
 				     (others => '0');
-	mem_weaib_i   <= (others => '0') when mem_extern = '0' else
-				     mem_weaib;
-	mem_addrib_i  <= mem_addrib when mem_extern = '1' else
-					 (others => '0');
 
-	core_mem_diny <= mem_doutoi_i when mem_extern = '0' else
-					 (others => '0');
-	mem_dinoi_i   <= core_mem_douty when mem_extern = '0' else
-					 mem_dinoi;
-	mem_addroi_i  <= core_mem_addry when mem_extern = '0' else
-					 mem_addroi;
-	mem_weoi_i    <= (others => core_mem_wey) when mem_extern = '0' else
-					 mem_weoi;
-	mem_doutoi    <= mem_doutoi_i when mem_extern = '1' else
-					 (others => '0');
-	mem_addroa_i  <= mem_addroa when mem_extern = '1' else
-					 (others => '0');
-	mem_doutoa    <= mem_doutoa_i when mem_extern = '1' else
-					 (others => '0');
+	core_mem_diny <= mem_doutoi_i;
+	mem_dinoi_i   <= mem_dinoi when mem_extern = '1' else
+					 core_mem_douty ;
+	mem_addroi_i  <= mem_addroi when mem_extern = '1' else
+					 core_mem_addry ;
+	mem_weoi_i    <= mem_weoi when mem_extern = '1' else
+					 (others => core_mem_wey);
+	mem_doutoi    <= mem_doutoi_i;
+	mem_addroa_i  <= mem_addroa;
+	mem_doutoa    <= mem_doutoa_i;
     
 	-- entities
 
@@ -268,14 +252,14 @@ begin
 		wave_index          => wave_index,
 		mem_en              => mem_extern,
 		mem_clk             => mem_clk_i,
-		mem_dina            => mem_dinia_i,
+		mem_dina            => mem_dinia,
 		mem_addra           => mem_addria_i,
 		mem_wea             => mem_weaia_i,
 		mem_douta           => mem_doutia_i,
-		mem_dinb            => mem_dinib_i,
-		mem_addrb           => mem_addrib_i,
+		mem_dinb            => mem_dinib,
+		mem_addrb           => mem_addrib,
 		mem_web             => mem_weaib_i,
-		mem_doutb           => mem_doutib_i
+		mem_doutb           => mem_doutib
 	);
 
 	trig_armed <= trig_armed_i;
