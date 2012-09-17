@@ -64,12 +64,25 @@ architecture Structural of average_mem is
     signal web_shift    : std_logic_vector(18 downto 0);
 begin
 
-    done <=   '1' when state = FINISHED else
-              '0';
-	err <=    '1' when state = FAILED else
-		      '0';
     active <= '1' when state = FIRST or state = RUN else
               '0';
+
+    status: process(clk, state, rst)
+    begin
+        if rising_edge(clk) then
+            if (state = IDLE and trig = '1') or rst = '1' then
+                err <= '0';
+                done <= '0';
+            else
+                if state = FINISHED or state = FAILED then
+                    done <= '1';
+                end if;
+                if state = FAILED then
+                    err <= '1';
+                end if;
+            end if;
+        end if;
+    end process status;
 
     reg: process (clk, state, depth, width)
     begin
