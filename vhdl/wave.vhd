@@ -49,11 +49,12 @@ begin
     mul_p: process(clk)
     begin
         if rising_edge(clk) then
-            i_long <= data*c(conv_integer(cnt));
-            q_long <= data*s(conv_integer(cnt));
             data_r <= data;
         end if;
     end process mul_p;
+
+    i_long <= data_r*c(conv_integer(cnt));
+    q_long <= data_r*s(conv_integer(cnt));
 
     i <= i_long(31 downto 16) when en = '1' else
          (others => '0');
