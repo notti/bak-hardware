@@ -84,7 +84,7 @@ begin
         end if;
     end process status;
 
-    reg: process (clk, state, depth, width)
+    reg: process (clk, state, depth, width, trig)
     begin
         if rising_edge(clk) then
             if state = IDLE and trig = '1' then
