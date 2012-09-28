@@ -87,6 +87,12 @@ Net fpga_0_LEDs_8Bit_GPIO_IO_pin<7> IOSTANDARD=LVCMOS25;
 Net fpga_0_LEDs_8Bit_GPIO_IO_pin<7> PULLDOWN;
 Net fpga_0_LEDs_8Bit_GPIO_IO_pin<7> SLEW=SLOW;
 Net fpga_0_LEDs_8Bit_GPIO_IO_pin<7> DRIVE=2;
+Net fpga_0_LEDs_8Bit_GPIO_IO_pin<8> LOC = F6;
+Net fpga_0_LEDs_8Bit_GPIO_IO_pin<8> IOSTANDARD=LVCMOS33;
+Net fpga_0_LEDs_8Bit_GPIO_IO_pin<8> TIG;
+Net fpga_0_LEDs_8Bit_GPIO_IO_pin<9> LOC = T10;
+Net fpga_0_LEDs_8Bit_GPIO_IO_pin<9> IOSTANDARD=LVCMOS33;
+Net fpga_0_LEDs_8Bit_GPIO_IO_pin<9> TIG;
 
 #### Module LEDs_Positions constraints
 Net fpga_0_LEDs_Positions_GPIO_IO_pin<0> LOC=E8;

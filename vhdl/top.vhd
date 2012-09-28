@@ -38,7 +38,7 @@ port(
     fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin : IN std_logic;
     sys_clk_pin : IN std_logic;
     sys_rst_pin : IN std_logic;
-    fpga_0_LEDs_8Bit_GPIO_IO_pin : INOUT std_logic_vector(0 to 7);
+    fpga_0_LEDs_8Bit_GPIO_IO_pin : INOUT std_logic_vector(0 to 9);
     fpga_0_LEDs_Positions_GPIO_IO_pin : INOUT std_logic_vector(0 to 4);
     fpga_0_Push_Buttons_5Bit_GPIO_IO_pin : INOUT std_logic_vector(0 to 4);
     fpga_0_DIP_Switches_8Bit_GPIO_IO_pin : INOUT std_logic_vector(0 to 7);
@@ -92,7 +92,7 @@ PORT(
     proc2fpga_0_fpga2bus_rdack_pin : IN std_logic;
     proc2fpga_0_fpga2bus_data_pin : IN std_logic_vector(31 downto 0);    
     proc2fpga_0_fpga2bus_addrack_pin : IN std_logic;    
-    fpga_0_LEDs_8Bit_GPIO_IO_pin : INOUT std_logic_vector(0 to 7);
+    fpga_0_LEDs_8Bit_GPIO_IO_pin : INOUT std_logic_vector(0 to 9);
     fpga_0_LEDs_Positions_GPIO_IO_pin : INOUT std_logic_vector(0 to 4);
     fpga_0_Push_Buttons_5Bit_GPIO_IO_pin : INOUT std_logic_vector(0 to 4);
     fpga_0_DIP_Switches_8Bit_GPIO_IO_pin : INOUT std_logic_vector(0 to 7);
