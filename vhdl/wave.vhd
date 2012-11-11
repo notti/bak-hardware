@@ -29,7 +29,11 @@ architecture Structural of wave is
             (X"0000", X"79BB", X"B4C4", X"B4C4", X"79BB", X"0000", X"8645", X"4B3C", X"4B3C", X"8645");
     signal i_long : std_logic_vector(31 downto 0);
     signal q_long : std_logic_vector(31 downto 0);
+    signal i_long_1 : std_logic_vector(31 downto 0);
+    signal q_long_1 : std_logic_vector(31 downto 0);
     signal data_r : std_logic_vector(15 downto 0);
+    signal data_r_1 : std_logic_vector(15 downto 0);
+    signal data_r_2 : std_logic_vector(15 downto 0);
 begin
     cnt_p: process(clk, rst)
     begin
@@ -50,16 +54,20 @@ begin
     begin
         if rising_edge(clk) then
             data_r <= data;
+            i_long_1 <= data_r*c(conv_integer(cnt));
+            q_long_1 <= data_r*s(conv_integer(cnt));
+            data_r_1 <= data_r;
+            i_long <= i_long_1;
+            q_long <= q_long_1;
+            data_r_2 <= data_r_1;
         end if;
     end process mul_p;
 
-    i_long <= data_r*c(conv_integer(cnt));
-    q_long <= data_r*s(conv_integer(cnt));
 
     i <= i_long(31 downto 16) when en = '1' else
-         (others => '0');
+         data_r_2;
     q <= q_long(31 downto 16) when en = '1' else
-         data_r;
+         (others => '0');
 
 end Structural;
 

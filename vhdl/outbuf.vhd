@@ -33,7 +33,6 @@ port(
     toggled             : out std_logic;
     frame_offset        : in  std_logic_vector(15 downto 0);
     resync              : in  std_logic;
-    cmul_ovfl           : out std_logic;
 	busy				: out std_logic;
 
 -- mem
@@ -208,14 +207,12 @@ begin
     cmul_i: entity work.cmul
     port map(
         clk          => clk,
-        sch          => (others => '0'),
         a_re         => dout(15 downto 0),
         a_im         => dout(31 downto 16),
         b_re         => muli,
         b_im         => mulq,
         c_re         => i,
-        c_im         => q,
-        ovfl         => cmul_ovfl
+        c_im         => q
     );
     
     e2(0) <= '1'; --VALID
