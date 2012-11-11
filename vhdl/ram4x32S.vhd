@@ -27,7 +27,11 @@ begin
     wea_many(0) <= wea;
 
     ram_gen: for i in 0 to 3 generate
+        signal do : std_logic_vector(7 downto 0);
+        signal di : std_logic_vector(7 downto 0);
     begin
+        douta((i+1)*8-1 downto i*8) <= do;
+        di <= dina((i+1)*8-1 downto i*8);
         ram36_i: BRAM_SINGLE_MACRO
         generic map (
             BRAM_SIZE      => "36Kb",
@@ -37,10 +41,10 @@ begin
             WRITE_MODE   => "READ_FIRST",
             WRITE_WIDTH  => 8)
         port map (
-            DO         => douta((i+1)*8-1 downto i*8),
+            DO         => do,
             ADDR       => addra(11 downto 0),
             CLK        => clka,
-            DI         => dina((i+1)*8-1 downto i*8),
+            DI         => di,
             EN         => '1',
             REGCE      => '1',
             RST        => '0',

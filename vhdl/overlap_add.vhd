@@ -121,6 +121,11 @@ end component;
     signal ifft_scratch_index : std_logic_vector(11 downto 0);
     signal fft_unload   :std_logic;
     signal ifft_unload :std_logic;
+    signal start_1  : std_logic;
+    signal start_2  : std_logic;
+    signal start_3  : std_logic;
+    signal start_4  : std_logic;
+    signal start_5  : std_logic;
 
 begin
     fsm_p1: process(clk, rst)
@@ -187,7 +192,22 @@ begin
         end if;
     end process prepare_p;
 
-    start_fftncmul <= '1' when state = START_FFT_IFFT or (ifftnadd_done = '1' and was_last = '0') else
+    start_dly: process(clk)
+    begin
+        if rising_edge(clk) then
+            if state = START_FFT_IFFT then
+                start_1 <= '1';
+            else
+                start_1 <= '0';
+            end if;
+            start_2 <= start_1;
+            start_3 <= start_2;
+            start_4 <= start_3;
+            start_5 <= start_4;
+        end if;
+    end process start_dly;
+
+    start_fftncmul <= '1' when start_5 = '1' or (ifftnadd_done = '1' and was_last = '0') else
                       '0';
 
     fftncmul_i: entity work.fftncmul
