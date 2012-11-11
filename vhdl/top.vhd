@@ -170,7 +170,6 @@ END COMPONENT;
     signal core_iq             : std_logic;
     signal core_ov_fft         : std_logic;
     signal core_ov_ifft        : std_logic;
-    signal core_ov_cmul        : std_logic;
     signal core_busy           : std_logic;
     signal core_done           : std_logic;
     signal tx_rst              : std_logic;
@@ -182,7 +181,6 @@ END COMPONENT;
     signal tx_toggled          : std_logic;
     signal tx_frame_offset     : std_logic_vector(15 downto 0);
     signal tx_resync           : std_logic;
-    signal tx_cmul_ovfl        : std_logic;
     signal tx_busy             : std_logic;
     signal mem_req             : std_logic;
     signal mem_ack             : std_logic;
@@ -284,12 +282,10 @@ begin
         core_n              => core_n,
         core_scale_sch      => core_scale_sch,
         core_scale_schi     => core_scale_schi,
-        core_cmul_sch       => core_cmul_sch,
         core_L              => core_L,
         core_iq             => core_iq,
         core_ov_fft         => core_ov_fft,
         core_ov_ifft        => core_ov_ifft,
-        core_ov_cmul        => core_ov_cmul,
         core_busy           => core_busy,
         core_done           => core_done,
         tx_txn              => oserdes_txn,
@@ -305,7 +301,6 @@ begin
         tx_toggled          => tx_toggled,
         tx_frame_offset     => tx_frame_offset,
         tx_resync           => tx_resync,
-        tx_cmul_ovfl        => tx_cmul_ovfl,
         tx_busy             => tx_busy,
         mem_req             => mem_req,
         mem_ack             => mem_ack,
@@ -361,12 +356,10 @@ begin
         core_n              => core_n,
         core_scale_sch      => core_scale_sch,
         core_scale_schi     => core_scale_schi,
-        core_cmul_sch       => core_cmul_sch,
         core_L              => core_L,
         core_iq             => core_iq,
         core_ov_fft         => core_ov_fft,
         core_ov_ifft        => core_ov_ifft,
-        core_ov_cmul        => core_ov_cmul,
         core_busy           => core_busy,
         core_done           => core_done,
         tx_rst              => tx_rst,
@@ -378,7 +371,6 @@ begin
         tx_toggled          => tx_toggled,
         tx_frame_offset     => tx_frame_offset,
         tx_resync           => tx_resync,
-        tx_cmul_ovfl        => tx_cmul_ovfl,
         tx_busy             => tx_busy,
         mem_req             => mem_req,
         mem_ack             => mem_ack,

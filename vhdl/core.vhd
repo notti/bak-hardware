@@ -17,14 +17,12 @@ port(
     core_n          : in  std_logic_vector(4 downto 0);
     core_scale_sch  : in  std_logic_vector(11 downto 0);
     core_scale_schi : in  std_logic_vector(11 downto 0);
-    core_cmul_sch   : in  std_logic_vector(1 downto 0);
     core_L          : in  std_logic_vector(11 downto 0);
     core_depth      : in  std_logic_vector(15 downto 0);
     core_iq         : in  std_logic;
 
     core_ov_fft     : out std_logic;
     core_ov_ifft    : out std_logic;
-    core_ov_cmul    : out std_logic;
 
     core_busy       : out std_logic;
     core_done       : out std_logic;
@@ -61,9 +59,8 @@ begin
         nfft         => core_n,
         scale_sch    => core_scale_sch,
         scale_schi   => core_scale_schi,
-        cmul_sch     => core_cmul_sch,
         L            => core_L,
-        n            => core_depth,
+        Nx           => core_depth,
         iq           => core_iq,
 
         wave_index   => wave_index,
@@ -83,7 +80,6 @@ begin
 
         ovfl_fft     => core_ov_fft,
         ovfl_ifft    => core_ov_ifft,
-        ovfl_cmul    => core_ov_cmul,
 
         busy         => core_busy,
         done         => core_done
@@ -92,7 +88,7 @@ begin
     
     h_inst: entity work.ram4x32
     generic map(
-        DOA_REG             => 0,
+        DOA_REG             => 1,
         DOB_REG             => 1)
     port map (
         clka       => clk,

@@ -21,7 +21,6 @@ port(
     core_n              : out std_logic_vector(4 downto 0);  -- registered on start
     core_scale_sch      : out std_logic_vector(11 downto 0); -- registered on start
     core_scale_schi     : out std_logic_vector(11 downto 0); -- registered on start
-    core_cmul_sch       : out std_logic_vector(1 downto 0);  -- registered on start
     core_iq             : out std_logic;                     -- registered on start
     tx_frame_offset     : out std_logic_vector(15 downto 0); -- registered on resync, rst
 
@@ -68,7 +67,6 @@ port(
     avg_err             : in  std_logic;
     core_ov_fft         : in  std_logic;
     core_ov_ifft        : in  std_logic;
-    core_ov_cmul        : in  std_logic;
     core_busy           : in  std_logic;
     tx_busy             : in  std_logic;
     mem_ack             : in  std_logic;
@@ -78,7 +76,6 @@ port(
     avg_done            : in  std_logic;
     core_done           : in  std_logic;
     tx_toggled          : in  std_logic;
-    tx_cmul_ovfl        : in  std_logic; -- rate limit?
 
 -- clocks
     sample_clk          : in  std_logic;
@@ -134,7 +131,6 @@ architecture Structural of proc_register is
     signal avg_done_synced          : std_logic;
     signal core_done_synced         : std_logic;
     signal tx_toggled_synced        : std_logic;
-    signal tx_cmul_ovfl_synced      : std_logic;
 begin
 
 -- x  rec_enable(0)                    1 0
@@ -250,8 +246,8 @@ begin
 -- x  core_L(11)                       0 3
 -- 0  0                                0 4
 -- 0  0                                0 5
--- x  core_cmul_sch(0)                 0 6
--- x  core_cmul_sch(0)                 1 7
+-- 0  0                                0 6
+-- 0  0                                1 7
 -- x  core_n(0)                        0 0
 -- x  core_n(1)                        0 1
 -- x  core_n(2)                        0 2
@@ -264,7 +260,7 @@ begin
 -- t  core_start          core_clk     0 1  r  core_busy           bus2fpga_clk
 -- r  core_ov_fft         bus2fpga_clk 0 2
 -- r  core_ov_ifft        bus2fpga_clk 0 3
--- r  core_ov_cmul        bus2fpga_clk 0 4
+-- 0  0                                0 4
 -- 0  0                                0 5
 -- 0  0                                0 6
 -- t  core_rst            core_clk     0 7
@@ -549,7 +545,6 @@ begin
     slv_reg(2)(31 downto 28) <= (others => '0');
 -------------------------------------------------------------------------------
     core_L <= slv_reg(3)(11 downto 0);
-    core_cmul_sch <= slv_reg(3)(15 downto 14);
     core_n <= slv_reg(3)(20 downto 16);
     core_iq <= slv_reg(3)(24);
 
@@ -581,7 +576,6 @@ begin
         if rising_edge(bus2fpga_clk) then
             if bus2fpga_reset = '1' then
                 slv_reg(3)(11 downto 0) <= (others => '0');
-                slv_reg(3)(15 downto 14) <= "10";
                 slv_reg(3)(20 downto 16) <= (others => '0');
                 slv_reg(3)(24) <= '0';
             else
@@ -591,7 +585,6 @@ begin
                     end if;
                     if bus2fpga_be(1) = '1' then
                         slv_reg(3)(11 downto 8) <= bus2fpga_data(11 downto 8);
-                        slv_reg(3)(15 downto 14) <= bus2fpga_data(15 downto 14);
                     end if;
                     if bus2fpga_be(2) = '1' then
                         slv_reg(3)(20 downto 16) <= bus2fpga_data(20 downto 16);
@@ -622,16 +615,10 @@ begin
         flag_out    => slv_reg(3)(27),
         clk         => bus2fpga_clk
     );
-    sync_core_ov_cmul: entity work.flag
-    port map(
-        flag_in     => core_ov_cmul,
-        flag_out    => slv_reg(3)(28),
-        clk         => bus2fpga_clk
-    );
 
-    slv_reg(3)(13 downto 12) <= (others => '0');
+    slv_reg(3)(15 downto 12) <= (others => '0');
     slv_reg(3)(23 downto 21) <= (others => '0');
-    slv_reg(3)(31 downto 29) <= (others => '0');
+    slv_reg(3)(31 downto 28) <= (others => '0');
 -------------------------------------------------------------------------------
     tx_muli_wr <= '1' when (bus2fpga_wrce = "000010" and (bus2fpga_be(0) = '1' or bus2fpga_be(1) = '1')) or bus2fpga_reset = '1' else
                   '0';
@@ -819,12 +806,6 @@ begin
         flag_out    => tx_toggled_synced,
         clk         => bus2fpga_clk
     );
-    sync_tx_cmul_ovfl: entity work.flag
-    port map(
-        flag_in     => tx_cmul_ovfl,
-        flag_out    => tx_cmul_ovfl_synced,
-        clk         => bus2fpga_clk
-    );
 
     fpga2bus_intr <= (
         0  => slv_reg(0)(5),
@@ -839,7 +820,6 @@ begin
         9  => avg_done_synced,
         10 => core_done_synced,
         11 => tx_toggled_synced,
-        12 => tx_cmul_ovfl_synced,
         others => '0');
 
     fpga2bus_rdack <= or_many(bus2fpga_rdce);

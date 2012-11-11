@@ -57,13 +57,11 @@ port(
 	core_n              : in  std_logic_vector(4 downto 0);
 	core_scale_sch      : in  std_logic_vector(11 downto 0);
 	core_scale_schi     : in  std_logic_vector(11 downto 0);
-	core_cmul_sch       : in  std_logic_vector(1 downto 0);
 	core_L              : in  std_logic_vector(11 downto 0);
 	core_iq             : in  std_logic;
 
 	core_ov_fft         : out std_logic;
 	core_ov_ifft        : out std_logic;
-	core_ov_cmul        : out std_logic;
 
 	core_busy           : out std_logic;
 	core_done           : out std_logic;
@@ -84,7 +82,6 @@ port(
     tx_toggled          : out std_logic;
     tx_frame_offset     : in  std_logic_vector(15 downto 0);
     tx_resync           : in  std_logic;
-    tx_cmul_ovfl        : out std_logic;
 	tx_busy				: out std_logic;
 
 -- mem
@@ -323,14 +320,12 @@ begin
 		core_n          => core_n,
 		core_scale_sch  => core_scale_sch,
 		core_scale_schi => core_scale_schi,
-		core_cmul_sch   => core_cmul_sch,
 		core_L          => core_L,
 		core_depth      => depth,
 		core_iq         => core_iq,
 
 		core_ov_fft     => core_ov_fft,
 		core_ov_ifft    => core_ov_ifft,
-		core_ov_cmul    => core_ov_cmul,
 
 		core_busy       => core_busy_i,
 		core_done       => core_done,
@@ -378,7 +373,6 @@ begin
 		toggled         => tx_toggled,
 		frame_offset    => tx_frame_offset,
 		resync          => tx_resync,
-		cmul_ovfl       => tx_cmul_ovfl,
 		busy			=> tx_busy_i,
 
 		mem_clk         => mem_clk_i,
