@@ -1,5 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_SIGNED.ALL;
 
 library work;
 use work.all;
@@ -272,7 +273,7 @@ begin
 -- tell the rest of the world what we're doing
 --------------------------------------------------------------------------
 
-    mem_busy <= '1' when state = UNLOAD else
+    mem_busy <= '1' when state = UNLOAD or state = LOAD else
                 '0';
     fft_unload <= '1' when state = UNLOAD else
                   '0';

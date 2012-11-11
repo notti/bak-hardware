@@ -22,7 +22,6 @@ architecture behav of tb_overlap_add is
     signal nfft         : std_logic_vector(4 downto 0) := "00110";
     signal scale_sch    : std_logic_vector(11 downto 0) := "011010101010";
     signal scale_schi   : std_logic_vector(11 downto 0) := "011010101010";
-    signal cmul_sch     : std_logic_vector(1 downto 0) := "10";
     signal L            : std_logic_vector(11 downto 0) := X"023"; -- 35
     signal n            : std_logic_vector(15 downto 0) := X"0190"; -- 400
     signal iq           : std_logic := '0';
@@ -114,14 +113,17 @@ begin
         end if;
     end process;
 
-    h_re_in_dly <= (others => '0') when h_index >= X"040" else
-                    CONV_STD_LOGIC_VECTOR(H_re(IEEE.STD_LOGIC_UNSIGNED.conv_integer(h_index)),16);
-    h_im_in_dly <= (others => '0') when h_index >= X"040" else
-                    CONV_STD_LOGIC_VECTOR(H_im(IEEE.STD_LOGIC_UNSIGNED.conv_integer(h_index)),16);
 
     h_mem: process(clk)
     begin
         if clk = '1' and clk'event then
+            if h_index >= X"040" then
+                h_re_in_dly <= (others => '0');
+                h_im_in_dly <= (others => '0');
+            else
+                h_im_in_dly <= CONV_STD_LOGIC_VECTOR(H_im(IEEE.STD_LOGIC_UNSIGNED.conv_integer(h_index)),16);
+                h_re_in_dly <= CONV_STD_LOGIC_VECTOR(H_re(IEEE.STD_LOGIC_UNSIGNED.conv_integer(h_index)),16);
+            end if;
             h_re_in <= h_re_in_dly;
             h_im_in <= h_im_in_dly;
         end if;
@@ -151,9 +153,8 @@ begin
     nfft         => nfft,
     scale_sch    => scale_sch,
     scale_schi   => scale_schi,
-    cmul_sch     => cmul_sch,
     L            => L,
-    n            => n,
+    Nx           => n,
     iq           => iq,
 
     wave_index   => wave_index,
@@ -173,7 +174,6 @@ begin
 
     ovfl_fft    => ovfl_fft,
     ovfl_ifft   => ovfl_ifft,
-    ovfl_cmul   => ovfl_cmul,
     busy         => busy,
     done         => done
             );
