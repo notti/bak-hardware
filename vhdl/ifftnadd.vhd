@@ -114,7 +114,7 @@ begin
                             state <= WAIT_IFFT;
                         end if;
                     when UNLOAD =>
-                        if dv_3 = '0' then
+                        if dv = '0' and dv_3 = '0' then
                             state <= INCR;
                         else
                             state <= UNLOAD;
@@ -146,7 +146,8 @@ begin
                  '0';
 
     scratch_index <= addr_cnt_3 when state = LOAD_SCRATCH else
-                     xn_index;
+                     xn_index when state = LOAD_IFFT else
+                     xk_index;
     --scratch: 2 read cycles; fft 3 -> delay by one
     xn_dly: process(clk)
     begin
@@ -185,13 +186,13 @@ begin
     y_index_dly: process(clk)
     begin
         if rising_edge(clk) then
-            y_index <= addr_2;
+            y_index <= addr;
         end if;
     end process y_index_dly;
 
     scratch_re_out <= y_re_in;
     scratch_im_out <= y_im_in;
-    scratch_wr <= '1' when addr_cnt > 3 and state = LOAD_SCRATCH else -- OK?
+    scratch_wr <= '1' when addr_cnt > 2 and state = LOAD_SCRATCH else
                   '0';
 
 --------------------------------------------------------------------------
@@ -249,7 +250,8 @@ begin
         end if;
     end process dv_dly;
 
-    y_wr <= dv_if_2;
+    y_wr <= dv_if_2 when state = UNLOAD else
+            '0';
 
 --------------------------------------------------------------------------
 -- tell the rest of the world what we're doing

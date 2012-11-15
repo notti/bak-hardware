@@ -66,7 +66,7 @@ begin
         variable txt: LINE;
         variable i: natural:=0;
     begin
-        wait for 55 us;
+        wait until done='1';
         for i in 0 to 500 loop
             WRITE(txt, i, RIGHT, 3);
             --WRITE(txt, ": ");
@@ -75,6 +75,7 @@ begin
             WRITE(txt, y_im(i), RIGHT, 15);
             WRITELINE(OUTPUT, txt);
         end loop;
+        assert false report "done" severity failure;
         wait;
     end process print_p;
     
