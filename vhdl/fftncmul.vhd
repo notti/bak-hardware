@@ -75,7 +75,6 @@ architecture Structural of fftncmul is
     signal nzero_pad_3  : std_logic;
     signal do_fft       : std_logic;
     signal do_fft_1     : std_logic;
-    signal do_fft_2     : std_logic;
     signal wave_run     : std_logic;
     signal xk_re_1      : std_logic_vector(15 downto 0);
     signal xk_re_2      : std_logic_vector(15 downto 0);
@@ -122,7 +121,7 @@ begin
                             state <= WAIT_FFT;
                         end if;
                     when UNLOAD =>
-                        if dv_6 = '0' then
+                        if dv ='0' and dv_6 = '0' then
                             state <= FINISHED;
                         else
                             state <= UNLOAD;
@@ -170,11 +169,9 @@ begin
                 addr_cnt <= (others => '0');
                 do_fft <= '0';
                 do_fft_1 <= '0';
-                do_fft_2 <= '0';
             else
                 do_fft <= '1';
                 do_fft_1 <= do_fft;
-                do_fft_2 <= do_fft_1;
                 addr_cnt <= addr_cnt + 1;
             end if;
         end if;
@@ -182,7 +179,7 @@ begin
 
     -- delay fft start by 1 cycle (start takes 1 cycle + 3 cycle pre
     -- load = 4; + 1 delayed = 5)
-    start_fft <= do_fft_1 xor do_fft_2;
+    start_fft <= do_fft xor do_fft_1;
 
     addr <= addr_cnt + block_cnt;
     xn_addr <= addr;
