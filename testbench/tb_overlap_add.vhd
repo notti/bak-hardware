@@ -1,8 +1,7 @@
 library IEEE;
         use IEEE.STD_LOGIC_1164.ALL;
-        use IEEE.STD_LOGIC_SIGNED.ALL;
-        use IEEE.STD_LOGIC_UNSIGNED.conv_integer;
-        use IEEE.STD_LOGIC_ARITH.ALL;
+        use IEEE.NUMERIC_STD.ALL;
+        use IEEE.STD_LOGIC_UNSIGNED.ALL;
 library std;
         use std.textio.all;
 library UNISIM;
@@ -27,18 +26,18 @@ architecture behav of tb_overlap_add is
     signal iq           : std_logic := '0';
 
     signal wave_index   : std_logic_vector(3 downto 0) := X"0";
-    signal x_in         : std_logic_vector(15 downto 0);
+    signal x_in         : signed(15 downto 0);
     signal x_index      : std_logic_vector(15 downto 0);
 
-    signal y_re_in      : std_logic_vector(15 downto 0);
-    signal y_im_in      : std_logic_vector(15 downto 0);
-    signal y_re_out     : std_logic_vector(15 downto 0);
-    signal y_im_out     : std_logic_vector(15 downto 0);
+    signal y_re_in      : signed(15 downto 0);
+    signal y_im_in      : signed(15 downto 0);
+    signal y_re_out     : signed(15 downto 0);
+    signal y_im_out     : signed(15 downto 0);
     signal y_index      : std_logic_vector(15 downto 0);
     signal y_we         : std_logic;
 
-    signal h_re_in      : std_logic_vector(15 downto 0);
-    signal h_im_in      : std_logic_vector(15 downto 0);
+    signal h_re_in      : signed(15 downto 0);
+    signal h_im_in      : signed(15 downto 0);
     signal h_index      : std_logic_vector(11 downto 0);
 
     signal ovfl_fft    : std_logic;
@@ -53,13 +52,13 @@ architecture behav of tb_overlap_add is
     (28420,3794,-16825,-2410,-2179,-1389,-1598,-2256,-680,-3081,-77,-3407,-54,-3133,-618,-2351,-1571,-1331,-2557,-456,-3254,-17,-3404,-170,-2961,-855,-2097,-1850,-1080,-2779,-297,-3350,0,-3350,-297,-2779,-1080,-1850,-2097,-855,-2961,-170,-3404,-17,-3254,-456,-2557,-1331,-1571,-2351,-618,-3133,-54,-3407,-77,-3081,-680,-2256,-1598,-1389,-2179,-2410,-16825,3794);
     constant H_im : field:=
     (0,-25577,-5104,5096,-1456,1533,-1947,1352,-1643,772,-779,-167,271,-1121,1155,-1744,1571,-1795,1367,-1276,647,-340,-335,678,-1227,1427,-1721,1677,-1617,1314,-979,497,0,-497,979,-1314,1617,-1677,1721,-1427,1227,-678,335,340,-647,1276,-1367,1795,-1571,1744,-1155,1121,-271,167,779,-772,1643,-1352,1947,-1533,1456,-5096,5104,25577);
-    signal x_in_dly : std_logic_vector(15 downto 0);
-    signal h_re_in_dly : std_logic_vector(15 downto 0);
-    signal h_im_in_dly : std_logic_vector(15 downto 0);
+    signal x_in_dly : signed(15 downto 0);
+    signal h_re_in_dly : signed(15 downto 0);
+    signal h_im_in_dly : signed(15 downto 0);
     signal y_re : field(65535 downto 0);
     signal y_im : field(65535 downto 0);
-    signal y_re_dly : std_logic_vector(15 downto 0);
-    signal y_im_dly : std_logic_vector(15 downto 0);
+    signal y_re_dly : signed(15 downto 0);
+    signal y_im_dly : signed(15 downto 0);
 begin
 
     print_p: process
@@ -108,7 +107,7 @@ begin
             if x_index >= X"01AE" then
                 x_in_dly <= (others => '0');
             else
-                x_in_dly <= CONV_STD_LOGIC_VECTOR(x(IEEE.STD_LOGIC_UNSIGNED.conv_integer(x_index)),16);
+                x_in_dly <= to_signed(x(conv_integer(x_index)),16);
             end if;
             x_in <= x_in_dly;
         end if;
@@ -122,8 +121,8 @@ begin
                 h_re_in_dly <= (others => '0');
                 h_im_in_dly <= (others => '0');
             else
-                h_im_in_dly <= CONV_STD_LOGIC_VECTOR(H_im(IEEE.STD_LOGIC_UNSIGNED.conv_integer(h_index)),16);
-                h_re_in_dly <= CONV_STD_LOGIC_VECTOR(H_re(IEEE.STD_LOGIC_UNSIGNED.conv_integer(h_index)),16);
+                h_im_in_dly <= to_signed(H_im(conv_integer(h_index)),16);
+                h_re_in_dly <= to_signed(H_re(conv_integer(h_index)),16);
             end if;
             h_re_in <= h_re_in_dly;
             h_im_in <= h_im_in_dly;
@@ -133,11 +132,11 @@ begin
     y_mem: process(clk)
     begin
         if clk = '1' and clk'event then
-            y_re_dly <= CONV_STD_LOGIC_VECTOR(y_re(IEEE.STD_LOGIC_UNSIGNED.conv_integer(y_index)),16);
-            y_im_dly <= CONV_STD_LOGIC_VECTOR(y_im(IEEE.STD_LOGIC_UNSIGNED.conv_integer(y_index)),16);
+            y_re_dly <= to_signed(y_re(conv_integer(y_index)),16);
+            y_im_dly <= to_signed(y_im(conv_integer(y_index)),16);
             if y_we = '1' then
-                y_re(IEEE.STD_LOGIC_UNSIGNED.conv_integer(y_index)) <= IEEE.STD_LOGIC_SIGNED.conv_integer(y_re_out);
-                y_im(IEEE.STD_LOGIC_UNSIGNED.conv_integer(y_index)) <= IEEE.STD_LOGIC_SIGNED.conv_integer(y_im_out);
+                y_re(conv_integer(y_index)) <= to_integer(y_re_out);
+                y_im(conv_integer(y_index)) <= to_integer(y_im_out);
             end if;
             y_re_in <= y_re_dly;
             y_im_in <= y_im_dly;
