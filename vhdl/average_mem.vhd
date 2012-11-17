@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_SIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 library UNISIM;
 use UNISIM.VComponents.all;
@@ -62,6 +62,9 @@ architecture Structural of average_mem is
 
     signal wea_shift    : std_logic_vector(18 downto 0);
     signal web_shift    : std_logic_vector(18 downto 0);
+
+    signal data0        : signed(18 downto 0);
+    signal dataadd      : signed(18 downto 0);
 begin
 
     active <= '1' when state = FIRST or state = RUN else
@@ -183,8 +186,10 @@ begin
               (others => '0');
     web_i  <= web_shift when ext = '1' else
               (others => '0');
-    dina_i <= SXT(data, 19) when ext = '0' and cycle_cnt = "00" else
-              SXT(data, 19) + doutb_i when ext = '0' and cycle_cnt /= "00" else
+    data0   <= resize(signed(data), 19);
+    dataadd <= resize(signed(data), 19) + signed(doutb_i);
+    dina_i <= std_logic_vector(data0) when ext = '0' and cycle_cnt = "00" else
+              std_logic_vector(dataadd) when ext = '0' and cycle_cnt /= "00" else
               ("00" & dina & "0") when width_i = "01" else
               ("0" & dina & "00") when width_i = "10" else
               (dina & "000") when width_i = "11" else

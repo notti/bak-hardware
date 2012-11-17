@@ -163,6 +163,8 @@ architecture Structural of main is
 	signal tx_rst_i			   : std_logic;
 	signal tx_toggle_buf_i	   : std_logic;
 	signal tx_busy_i		   : std_logic;
+
+    signal mem_extern_inbuf    : std_logic;
 begin
 
 	-- mem access handling
@@ -207,6 +209,7 @@ begin
 	mem_doutoi    <= mem_doutoi_i;
 	mem_addroa_i  <= mem_addroa;
 	mem_doutoa    <= mem_doutoa_i;
+    mem_extern_inbuf <= mem_extern or core_busy_i;
     
 	-- entities
 
@@ -247,7 +250,7 @@ begin
 		frame_index         => open, -- don't we need this?
 		frame_clk           => frame_clk_i,
 		wave_index          => wave_index,
-		mem_en              => mem_extern,
+		mem_en              => mem_extern_inbuf,
 		mem_clk             => mem_clk_i,
 		mem_dina            => mem_dinia,
 		mem_addra           => mem_addria_i,
@@ -258,6 +261,7 @@ begin
 		mem_web             => mem_weaib_i,
 		mem_doutb           => mem_doutib
 	);
+
 
 	trig_armed <= trig_armed_i;
 	trig_trigd <= trig_trigd_i;

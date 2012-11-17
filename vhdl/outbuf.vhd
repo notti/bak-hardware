@@ -2,8 +2,9 @@
 -- Output buffer
 -----------------------------------------------------------
 library IEEE;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 library UNISIM;
 use UNISIM.VComponents.all;
@@ -70,6 +71,9 @@ architecture Structural of outbuf is
     signal i                 : std_logic_vector(15 downto 0);
     signal q                 : std_logic_vector(15 downto 0);
 
+    signal c_re              : signed(15 downto 0);
+    signal c_im              : signed(15 downto 0);
+
 begin
 
     depth_r_proc: process(clk, rst, depth)
@@ -135,24 +139,24 @@ begin
 
     toggled <= active xor active_r;
 
-    outbuf_mem_0: entity work.ram48xi
-    generic map(
-        WIDTH               => 32,
-        DOA_REG             => 1,
-        DOB_REG             => 1
-    )
-    port map (
-        clka                => clk,
-        dina                => "00000000000000000000000000000000",
-        addra               => frame_addr,
-        wea                 => "00000000000000000000000000000000",
-        douta               => dout0,
-        clkb                => mem_clk,
-        dinb                => mem_dini,
-        addrb               => mem_addr0,
-        web                 => mem_we0,
-        doutb               => mem_out0
-    );
+--    outbuf_mem_0: entity work.ram48xi
+--    generic map(
+--        WIDTH               => 32,
+--        DOA_REG             => 1,
+--        DOB_REG             => 1
+--    )
+--    port map (
+--        clka                => clk,
+--        dina                => "00000000000000000000000000000000",
+--        addra               => frame_addr,
+--        wea                 => "00000000000000000000000000000000",
+--        douta               => dout0,
+--        clkb                => mem_clk,
+--        dinb                => mem_dini,
+--        addrb               => mem_addr0,
+--        web                 => mem_we0,
+--        doutb               => mem_out0
+--    );
     outbuf_mem_1: entity work.ram48xi
     generic map(
         WIDTH               => 32,
@@ -204,15 +208,18 @@ begin
         end if;
     end process dout_p;
 
+    i <= std_logic_vector(c_re);
+    q <= std_logic_vector(c_im);
+
     cmul_i: entity work.cmul
     port map(
         clk          => clk,
-        a_re         => dout(15 downto 0),
-        a_im         => dout(31 downto 16),
-        b_re         => muli,
-        b_im         => mulq,
-        c_re         => i,
-        c_im         => q
+        a_re         => signed(dout(15 downto 0)),
+        a_im         => signed(dout(31 downto 16)),
+        b_re         => signed(muli),
+        b_im         => signed(mulq),
+        c_re         => c_re,
+        c_im         => c_im
     );
     
     e2(0) <= '1'; --VALID
