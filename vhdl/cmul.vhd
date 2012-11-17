@@ -1,7 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_SIGNED.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 library UNISIM;
 use UNISIM.VComponents.all;
@@ -12,12 +11,12 @@ use work.all;
 entity cmul is
 port(
     clk     : in std_logic;
-    a_re    : in std_logic_vector(15 downto 0);
-    a_im    : in std_logic_vector(15 downto 0);
-    b_re    : in std_logic_vector(15 downto 0);
-    b_im    : in std_logic_vector(15 downto 0);
-    c_re    : out std_logic_vector(15 downto 0);
-    c_im    : out std_logic_vector(15 downto 0)
+    a_re    : in signed(15 downto 0);
+    a_im    : in signed(15 downto 0);
+    b_re    : in signed(15 downto 0);
+    b_im    : in signed(15 downto 0);
+    c_re    : out signed(15 downto 0);
+    c_im    : out signed(15 downto 0)
 );
 end cmul;
 
@@ -32,13 +31,13 @@ architecture Structural of cmul is
     signal c_im_48  : std_logic_vector(47 downto 0);
 begin
 
-    a_re_30 <= SXT(a_re, 30);
-    b_re_18 <= SXT(b_re, 18);
-    a_im_30 <= SXT(a_im, 30);
-    b_im_18 <= SXT(b_im, 18);
+    a_re_30 <= std_logic_vector(resize(a_re, 30));
+    b_re_18 <= std_logic_vector(resize(b_re, 18));
+    a_im_30 <= std_logic_vector(resize(a_im, 30));
+    b_im_18 <= std_logic_vector(resize(b_im, 18));
 
-    c_re <= c_re_48(31 downto 16); --?
-    c_im <= c_im_48(31 downto 16); --?
+    c_re <= signed(c_re_48(31 downto 16));
+    c_im <= signed(c_im_48(31 downto 16));
 
     DSP48E_3 : DSP48E
     generic map (

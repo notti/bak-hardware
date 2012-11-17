@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 library UNISIM;
 use UNISIM.VComponents.all;
@@ -48,7 +48,12 @@ end core;
 architecture Structural of core is
     signal addra    : std_logic_vector(11 downto 0);
     signal douta    : std_logic_vector(31 downto 0);
+    signal y_re_out : signed(15 downto 0);
+    signal y_im_out : signed(15 downto 0);
 begin
+
+    mem_douty(15 downto 0) <= std_logic_vector(y_re_out);
+    mem_douty(31 downto 16) <= std_logic_vector(y_im_out);
 
     overlap_add_inst: entity work.overlap_add
     port map(
@@ -64,18 +69,18 @@ begin
         iq           => core_iq,
 
         wave_index   => wave_index,
-        x_in         => mem_dinx,
+        x_in         => signed(mem_dinx),
         x_index      => mem_addrx,
 
-        y_re_in      => mem_diny(15 downto 0),
-        y_im_in      => mem_diny(31 downto 16),
-        y_re_out     => mem_douty(15 downto 0),
-        y_im_out     => mem_douty(31 downto 16),
+        y_re_in      => signed(mem_diny(15 downto 0)),
+        y_im_in      => signed(mem_diny(31 downto 16)),
+        y_re_out     => y_re_out,
+        y_im_out     => y_im_out,
         y_index      => mem_addry,
         y_we         => mem_wey,
 
-        h_re_in      => douta(15 downto 0),
-        h_im_in      => douta(31 downto 16),
+        h_re_in      => signed(douta(15 downto 0)),
+        h_im_in      => signed(douta(31 downto 16)),
         h_index      => addra,
 
         ovfl_fft     => core_ov_fft,

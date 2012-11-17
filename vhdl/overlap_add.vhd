@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 library UNISIM;
 use UNISIM.VComponents.all;
@@ -22,18 +22,18 @@ port(
     iq           : in std_logic;
 
     wave_index   : in std_logic_vector(3 downto 0);
-    x_in         : in std_logic_vector(15 downto 0);
+    x_in         : in signed(15 downto 0);
     x_index      : out std_logic_vector(15 downto 0);
 
-    y_re_in      : in std_logic_vector(15 downto 0);
-    y_im_in      : in std_logic_vector(15 downto 0);
-    y_re_out     : out std_logic_vector(15 downto 0);
-    y_im_out     : out std_logic_vector(15 downto 0);
+    y_re_in      : in signed(15 downto 0);
+    y_im_in      : in signed(15 downto 0);
+    y_re_out     : out signed(15 downto 0);
+    y_im_out     : out signed(15 downto 0);
     y_index      : out std_logic_vector(15 downto 0);
     y_we         : out std_logic;
 
-    h_re_in      : in std_logic_vector(15 downto 0);
-    h_im_in      : in std_logic_vector(15 downto 0);
+    h_re_in      : in signed(15 downto 0);
+    h_im_in      : in signed(15 downto 0);
     h_index      : out std_logic_vector(11 downto 0);
 
     ovfl_fft     : out std_logic;
@@ -103,20 +103,22 @@ end component;
     signal fft_mem : std_logic;
 	signal xn_index   : std_logic_vector(11 downto 0);
 	signal xk_index   : std_logic_vector(11 downto 0);
-	signal xk_re      : std_logic_vector(15 downto 0);
-	signal xk_im      : std_logic_vector(15 downto 0);
-	signal xn_re      : std_logic_vector(15 downto 0);
-	signal xn_im      : std_logic_vector(15 downto 0);
-	signal fft_xn_re      : std_logic_vector(15 downto 0);
-	signal fft_xn_im      : std_logic_vector(15 downto 0);
-	signal ifft_xn_re      : std_logic_vector(15 downto 0);
-	signal ifft_xn_im      : std_logic_vector(15 downto 0);
-    signal fft_scratch_re   : std_logic_vector(15 downto 0);
-    signal fft_scratch_im   : std_logic_vector(15 downto 0);
+	signal xk_re      : signed(15 downto 0);
+	signal xk_im      : signed(15 downto 0);
+	signal xn_re      : signed(15 downto 0);
+	signal xn_im      : signed(15 downto 0);
+    signal xk_im_slv  : std_logic_vector(15 downto 0);
+    signal xk_re_slv  : std_logic_vector(15 downto 0);
+	signal fft_xn_re      : signed(15 downto 0);
+	signal fft_xn_im      : signed(15 downto 0);
+	signal ifft_xn_re      : signed(15 downto 0);
+	signal ifft_xn_im      : signed(15 downto 0);
+    signal fft_scratch_re   : signed(15 downto 0);
+    signal fft_scratch_im   : signed(15 downto 0);
     signal fft_scratch_wr   : std_logic;
     signal fft_scratch_index : std_logic_vector(11 downto 0);
-    signal ifft_scratch_re   : std_logic_vector(15 downto 0);
-    signal ifft_scratch_im   : std_logic_vector(15 downto 0);
+    signal ifft_scratch_re   : signed(15 downto 0);
+    signal ifft_scratch_im   : signed(15 downto 0);
     signal ifft_scratch_wr   : std_logic;
     signal ifft_scratch_index : std_logic_vector(11 downto 0);
     signal fft_unload   :std_logic;
@@ -274,8 +276,8 @@ begin
         xk_im        => xk_im,
         xk_index     => xk_index,
 
-        scratch_re_in=> scratch_dout(15 downto 0),
-        scratch_im_in=> scratch_dout(31 downto 16),
+        scratch_re_in=> signed(scratch_dout(15 downto 0)),
+        scratch_im_in=> signed(scratch_dout(31 downto 16)),
         scratch_re_out=> ifft_scratch_re,
         scratch_im_out=> ifft_scratch_im,
         scratch_wr   => ifft_scratch_wr,
@@ -298,8 +300,8 @@ begin
         done         => ifftnadd_done
     );
 
-    scratch_din <= fft_scratch_im & fft_scratch_re when fft_mem = '1' else
-                   ifft_scratch_im & ifft_scratch_re;
+    scratch_din <= std_logic_vector(fft_scratch_im) & std_logic_vector(fft_scratch_re) when fft_mem = '1' else
+                   std_logic_vector(ifft_scratch_im) & std_logic_vector(ifft_scratch_re);
     scratch_we <= fft_scratch_wr when fft_mem = '1' else
                   ifft_scratch_wr;
     scratch_addr <= fft_scratch_index when fft_mem = '1' else
@@ -337,12 +339,15 @@ begin
                         ovfl_fft <= '1';
                     end if;
                     if ifft_unload = '1' then
-                        ovfl_fft <= '1';
+                        ovfl_ifft <= '1';
                     end if;
                 end if;
             end if;
         end if;
     end process ovfl_p;
+
+    xk_im <= signed(xk_im_slv);
+    xk_re <= signed(xk_re_slv);
 
     fft_inst: fft
     port map(
@@ -360,12 +365,12 @@ begin
         edone        => edone,
         ovflo        => ovflo,
         scale_sch    => scale_sch_fft,
-        xn_re        => xn_re,
-        xk_im        => xk_im,
+        xn_re        => std_logic_vector(xn_re),
+        xk_im        => xk_im_slv,
         xn_index     => xn_index,
         nfft         => nfft,
-        xk_re        => xk_re,
-        xn_im        => xn_im,
+        xk_re        => xk_re_slv,
+        xn_im        => std_logic_vector(xn_im),
         xk_index     => xk_index
     );
 

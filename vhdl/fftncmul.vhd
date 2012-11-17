@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_SIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 library work;
 use work.all;
@@ -20,21 +21,21 @@ port(
     iq           : in  std_logic;
 
     xn_addr      : out std_logic_vector(15 downto 0);
-    xn_in        : in  std_logic_vector(15 downto 0);
+    xn_in        : in  signed(15 downto 0);
 
-    xn_re        : out std_logic_vector(15 downto 0);
-    xn_im        : out std_logic_vector(15 downto 0);
+    xn_re        : out signed(15 downto 0);
+    xn_im        : out signed(15 downto 0);
 
-    xk_re        : in  std_logic_vector(15 downto 0);
-    xk_im        : in  std_logic_vector(15 downto 0);
+    xk_re        : in  signed(15 downto 0);
+    xk_im        : in  signed(15 downto 0);
     xk_index     : in  std_logic_vector(11 downto 0);
 
-    H_re         : in  std_logic_vector(15 downto 0);
-    H_im         : in  std_logic_vector(15 downto 0);
+    H_re         : in  signed(15 downto 0);
+    H_im         : in  signed(15 downto 0);
     H_index      : out std_logic_vector(11 downto 0);
 
-    scratch_re   : out std_logic_vector(15 downto 0);
-    scratch_im   : out std_logic_vector(15 downto 0);
+    scratch_re   : out signed(15 downto 0);
+    scratch_im   : out signed(15 downto 0);
     scratch_wr   : out std_logic;
     scratch_index: out std_logic_vector(11 downto 0);
 
@@ -58,8 +59,8 @@ architecture Structural of fftncmul is
     signal block_cnt    : std_logic_vector(15 downto 0);
     signal addr         : std_logic_vector(15 downto 0);
     signal addr_1       : std_logic_vector(15 downto 0);
-    signal re           : std_logic_vector(15 downto 0);
-    signal im           : std_logic_vector(15 downto 0);
+    signal re           : signed(15 downto 0);
+    signal im           : signed(15 downto 0);
     signal addr_l_L     : std_logic;
     signal addr_l_Nx    : std_logic;
     signal addr_l_NH    : std_logic;
@@ -75,11 +76,12 @@ architecture Structural of fftncmul is
     signal nzero_pad_3  : std_logic;
     signal do_fft       : std_logic;
     signal do_fft_1     : std_logic;
+    signal do_fft_2     : std_logic;
     signal wave_run     : std_logic;
-    signal xk_re_1      : std_logic_vector(15 downto 0);
-    signal xk_re_2      : std_logic_vector(15 downto 0);
-    signal xk_im_1      : std_logic_vector(15 downto 0);
-    signal xk_im_2      : std_logic_vector(15 downto 0);
+    signal xk_re_1      : signed(15 downto 0);
+    signal xk_re_2      : signed(15 downto 0);
+    signal xk_im_1      : signed(15 downto 0);
+    signal xk_im_2      : signed(15 downto 0);
     signal xk_index_1   : std_logic_vector(11 downto 0);
     signal xk_index_2   : std_logic_vector(11 downto 0);
     signal xk_index_3   : std_logic_vector(11 downto 0);
@@ -169,9 +171,11 @@ begin
                 addr_cnt <= (others => '0');
                 do_fft <= '0';
                 do_fft_1 <= '0';
+                do_fft_2 <= '0';
             else
                 do_fft <= '1';
                 do_fft_1 <= do_fft;
+                do_fft_2 <= do_fft_1;
                 addr_cnt <= addr_cnt + 1;
             end if;
         end if;
@@ -179,7 +183,7 @@ begin
 
     -- delay fft start by 1 cycle (start takes 1 cycle + 3 cycle pre
     -- load = 4; + 1 delayed = 5)
-    start_fft <= do_fft xor do_fft_1;
+    start_fft <= do_fft_1 xor do_fft_2;
 
     addr <= addr_cnt + block_cnt;
     xn_addr <= addr;

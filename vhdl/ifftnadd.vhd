@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_SIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 library work;
 use work.all;
@@ -18,26 +19,26 @@ port(
     NH           : in  std_logic_vector(15 downto 0);
     Nx           : in  std_logic_vector(15 downto 0);
 
-    xn_re        : out std_logic_vector(15 downto 0);
-    xn_im        : out std_logic_vector(15 downto 0);
+    xn_re        : out signed(15 downto 0);
+    xn_im        : out signed(15 downto 0);
     xn_index     : in  std_logic_vector(11 downto 0);
 
-    xk_re        : in  std_logic_vector(15 downto 0);
-    xk_im        : in  std_logic_vector(15 downto 0);
+    xk_re        : in  signed(15 downto 0);
+    xk_im        : in  signed(15 downto 0);
     xk_index     : in  std_logic_vector(11 downto 0);
 
-    scratch_re_in: in  std_logic_vector(15 downto 0);
-    scratch_im_in: in  std_logic_vector(15 downto 0);
-    scratch_re_out:out std_logic_vector(15 downto 0);
-    scratch_im_out:out std_logic_vector(15 downto 0);
+    scratch_re_in: in  signed(15 downto 0);
+    scratch_im_in: in  signed(15 downto 0);
+    scratch_re_out:out signed(15 downto 0);
+    scratch_im_out:out signed(15 downto 0);
     scratch_wr   : out std_logic;
     scratch_index: out std_logic_vector(11 downto 0);
 
     y_index      : out std_logic_vector(15 downto 0);
-    y_re_in      : in  std_logic_vector(15 downto 0);
-    y_im_in      : in  std_logic_vector(15 downto 0);
-    y_re_out     : out std_logic_vector(15 downto 0);
-    y_im_out     : out std_logic_vector(15 downto 0);
+    y_re_in      : in  signed(15 downto 0);
+    y_im_in      : in  signed(15 downto 0);
+    y_re_out     : out signed(15 downto 0);
+    y_im_out     : out signed(15 downto 0);
     y_wr         : out std_logic;
 
     start_fft    : out std_logic;
@@ -61,10 +62,10 @@ architecture Structural of ifftnadd is
     signal addr_cnt_1   : std_logic_vector(11 downto 0);
     signal addr_cnt_2   : std_logic_vector(11 downto 0);
     signal addr_cnt_3   : std_logic_vector(11 downto 0);
-    signal xk_re_1      : std_logic_vector(15 downto 0);
-    signal xk_re_2      : std_logic_vector(15 downto 0);
-    signal xk_im_1      : std_logic_vector(15 downto 0);
-    signal xk_im_2      : std_logic_vector(15 downto 0);
+    signal xk_re_1      : signed(15 downto 0);
+    signal xk_re_2      : signed(15 downto 0);
+    signal xk_im_1      : signed(15 downto 0);
+    signal xk_im_2      : signed(15 downto 0);
     signal addr_1       : std_logic_vector(15 downto 0);
     signal addr_2       : std_logic_vector(15 downto 0);
     signal addr         : std_logic_vector(15 downto 0);
@@ -77,8 +78,8 @@ architecture Structural of ifftnadd is
     signal do_add       : std_logic;
     signal do_add_1     : std_logic;
     signal do_add_2     : std_logic;
-    signal y_re         : std_logic_vector(15 downto 0);
-    signal y_im         : std_logic_vector(15 downto 0);
+    signal y_re         : signed(15 downto 0);
+    signal y_im         : signed(15 downto 0);
 
 begin
 
