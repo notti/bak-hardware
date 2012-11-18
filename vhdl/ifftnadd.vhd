@@ -191,8 +191,10 @@ begin
         end if;
     end process y_index_dly;
 
-    scratch_re_out <= y_re_in;
-    scratch_im_out <= y_im_in;
+    scratch_re_out <= (others => '0') when block_cnt = "0000" else
+                      y_re_in;
+    scratch_im_out <= (others => '0') when block_cnt = "0000" else
+                      y_im_in;
     scratch_wr <= '1' when addr_cnt > 2 and state = LOAD_SCRATCH else
                   '0';
 

@@ -44,5 +44,7 @@ vpath %.vhd ../vhdl:../wizard:.
 cmul.o: mul.o
 overlap_add.o: fft.o fftncmul.o ifftnadd.o ram4x32S.o
 fftncmul.o: cmul.o wave.o
+wave.o: mul.o convergent.o
+cmul.o: mul.o convergent.o
 average_mem.o: inbuf_mem.o
 toggle.o: flag.o procedures.o

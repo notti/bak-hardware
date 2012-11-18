@@ -120,7 +120,6 @@ end main;
 
 architecture Structural of main is
 
-	signal mem_extern_tmp	   : std_logic;
 	signal mem_extern		   : std_logic;
 	signal mem_clk_i		   : std_logic;
 
@@ -129,7 +128,6 @@ architecture Structural of main is
 	signal mem_addria_i		   : std_logic_vector(15 downto 0);
 	signal mem_weaia_i		   : std_logic_vector(1 downto 0);
 	signal mem_doutia_i		   : std_logic_vector(15 downto 0);
-	signal mem_addrib_i		   : std_logic_vector(15 downto 0);
 	signal mem_weaib_i		   : std_logic_vector(1 downto 0);
 	signal core_mem_diny	   : std_logic_vector(31 downto 0);
 	signal core_mem_addry	   : std_logic_vector(15 downto 0);
