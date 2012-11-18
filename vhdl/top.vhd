@@ -165,7 +165,6 @@ END COMPONENT;
     signal core_n              : std_logic_vector(4 downto 0);
     signal core_scale_sch      : std_logic_vector(11 downto 0);
     signal core_scale_schi     : std_logic_vector(11 downto 0);
-    signal core_cmul_sch       : std_logic_vector(1 downto 0);
     signal core_L              : std_logic_vector(11 downto 0);
     signal core_iq             : std_logic;
     signal core_ov_fft         : std_logic;

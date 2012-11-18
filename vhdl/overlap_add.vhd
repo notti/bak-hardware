@@ -99,7 +99,6 @@ end component;
     signal start_transform : std_logic;
     signal scale_sch_fft : std_logic_vector(11 downto 0);
 	signal ovflo    : std_logic;
-    signal ifft_mem : std_logic;
     signal fft_mem : std_logic;
 	signal xn_index   : std_logic_vector(11 downto 0);
 	signal xk_index   : std_logic_vector(11 downto 0);
@@ -295,7 +294,7 @@ begin
         dv           => dv,
         rfd          => rfd,
 
-        mem_busy     => ifft_mem,
+        mem_busy     => open,
         ifft_unload  => ifft_unload,
         done         => ifftnadd_done
     );

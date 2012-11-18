@@ -28,22 +28,16 @@ architecture Structural of wave is
     signal s: comp(0 to 9) :=
           --(      0,   31163,  -19260,  -19260,   31163,       0,  -31163,   19260,   19260,   -31163
             (X"0000", X"79BB", X"B4C4", X"B4C4", X"79BB", X"0000", X"8645", X"4B3C", X"4B3C", X"8645");
-    signal data_r : signed(15 downto 0);
+    signal s_value  : signed(15 downto 0);
+    signal c_value  : signed(15 downto 0);
+    signal data_r   : signed(15 downto 0);
     signal data_r_1 : signed(15 downto 0);
     signal data_r_2 : signed(15 downto 0);
     signal data_r_3 : signed(15 downto 0);
-    signal a_i    : signed(15 downto 0);
-    signal b_i    : signed(15 downto 0);
-    signal a_q    : signed(15 downto 0);
-    signal b_q    : signed(15 downto 0);
-    signal c_i    : signed(31 downto 0);
-    signal c_q    : signed(31 downto 0);
-    signal pipe_i_1 : signed(31 downto 0);
-    signal pipe_i_2 : signed(31 downto 0);
-    signal pipe_i_3 : signed(31 downto 0);
-    signal pipe_q_1 : signed(31 downto 0);
-    signal pipe_q_2 : signed(31 downto 0);
-    signal pipe_q_3 : signed(31 downto 0);
+    signal i_big    : signed(31 downto 0);
+    signal q_big    : signed(31 downto 0);
+    signal i_small  : signed(15 downto 0);
+    signal q_small  : signed(15 downto 0);
 begin
     cnt_p: process(clk, rst)
     begin
@@ -60,31 +54,39 @@ begin
         end if;
     end process cnt_p;
 
-    c_i <= a_i * b_i;
+    c_value <= c(conv_integer(cnt));
 
-    mul_i_p: process(clk)
-    begin
-        if rising_edge(clk) then
-            a_i <= data;
-            b_i <= c(conv_integer(cnt));
-            pipe_i_1 <= c_i;
-            pipe_i_2 <= pipe_i_1;
-            pipe_i_3 <= pipe_i_2;
-        end if;
-    end process;
-            
-    c_q <= a_q * b_q;
+    mul_i: entity work.mul
+    port map(
+        clk => clk,
+        a   => data,
+        b   => c_value,
+        c   => i_big
+    );
 
-    mul_q_p: process(clk)
-    begin
-        if rising_edge(clk) then
-            a_q <= data;
-            b_q <= c(conv_integer(cnt));
-            pipe_q_1 <= c_q;
-            pipe_q_2 <= pipe_q_1;
-            pipe_q_3 <= pipe_q_2;
-        end if;
-    end process;
+    i_round: entity work.convergent
+    port map(
+        clk => clk,
+        a   => i_big,
+        c   => i_small
+    );
+
+    s_value <= s(conv_integer(cnt));
+
+    mul_q: entity work.mul
+    port map(
+        clk => clk,
+        a   => data,
+        b   => s_value,
+        c   => q_big
+    );
+
+    q_round: entity work.convergent
+    port map(
+        clk => clk,
+        a   => q_big,
+        c   => q_small
+    );
 
     dly_p: process(clk)
     begin
@@ -97,9 +99,9 @@ begin
     end process dly_p;
 
 
-    i <= pipe_i_3(31 downto 16) when en = '1' else
+    i <= i_small when en = '1' else
          data_r_3;
-    q <= pipe_q_3(31 downto 16) when en = '1' else
+    q <= q_small when en = '1' else
          (others => '0');
 
 end Structural;
