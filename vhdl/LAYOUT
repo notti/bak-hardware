@@ -13,14 +13,20 @@ top
 |  |  +- overlap_add
 |  |  |  +- fft
 |  |  |  +- scratch
-|  |  |  +- fft_fsm
-|  |  |  +- wave
-|  |  |  +- cmul
-|  |  |  |  +- mul
-|  |  |  +- cadd
+|  |  |  +- fftncmul
+|  |  |  |  +- wave
+|  |  |  |  |  +- mul
+|  |  |  |  |  +- convergent
+|  |  |  |  +- cmul
+|  |  |  |     +- mul
+|  |  |  |     +- convergent
+|  |  |  +- ifftnadd
 |  |  +- h_mem
 |  +- outbuf
 |     +- outbuf_mem
+|     +- cmul
+|     |  +- mul
+|     |  +- convergent
 |     +- transmitter
 |        +- balance
 +- proc_register
