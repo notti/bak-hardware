@@ -129,6 +129,10 @@ end component;
     signal start_3  : std_logic;
     signal start_4  : std_logic;
     signal start_5  : std_logic;
+    signal next_block : std_logic;
+    signal ifft_waiting : std_logic;
+    signal fft_edone : std_logic;
+    signal ifft_mem : std_logic;
 
 begin
     fsm_p1: process(clk, rst)
@@ -211,8 +215,10 @@ begin
         end if;
     end process start_dly;
 
-    start_fftncmul <= '1' when start_5 = '1' or (ifftnadd_done = '1' and was_last = '0') else
+    start_fftncmul <= '1' when start_5 = '1' or (next_block = '1' and was_last = '0') else
                       '0';
+    fft_edone <= '0' when ifft_waiting = '1' else
+                 edone;
 
     fftncmul_i: entity work.fftncmul
     port map(
@@ -248,7 +254,7 @@ begin
         scratch_index=> fft_scratch_index,
 
         start_fft    => start_fft,
-        edone        => edone,
+        edone        => fft_edone,
         dv           => dv,
 
         mem_busy     => fft_mem,
@@ -298,16 +304,18 @@ begin
         dv           => dv,
         rfd          => rfd,
 
-        mem_busy     => open,
+        mem_busy     => ifft_mem,
         ifft_unload  => ifft_unload,
-        done         => ifftnadd_done
+        done         => ifftnadd_done,
+        waiting      => ifft_waiting,
+        next_block   => next_block
     );
 
-    scratch_din <= std_logic_vector(fft_scratch_im) & std_logic_vector(fft_scratch_re) when fft_mem = '1' else
+    scratch_din <= std_logic_vector(fft_scratch_im) & std_logic_vector(fft_scratch_re) when fft_mem = '1' and ifft_mem = '0' else
                    std_logic_vector(ifft_scratch_im) & std_logic_vector(ifft_scratch_re);
-    scratch_we <= fft_scratch_wr when fft_mem = '1' else
+    scratch_we <= fft_scratch_wr when fft_mem = '1' and ifft_mem = '0' else
                   ifft_scratch_wr;
-    scratch_addr <= fft_scratch_index when fft_mem = '1' else
+    scratch_addr <= fft_scratch_index when fft_mem = '1' and ifft_mem = '0' else
                     ifft_scratch_index;
 
     scratch_i: entity work.ram4x32S
