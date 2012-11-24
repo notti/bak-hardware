@@ -59,6 +59,7 @@ port(
 	core_scale_schi     : in  std_logic_vector(11 downto 0);
 	core_L              : in  std_logic_vector(11 downto 0);
 	core_iq             : in  std_logic;
+    core_circular       : in std_logic;
 
 	core_ov_fft         : out std_logic;
 	core_ov_ifft        : out std_logic;
@@ -325,6 +326,7 @@ begin
 		core_L          => core_L,
 		core_depth      => depth,
 		core_iq         => core_iq,
+        core_circular   => core_circular,
 
 		core_ov_fft     => core_ov_fft,
 		core_ov_ifft    => core_ov_ifft,

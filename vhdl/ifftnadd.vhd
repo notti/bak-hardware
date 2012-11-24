@@ -18,6 +18,7 @@ port(
     L            : in  std_logic_vector(11 downto 0);
     NH           : in  std_logic_vector(15 downto 0);
     Nx           : in  std_logic_vector(15 downto 0);
+    circular     : in  std_logic;
 
     xn_re        : out signed(15 downto 0);
     xn_im        : out signed(15 downto 0);
@@ -54,7 +55,7 @@ end ifftnadd;
 
 architecture Structural of ifftnadd is
     --TODO CYCLIC insert
-    type fft_fsm_type is (INACTIVE, LOAD_IFFT, LOAD_SCRATCH, WAIT_IFFT, UNLOAD, INCR, FINISHED);
+    type fft_fsm_type is (INACTIVE, LOAD_IFFT, LOAD_SCRATCH, WAIT_IFFT, UNLOAD, YADD2SCRATCH, SCRATCH2Y, INCR, FINISHED);
 
     signal state : fft_fsm_type;
     signal block_cnt    : std_logic_vector(15 downto 0);
@@ -80,6 +81,19 @@ architecture Structural of ifftnadd is
     signal do_add_2     : std_logic;
     signal y_re         : signed(15 downto 0);
     signal y_im         : signed(15 downto 0);
+    signal y_re_1       : signed(15 downto 0);
+    signal y_im_1       : signed(15 downto 0);
+    signal lowhi        : std_logic;
+    signal circ_cnt     : std_logic_vector(11 downto 0);
+    signal circ_cnt_1   : std_logic_vector(11 downto 0);
+    signal circ_cnt_2   : std_logic_vector(11 downto 0);
+    signal circ_cnt_3   : std_logic_vector(11 downto 0);
+    signal y_index_1    : std_logic_vector(15 downto 0);
+    signal y_re_in_1    : signed(15 downto 0);
+    signal y_im_in_1    : signed(15 downto 0);
+    signal scratch_cnt  : std_logic_vector(11 downto 0);
+    signal scratch_cnt_1: std_logic_vector(11 downto 0);
+    signal scratch_cnt_2: std_logic_vector(11 downto 0);
 
 begin
 
@@ -116,9 +130,25 @@ begin
                         end if;
                     when UNLOAD =>
                         if dv = '0' and dv_3 = '0' then
-                            state <= INCR;
+                            if circular = '1' and is_last = '1' then
+                                state <= YADD2SCRATCH;
+                            else
+                                state <= INCR;
+                            end if;
                         else
                             state <= UNLOAD;
+                        end if;
+                    when YADD2SCRATCH =>
+                        if circ_cnt_3 = Nh - L - 1 then
+                            state <= SCRATCH2Y;
+                        else
+                            state <= YADD2SCRATCH;
+                        end if;
+                    when SCRATCH2Y =>
+                        if scratch_cnt = Nh - L - 2 then
+                            state <= INCR;
+                        else
+                            state <= SCRATCH2Y;
                         end if;
                     when INCR => state <= FINISHED;
                     when FINISHED => state <= INACTIVE;
@@ -146,7 +176,9 @@ begin
     start_fft <= '1' when state = INACTIVE and run = '1' else
                  '0';
 
-    scratch_index <= addr_cnt_3 when state = LOAD_SCRATCH else
+    scratch_index <= scratch_cnt when state = SCRATCH2Y else
+                     circ_cnt_3 when state = YADD2SCRATCH else
+                     addr_cnt_3 when state = LOAD_SCRATCH else
                      xn_index when state = LOAD_IFFT else
                      xk_index;
     --scratch: 2 read cycles; fft 3 -> delay by one
@@ -187,15 +219,23 @@ begin
     y_index_dly: process(clk)
     begin
         if rising_edge(clk) then
-            y_index <= addr;
+            y_index_1 <= addr;
         end if;
     end process y_index_dly;
 
-    scratch_re_out <= (others => '0') when block_cnt = "0000" else
+    y_index <= "0000" & circ_cnt when state = YADD2SCRATCH and lowhi = '0' else
+               circ_cnt + Nx when state = YADD2SCRATCH and lowhi = '1' else
+               "0000" & scratch_cnt_2 when state = SCRATCH2Y else
+               y_index_1;
+
+    scratch_re_out <= y_re_in + y_re_in_1 when state = YADD2SCRATCH else
+                      (others => '0') when block_cnt = "0000" else
                       y_re_in;
-    scratch_im_out <= (others => '0') when block_cnt = "0000" else
+    scratch_im_out <= y_im_in + y_im_in_1 when state = YADD2SCRATCH else
+                      (others => '0') when block_cnt = "0000" else
                       y_im_in;
-    scratch_wr <= '1' when addr_cnt > 2 and state = LOAD_SCRATCH else
+    scratch_wr <= lowhi when circ_cnt_3 < Nh - L and state = YADD2SCRATCH else
+                  '1' when addr_cnt > 2 and state = LOAD_SCRATCH else
                   '0';
 
 --------------------------------------------------------------------------
@@ -221,11 +261,16 @@ begin
     y_im <= xk_im_2 + scratch_im_in when do_add_2 = '1' else
             xk_im_2;
 
+    y_re_out <= scratch_re_in when state = SCRATCH2Y else
+                y_re_1;
+    y_im_out <= scratch_im_in when state = SCRATCH2Y else
+                y_im_1;
+
     y_re_dly: process(clk)
     begin
         if rising_edge(clk) then
-            y_re_out <= y_re;
-            y_im_out <= y_im;
+            y_re_1 <= y_re;
+            y_im_1 <= y_im;
         end if;
     end process;
     
@@ -239,7 +284,8 @@ begin
     end process addr_dly;
 
     --don't write values > Nx
-    dv_if <= dv_1 when addr_1 < Nx else
+    dv_if <= dv_1 when addr_1 < Nx and circular = '0' else
+             dv_1 when addr_1 < Nx + Nh - L - 1 and circular = '1' else
              '0';
 
     dv_dly: process(clK)
@@ -253,8 +299,75 @@ begin
         end if;
     end process dv_dly;
 
-    y_wr <= dv_if_2 when state = UNLOAD else
+    y_wr <= '1' when state = SCRATCH2Y else
+            dv_if_2 when state = UNLOAD else
             '0';
+
+--------------------------------------------------------------------------
+-- YADD2SCRATCH scratch(0:Nh-L-1) <= y(0:Nh-L-1) + y(Nx:Nx+Nh-L-1)
+--------------------------------------------------------------------------
+
+    lowhi_p: process(clk)
+    begin
+        if rising_edge(clk) then
+            if state /= YADD2SCRATCH then
+                lowhi <= '0';
+            else
+                lowhi <= not lowhi;
+            end if;
+        end if;
+    end process lowhi_p;
+
+    circ_cnt_p: process(clk)
+    begin
+        if rising_edge(clk) then
+            if state /= YADD2SCRATCH then
+                circ_cnt <= (others => '0');
+            elsif lowhi = '1' then
+                circ_cnt <= circ_cnt + 1;
+            end if;
+        end if;
+    end process circ_cnt_p;
+
+    -- delay by 3 cycles (2 cycles y read + 1 cycle 2nd value)
+    circ_cnt_dly: process(clk)
+    begin
+        if rising_edge(clk) then
+            circ_cnt_1 <= circ_cnt;
+            circ_cnt_2 <= circ_cnt_1;
+            circ_cnt_3 <= circ_cnt_2;
+        end if;
+    end process circ_cnt_dly;
+
+    y_in_dly: process(clk)
+    begin
+        if rising_edge(clk) then
+            y_re_in_1 <= y_re_in;
+            y_im_in_1 <= y_im_in;
+        end if;
+    end process y_in_dly;
+
+--------------------------------------------------------------------------
+-- SCRATCH2Y y(0:Nh-L-1) <= scratch(0:Nh-L-1)
+--------------------------------------------------------------------------
+    scratch_cnt_p: process(clk)
+    begin
+        if rising_edge(clk) then
+            if state /= SCRATCH2Y then
+                scratch_cnt <= (others => '0');
+            else
+                scratch_cnt <= scratch_cnt + 1;
+            end if;
+        end if;
+    end process scratch_cnt_p;
+
+    scratch_cnt_dly: process(clk)
+    begin
+        if rising_edge(clk) then
+            scratch_cnt_1 <= scratch_cnt;
+            scratch_cnt_2 <= scratch_cnt_1;
+        end if;
+    end process scratch_cnt_dly;
 
 --------------------------------------------------------------------------
 -- tell the rest of the world what we're doing
