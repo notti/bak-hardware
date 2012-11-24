@@ -167,6 +167,7 @@ END COMPONENT;
     signal core_scale_schi     : std_logic_vector(11 downto 0);
     signal core_L              : std_logic_vector(11 downto 0);
     signal core_iq             : std_logic;
+    signal core_circular       : std_logic;
     signal core_ov_fft         : std_logic;
     signal core_ov_ifft        : std_logic;
     signal core_busy           : std_logic;
@@ -283,6 +284,7 @@ begin
         core_scale_schi     => core_scale_schi,
         core_L              => core_L,
         core_iq             => core_iq,
+        core_circular       => core_circular,
         core_ov_fft         => core_ov_fft,
         core_ov_ifft        => core_ov_ifft,
         core_busy           => core_busy,
@@ -357,6 +359,7 @@ begin
         core_scale_schi     => core_scale_schi,
         core_L              => core_L,
         core_iq             => core_iq,
+        core_circular       => core_circular,
         core_ov_fft         => core_ov_fft,
         core_ov_ifft        => core_ov_ifft,
         core_busy           => core_busy,

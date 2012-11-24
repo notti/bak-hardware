@@ -20,6 +20,7 @@ port(
     core_L          : in  std_logic_vector(11 downto 0);
     core_depth      : in  std_logic_vector(15 downto 0);
     core_iq         : in  std_logic;
+    core_circular   : in std_logic;
 
     core_ov_fft     : out std_logic;
     core_ov_ifft    : out std_logic;
@@ -67,6 +68,7 @@ begin
         L            => core_L,
         Nx           => core_depth,
         iq           => core_iq,
+        circular     => core_circular,
 
         wave_index   => wave_index,
         x_in         => signed(mem_dinx),

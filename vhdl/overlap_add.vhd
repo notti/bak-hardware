@@ -20,6 +20,7 @@ port(
     L            : in std_logic_vector(11 downto 0);
     Nx           : in std_logic_vector(15 downto 0);
     iq           : in std_logic;
+    circular     : in std_logic;
 
     wave_index   : in std_logic_vector(3 downto 0);
     x_in         : in signed(15 downto 0);
@@ -78,6 +79,7 @@ end component;
     signal L_i          : std_logic_vector(11 downto 0);
     signal Nx_i         : std_logic_vector(15 downto 0);
     signal iq_i         : std_logic;
+    signal circular_i   : std_logic;
     signal scale_sch_i  : std_logic_vector(11 downto 0);
     signal scale_schi_i : std_logic_vector(11 downto 0);
 
@@ -187,6 +189,7 @@ begin
                 Nx_i <= Nx;
                 NH_i <= NH;
                 iq_i <= iq;
+                circular_i <= circular;
                 scale_sch_i <= scale_sch;
                 scale_schi_i <= scale_schi;
             end if;
@@ -266,6 +269,7 @@ begin
         L            => L_i,
         NH           => NH_i,
         Nx           => Nx_i,
+        circular     => circular_i,
 
         xn_re        => ifft_xn_re,
         xn_im        => ifft_xn_im,

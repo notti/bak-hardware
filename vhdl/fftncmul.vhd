@@ -190,7 +190,7 @@ begin
 
     addr_l_L <= '1' when addr_cnt_1 <= L else
                  '0';
-    addr_l_Nx <= '1' when addr_1 <= Nx else
+    addr_l_Nx <= '1' when addr_1 < Nx else
                  '0';
     addr_l_NH <= '1' when addr_cnt_1 < NH else
                  '0';

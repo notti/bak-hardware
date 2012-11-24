@@ -22,6 +22,7 @@ port(
     core_scale_sch      : out std_logic_vector(11 downto 0); -- registered on start
     core_scale_schi     : out std_logic_vector(11 downto 0); -- registered on start
     core_iq             : out std_logic;                     -- registered on start
+    core_circular       : out std_logic;                     -- registered on start
     tx_frame_offset     : out std_logic_vector(15 downto 0); -- registered on resync, rst
 
 
@@ -260,7 +261,7 @@ begin
 -- t  core_start          core_clk     0 1  r  core_busy           bus2fpga_clk
 -- r  core_ov_fft         bus2fpga_clk 0 2
 -- r  core_ov_ifft        bus2fpga_clk 0 3
--- 0  0                                0 4
+-- x  core_circular                    0 4
 -- 0  0                                0 5
 -- 0  0                                0 6
 -- t  core_rst            core_clk     0 7
@@ -547,6 +548,7 @@ begin
     core_L <= slv_reg(3)(11 downto 0);
     core_n <= slv_reg(3)(20 downto 16);
     core_iq <= slv_reg(3)(24);
+    core_circular <= slv_reg(3)(28);
 
     core_start_value    <= bus2fpga_data(25) when bus2fpga_wrce = "000100" and bus2fpga_be(3) = '1' else
                            '0';
@@ -578,6 +580,7 @@ begin
                 slv_reg(3)(11 downto 0) <= (others => '0');
                 slv_reg(3)(20 downto 16) <= (others => '0');
                 slv_reg(3)(24) <= '0';
+                slv_reg(3)(28) <= '0';
             else
                 if bus2fpga_wrce = "000100" then
                     if bus2fpga_be(0) = '1' then
@@ -591,6 +594,7 @@ begin
                     end if;
                     if bus2fpga_be(3) = '1' then
                         slv_reg(3)(24) <= bus2fpga_data(24);
+                        slv_reg(3)(28) <= bus2fpga_data(28);
                     end if;
                 end if;
             end if;
@@ -618,7 +622,7 @@ begin
 
     slv_reg(3)(15 downto 12) <= (others => '0');
     slv_reg(3)(23 downto 21) <= (others => '0');
-    slv_reg(3)(31 downto 28) <= (others => '0');
+    slv_reg(3)(31 downto 29) <= (others => '0');
 -------------------------------------------------------------------------------
     tx_muli_wr <= '1' when (bus2fpga_wrce = "000010" and (bus2fpga_be(0) = '1' or bus2fpga_be(1) = '1')) or bus2fpga_reset = '1' else
                   '0';

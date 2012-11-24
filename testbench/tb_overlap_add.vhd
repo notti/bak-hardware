@@ -132,8 +132,13 @@ begin
     y_mem: process(clk)
     begin
         if clk = '1' and clk'event then
-            y_re_dly <= to_signed(y_re(conv_integer(y_index)),16);
-            y_im_dly <= to_signed(y_im(conv_integer(y_index)),16);
+            if y_index >= X"0FFF" then
+                y_re_dly <= (others => '0');
+                y_im_dly <= (others => '0');
+            else
+                y_re_dly <= to_signed(y_re(conv_integer(y_index)),16);
+                y_im_dly <= to_signed(y_im(conv_integer(y_index)),16);
+            end if;
             if y_we = '1' then
                 y_re(conv_integer(y_index)) <= to_integer(y_re_out);
                 y_im(conv_integer(y_index)) <= to_integer(y_im_out);
@@ -156,6 +161,7 @@ begin
     L            => L,
     Nx           => n,
     iq           => iq,
+    circular     => '1',
 
     wave_index   => wave_index,
     x_in         => x_in,
