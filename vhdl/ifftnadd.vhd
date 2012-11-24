@@ -49,12 +49,13 @@ port(
 
     mem_busy     : out std_logic;
     ifft_unload  : out std_logic;
-    done         : out std_logic
+    done         : out std_logic;
+    waiting      : out std_logic;
+    next_block   : out std_logic
 );
 end ifftnadd;
 
 architecture Structural of ifftnadd is
-    --TODO CYCLIC insert
     type fft_fsm_type is (INACTIVE, LOAD_IFFT, LOAD_SCRATCH, WAIT_IFFT, UNLOAD, YADD2SCRATCH, SCRATCH2Y, INCR, FINISHED);
 
     signal state : fft_fsm_type;
@@ -94,6 +95,10 @@ architecture Structural of ifftnadd is
     signal scratch_cnt  : std_logic_vector(11 downto 0);
     signal scratch_cnt_1: std_logic_vector(11 downto 0);
     signal scratch_cnt_2: std_logic_vector(11 downto 0);
+    signal next_0       : std_logic;
+    signal next_1       : std_logic;
+    signal next_2       : std_logic;
+    signal next_3       : std_logic;
 
 begin
 
@@ -117,7 +122,7 @@ begin
                             state <= LOAD_IFFT;
                         end if;
                     when LOAD_SCRATCH =>
-                        if addr_cnt = (NH - L + 2) then -- OK?
+                        if addr_cnt = (NH - L + 2) then
                             state <= WAIT_IFFT;
                         else
                             state <= LOAD_SCRATCH;
@@ -379,6 +384,22 @@ begin
                    '0';
     done <= '1' when state = FINISHED else
             '0';
+    waiting <= '1' when state = WAIT_IFFT else
+               '0';
+    next_0 <= '1' when state = LOAD_SCRATCH else
+              '0';
+
+    next_dly: process(clk)
+    begin
+        if rising_edge(clk) then
+            next_1 <= next_0;
+            next_2 <= next_1;
+            next_3 <= next_2;
+        end if;
+    end process;
+
+    next_block <= '1' when next_3 = '0' and next_2 = '1' else
+                  '0';
 
 end Structural;
 
