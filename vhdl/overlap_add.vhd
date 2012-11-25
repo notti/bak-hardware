@@ -134,6 +134,9 @@ end component;
     signal fft_edone : std_logic;
     signal ifft_mem : std_logic;
 
+    attribute box_type : string;
+    attribute box_type of fft : component is "black_box";
+
 begin
     fsm_p1: process(clk, rst)
     begin
