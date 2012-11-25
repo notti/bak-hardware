@@ -76,7 +76,7 @@ architecture Structural of outbuf is
 
 begin
 
-    depth_r_proc: process(clk, rst, depth)
+    depth_r_proc: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' or resync = '1' then
@@ -85,7 +85,7 @@ begin
         end if;
     end process depth_r_proc;
 
-    do_sync_process: process(clk, rst, resync, frame_clk)
+    do_sync_process: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' or resync = '1' then
@@ -96,7 +96,7 @@ begin
         end if;
     end process do_sync_process;
 
-    frame_addr_process: process(clk, depth_r, rst, do_sync, frame_offset, frame_addr)
+    frame_addr_process: process(clk)
     begin
         if rising_edge(clk) then
             if frame_addr = depth_r or rst = '1' then
@@ -109,7 +109,7 @@ begin
         end if;
     end process frame_addr_process;
 
-    active_process: process(clk, rst, toggle_buf, do_toggle, frame_addr, depth_r)
+    active_process: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -126,37 +126,33 @@ begin
 
 	busy <= do_toggle;
 
-    active_r_process: process(clk, rst, active)
+    active_r_process: process(clk)
     begin
         if rising_edge(clk) then
-            if rst = '1' then
-                active_r <= '0';
-            else
-                active_r <= active;
-            end if;
+            active_r <= active;
         end if;
     end process active_r_process;
 
     toggled <= active xor active_r;
 
---    outbuf_mem_0: entity work.ram48xi
---    generic map(
---        WIDTH               => 32,
---        DOA_REG             => 1,
---        DOB_REG             => 1
---    )
---    port map (
---        clka                => clk,
---        dina                => "00000000000000000000000000000000",
---        addra               => frame_addr,
---        wea                 => "00000000000000000000000000000000",
---        douta               => dout0,
---        clkb                => mem_clk,
---        dinb                => mem_dini,
---        addrb               => mem_addr0,
---        web                 => mem_we0,
---        doutb               => mem_out0
---    );
+    outbuf_mem_0: entity work.ram48xi
+    generic map(
+        WIDTH               => 32,
+        DOA_REG             => 1,
+        DOB_REG             => 1
+    )
+    port map (
+        clka                => clk,
+        dina                => "00000000000000000000000000000000",
+        addra               => frame_addr,
+        wea                 => "00000000000000000000000000000000",
+        douta               => dout0,
+        clkb                => mem_clk,
+        dinb                => mem_dini,
+        addrb               => mem_addr0,
+        web                 => mem_we0,
+        doutb               => mem_out0
+    );
     outbuf_mem_1: entity work.ram48xi
     generic map(
         WIDTH               => 32,
@@ -193,17 +189,13 @@ begin
     mem_douta <= mem_out1 when active = '1' else
                  mem_out0;
 
-    dout_p: process(clk, dout0, dout1, active, rst)
+    dout_p: process(clk)
     begin
         if rising_edge(clk) then
-            if rst = '1' then
-                dout <= (others => '0');
+            if active = '1' then
+                dout <= dout1;
             else
-                if active = '1' then
-                    dout <= dout1;
-                else
-                    dout <= dout0;
-                end if;
+                dout <= dout0;
             end if;
         end if;
     end process dout_p;
