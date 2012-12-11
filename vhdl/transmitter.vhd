@@ -64,7 +64,6 @@ library UNISIM;
 use UNISIM.VComponents.all;
 
 library work;
-use work.procedures.all;
 
 entity transmitter is
 port(
@@ -118,15 +117,6 @@ architecture Structural of transmitter is
     signal rst_r            : std_logic;
 
 	
-	function reverse(a: in std_logic_vector) return std_logic_vector is
-		variable result: std_logic_vector(a'length - 1 downto 0);
-	begin
-		for i in result'range loop
-			result((a'length-1)-i) := a(i+a'low);
-		end loop;
-		return result;
-	end;
-
 begin
     in_start_p: process(ckf, locked_i)
     begin
@@ -228,7 +218,7 @@ begin
                         end if;
                         deskew_out <= '0';
                     when OUT_DESKEW =>
-                        if and_many(deskew_cnt) = '1' then
+                        if deskew_cnt = X"FFF" then
                             deskew_state <= OUT_DATA;
                         end if;
                         deskew_out <= '1';

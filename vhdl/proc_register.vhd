@@ -639,7 +639,7 @@ begin
                   '0';
     sync_tx_mulq: entity work.value
     port map(
-        value_in    => slv_reg(4)(15 downto 0),
+        value_in    => slv_reg(4)(31 downto 16),
         value_out   => tx_mulq,
         value_wr    => tx_mulq_wr,
         busy        => busy(9),

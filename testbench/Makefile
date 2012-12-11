@@ -4,9 +4,10 @@ GHDL = ghdl
 tb_overlap_add: overlap_add.o
 tb_mul: mul.o
 tb_cmul: cmul.o mul.o
-tb_average_mem: average_mem.o inbuf_mem.o
+tb_average_mem: average_mem.o
 tb_toggle: toggle.o
 tb_proc_memory: proc_memory.o
+tb_outbuf: outbuf.o
 
 %: %.o
 	$(GHDL) -e $(GHDLFLAGS) $@
@@ -41,10 +42,12 @@ vpath %.vhd ../vhdl:../wizard:.
 .SUFFIXES:
 .SUFFIXES: .vhd .o
 
-cmul.o: mul.o
 overlap_add.o: fft.o fftncmul.o ifftnadd.o ram4x32S.o
 fftncmul.o: cmul.o wave.o
 wave.o: mul.o convergent.o
 cmul.o: mul.o convergent.o
-average_mem.o: inbuf_mem.o
+average_mem.o: ram48xi.o
 toggle.o: flag.o procedures.o
+outbuf.o: cmul.o ram48xi.o transmitter.o
+transmitter.o: balance.o
+ram48xi.o: ram48x1.o
