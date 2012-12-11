@@ -20,6 +20,9 @@ architecture behav of tb_average_mem is
     signal trig         : std_logic;
     signal done         : std_logic;
     signal rst          : std_logic;
+    signal active       : std_logic;
+    signal err          : std_logic;
+    signal data_valid   : std_logic := '1';
     signal data         : std_logic_vector(15 downto 0);
 begin
     
@@ -53,7 +56,7 @@ begin
         
         rst <= '0';
 
-        wait for 30 ns;
+        wait for 29 ns;
 
         trig <= '1', '0' after 10 ns;
         
@@ -73,7 +76,8 @@ begin
         
         trig <= '1', '0' after 10 ns;
         
-        wait;
+        wait for 100 ns;
+        assert false report "stop" severity failure;
     end process;
     
     average_mem_i: entity work.average_mem
@@ -84,16 +88,19 @@ begin
     depth        => depth,
     trig         => trig,
     done         => done,
+    active       => active,
+    err          => err,
     data         => data,
+    data_valid   => data_valid,
     memclk       => clk,
     ext          => '0',
     dina         => (others => '0'),
     addra        => (others => '0'),
-    wea          => '0',
+    wea          => "00",
     douta        => open,
     dinb         => (others => '0'),
     addrb        => (others => '0'),
-    web          => '0',
+    web          => "00",
     doutb        => open
     );
 

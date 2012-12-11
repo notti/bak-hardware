@@ -93,14 +93,6 @@ begin
         wait;
     end process;
 
-    process
-    begin
-        wait until done = '1';
-        wait for 100 ns;
-        assert true report "stop" severity error;
-        wait;
-    end process;
-    
     x_mem: process(clk)
     begin
         if clk = '1' and clk'event then

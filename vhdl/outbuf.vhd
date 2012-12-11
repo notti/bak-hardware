@@ -10,7 +10,6 @@ library UNISIM;
 use UNISIM.VComponents.all;
 
 library work;
-use work.procedures.all;
 
 entity outbuf is
 port(
@@ -71,8 +70,22 @@ architecture Structural of outbuf is
     signal i                 : std_logic_vector(15 downto 0);
     signal q                 : std_logic_vector(15 downto 0);
 
+    signal a_re              : signed(15 downto 0);
+    signal a_im              : signed(15 downto 0);
     signal c_re              : signed(15 downto 0);
     signal c_im              : signed(15 downto 0);
+
+    signal s_muli            : signed(15 downto 0);
+    signal s_mulq            : signed(15 downto 0);
+
+    signal marker            : std_logic;
+    signal marker_1          : std_logic;
+    signal marker_2          : std_logic;
+    signal marker_3          : std_logic;
+    signal marker_4          : std_logic;
+    signal marker_5          : std_logic;
+    signal marker_6          : std_logic;
+    signal marker_7          : std_logic;
 
 begin
 
@@ -202,21 +215,42 @@ begin
 
     i <= std_logic_vector(c_re);
     q <= std_logic_vector(c_im);
+    s_muli <= signed(muli);
+    s_mulq <= signed(mulq);
+    a_re <= signed(dout(15 downto 0));
+    a_im <= signed(dout(31 downto 16));
 
     cmul_i: entity work.cmul
     port map(
         clk          => clk,
-        a_re         => signed(dout(15 downto 0)),
-        a_im         => signed(dout(31 downto 16)),
-        b_re         => signed(muli),
-        b_im         => signed(mulq),
+        a_re         => a_re,
+        a_im         => a_im,
+        b_re         => s_muli,
+        b_im         => s_mulq,
         c_re         => c_re,
         c_im         => c_im
     );
+
+    marker <= '1' when frame_addr = "0000" else
+              '0';
+
+    -- 2 cycle mem + 1 cycle multiplex + 4 cycle cmul
+    marker_dly: process(clk)
+    begin
+        if rising_edge(clk) then
+            marker_1 <= marker;
+            marker_2 <= marker_1;
+            marker_3 <= marker_2;
+            marker_4 <= marker_3;
+            marker_5 <= marker_4;
+            marker_6 <= marker_5;
+            marker_7 <= marker_6;
+        end if;
+    end process;
     
     e2(0) <= '1'; --VALID
     e2(1) <= '1'; --ENABLE
-    e2(2) <= '0'; --Marker_1
+    e2(2) <= marker_7; --Marker_1
     e2(3) <= '0'; --reserved
     e2(7 downto 4) <= "0000";
     e2(23 downto 8) <= i; -- TODO : q?
