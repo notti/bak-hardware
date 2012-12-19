@@ -84,6 +84,10 @@ port(
     tx_frame_offset     : in  std_logic_vector(15 downto 0);
     tx_resync           : in  std_logic;
 	tx_busy				: out std_logic;
+    tx_clk_en           : in  std_logic;
+    tx_data_enable      : in  std_logic;
+    tx_data_valid       : in  std_logic;
+    tx_data_zero        : in  std_logic;
 
 -- mem
 	mem_req				: in  std_logic;
@@ -378,6 +382,10 @@ begin
 		frame_offset    => tx_frame_offset,
 		resync          => tx_resync,
 		busy			=> tx_busy_i,
+        clk_en          => tx_clk_en,
+        data_enable     => tx_data_enable,
+        data_valid      => tx_data_valid,
+        data_zero       => tx_data_zero,
 
 		mem_clk         => mem_clk_i,
 		mem_dini        => mem_dinoi_i,
