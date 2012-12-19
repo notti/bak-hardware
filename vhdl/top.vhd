@@ -182,6 +182,10 @@ END COMPONENT;
     signal tx_frame_offset     : std_logic_vector(15 downto 0);
     signal tx_resync           : std_logic;
     signal tx_busy             : std_logic;
+    signal tx_clk_en           : std_logic;
+    signal tx_data_enable      : std_logic;
+    signal tx_data_valid       : std_logic;
+    signal tx_data_zero        : std_logic;
     signal mem_req             : std_logic;
     signal mem_ack             : std_logic;
 
@@ -303,6 +307,10 @@ begin
         tx_frame_offset     => tx_frame_offset,
         tx_resync           => tx_resync,
         tx_busy             => tx_busy,
+        tx_clk_en           => tx_clk_en,
+        tx_data_enable      => tx_data_enable,
+        tx_data_valid       => tx_data_valid,
+        tx_data_zero        => tx_data_zero,
         mem_req             => mem_req,
         mem_ack             => mem_ack,
 
@@ -374,6 +382,10 @@ begin
         tx_frame_offset     => tx_frame_offset,
         tx_resync           => tx_resync,
         tx_busy             => tx_busy,
+        tx_clk_en           => tx_clk_en,
+        tx_data_enable      => tx_data_enable,
+        tx_data_valid       => tx_data_valid,
+        tx_data_zero        => tx_data_zero,
         mem_req             => mem_req,
         mem_ack             => mem_ack,
 

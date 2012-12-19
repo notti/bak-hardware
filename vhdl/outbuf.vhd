@@ -34,6 +34,10 @@ port(
     frame_offset        : in  std_logic_vector(15 downto 0);
     resync              : in  std_logic;
 	busy				: out std_logic;
+    clk_en              : in  std_logic;
+    data_enable         : in  std_logic;
+    data_valid          : in  std_logic;
+    data_zero           : in  std_logic;
 
 -- mem
     mem_clk             : in  std_logic;
@@ -248,18 +252,20 @@ begin
         end if;
     end process;
     
-    e2(0) <= '1'; --VALID
-    e2(1) <= '1'; --ENABLE
+    e2(0) <= data_valid; --VALID
+    e2(1) <= data_enable; --ENABLE
     e2(2) <= marker_7; --Marker_1
     e2(3) <= '0'; --reserved
     e2(7 downto 4) <= "0000";
-    e2(23 downto 8) <= i; -- TODO : q?
+    e2(23 downto 8) <= i when data_zero = '0' else -- TODO : q?
+        (others => '0');
     e1(0) <= '0'; --TRIGGER1
     e1(1) <= '0'; --TRIGGER2
     e1(2) <= '0'; --Marker_2
     e1(3) <= '0'; --reserved
     e1(7 downto 4) <= "0000";
-    e1(23 downto 8) <= q; -- TODO : i?
+    e1(23 downto 8) <= q when data_zero = '0' else  -- TODO : i?
+        (others => '0');
 
     transmitter_i: entity work.transmitter
     port map(
@@ -267,6 +273,7 @@ begin
         rst                 => rst,
         e1                  => e1,
         e2                  => e2,
+        clk_en              => clk_en,
         txn                 => txn,
         txp                 => txp,
         txclkn              => txclkn,
