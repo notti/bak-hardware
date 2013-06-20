@@ -1,13 +1,19 @@
+GHDLFLAGS = --ieee=synopsys -fexplicit -Wc,-m32 -Wa,--32 -Wl,-m32 --warn-no-vital-generic
+LIBS = -P../unisim
+WORK = --work=unimacro
+
 OBJ = unimacro_VCOMP.o
 
 
 all: $(OBJ)
 
+%.o: %.vhd
+	$(GHDL) -a $(GHDLFLAGS) $(LIBS) $(WORK) $<
 
-%.o:%.vhd
-	$(GHDL) -a --ieee=synopsys -fexplicit --warn-no-vital-generic --work=unimacro -P../unisim $<
 clean:
 	rm -rf unimacro-obj93.cf *o *s
+
+vpath %.vhd $(XILINXBASE)/unimacro
 
 .PHONY: clean
 .SUFFIXES:

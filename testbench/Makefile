@@ -1,5 +1,10 @@
-GHDLFLAGS = --ieee=synopsys -Punisim -Punimacro -fexplicit --work=work
+XILINXBASE = /opt/Xilinx/10.1/ISE/vhdl/src
+
 GHDL = ghdl
+
+GHDLFLAGS = --ieee=synopsys -fexplicit -Wc,-m32 -Wa,--32 -Wl,-m32
+LIBS = -Punisim -Punimacro
+WORK = --work=work
 
 tb_overlap_add: overlap_add.o
 tb_mul: mul.o
@@ -10,10 +15,13 @@ tb_proc_memory: proc_memory.o
 tb_outbuf: outbuf.o
 
 %: %.o
-	$(GHDL) -e $(GHDLFLAGS) $@
+	$(GHDL) -e $(GHDLFLAGS) $(LIBS) $(WORK) $@
 
 %.o: %.vhd
-	$(GHDL) -a $(GHDLFLAGS) $<
+	$(GHDL) -a $(GHDLFLAGS) $(LIBS) $(WORK) $<
+
+%.ghw: %
+	./$< --wave=$@
 
 export 
 
@@ -34,13 +42,13 @@ clean-unimacro:
 clean: clean-unisim clean-unimacro
 	rm -rf prereq
 	rm -rf work-obj93.cf
-	rm -rf *o *s
+	rm -rf *.o *.s
 
 vpath %.vhd ../vhdl:../wizard:.
 
 .PHONY: clean clean-unisim clean-unimacro unisim unimacro
 .SUFFIXES:
-.SUFFIXES: .vhd .o
+.SUFFIXES: .vhd .o .ghw
 
 overlap_add.o: fft.o fftncmul.o ifftnadd.o ram4x32S.o
 fftncmul.o: cmul.o wave.o
