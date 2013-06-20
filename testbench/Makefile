@@ -13,6 +13,7 @@ tb_average_mem: average_mem.o
 tb_toggle: toggle.o
 tb_proc_memory: proc_memory.o
 tb_outbuf: outbuf.o
+tb_cmul: cmul.o
 
 %: %.o
 	$(GHDL) -e $(GHDLFLAGS) $(LIBS) $(WORK) $@
