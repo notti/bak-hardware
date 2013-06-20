@@ -47,26 +47,36 @@ begin
 
     process
     begin
-        mem_dini <= X"7FFF7FFF";
+        mem_dini <= X"00010001";
         mem_addri <= X"0000";
         mem_wei <= X"F";
         wait for 10 ns;
+        wait for 10 ns;
+        mem_dini <= X"00020002";
         mem_addri <= X"0001";
         wait for 10 ns;
+        mem_dini <= X"00030003";
         mem_addri <= X"0002";
         wait for 10 ns;
+        mem_dini <= X"00040004";
         mem_addri <= X"0003";
         wait for 10 ns;
+        mem_dini <= X"00050005";
         mem_addri <= X"0004";
         wait for 10 ns;
+        mem_dini <= X"00060006";
         mem_addri <= X"0005";
         wait for 10 ns;
+        mem_dini <= X"00070007";
         mem_addri <= X"0006";
         wait for 10 ns;
+        mem_dini <= X"00080008";
         mem_addri <= X"0007";
         wait for 10 ns;
+        mem_dini <= X"00090009";
         mem_addri <= X"0008";
         wait for 10 ns;
+        mem_dini <= X"000A000A";
         mem_addri <= X"0009";
         wait for 10 ns;
         mem_wei <= X"0";
