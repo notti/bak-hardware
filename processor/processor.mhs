@@ -58,24 +58,24 @@
  PORT fpga_0_Hard_Ethernet_MAC_MDIO_0_pin = fpga_0_Hard_Ethernet_MAC_MDIO_0, DIR = IO
  PORT sys_clk_pin = dcm_clk_s, DIR = I, SIGIS = CLK, CLK_FREQ = 100000000
  PORT sys_rst_pin = sys_rst_s, DIR = I, RST_POLARITY = 0, SIGIS = RST
- PORT proc2fpga_0_fpga2bus_intr_pin = proc2fpga_0_fpga2bus_intr, DIR = I, VEC = [15:0]
- PORT proc2fpga_0_fpga2bus_error_pin = proc2fpga_0_fpga2bus_error, DIR = I
- PORT proc2fpga_0_fpga2bus_wrack_pin = proc2fpga_0_fpga2bus_wrack, DIR = I
- PORT proc2fpga_0_fpga2bus_rdack_pin = proc2fpga_0_fpga2bus_rdack, DIR = I
- PORT proc2fpga_0_fpga2bus_data_pin = proc2fpga_0_fpga2bus_data, DIR = I, VEC = [31:0]
- PORT proc2fpga_0_fpga2bus_addrack_pin = proc2fpga_0_fpga2bus_addrack, DIR = I
- PORT proc2fpga_0_bus2fpga_wrreq_pin = proc2fpga_0_bus2fpga_wrreq, DIR = O
- PORT proc2fpga_0_bus2fpga_rdreq_pin = proc2fpga_0_bus2fpga_rdreq, DIR = O
- PORT proc2fpga_0_bus2fpga_burst_pin = proc2fpga_0_bus2fpga_burst, DIR = O
- PORT proc2fpga_0_bus2fpga_wrce_pin = proc2fpga_0_bus2fpga_wrce, DIR = O, VEC = [5:0]
- PORT proc2fpga_0_bus2fpga_rdce_pin = proc2fpga_0_bus2fpga_rdce, DIR = O, VEC = [5:0]
- PORT proc2fpga_0_bus2fpga_be_pin = proc2fpga_0_bus2fpga_be, DIR = O, VEC = [3:0]
- PORT proc2fpga_0_bus2fpga_data_pin = proc2fpga_0_bus2fpga_data, DIR = O, VEC = [31:0]
- PORT proc2fpga_0_bus2fpga_rnw_pin = proc2fpga_0_bus2fpga_rnw, DIR = O
- PORT proc2fpga_0_bus2fpga_cs_pin = proc2fpga_0_bus2fpga_cs, DIR = O, VEC = [3:0]
- PORT proc2fpga_0_bus2fpga_addr_pin = proc2fpga_0_bus2fpga_addr, DIR = O, VEC = [15:0]
- PORT proc2fpga_0_bus2fpga_reset_pin = proc2fpga_0_bus2fpga_reset, DIR = O
- PORT proc2fpga_0_bus2fpga_clk_pin = proc2fpga_0_bus2fpga_clk, DIR = O
+ PORT proc2fpga_0_fpga2bus_intr_pin = proc2fpga_0_fpga2bus_intr, DIR = I, VEC = [15:0], BUFFER_TYPE = NONE
+ PORT proc2fpga_0_fpga2bus_error_pin = proc2fpga_0_fpga2bus_error, DIR = I, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_fpga2bus_wrack_pin = proc2fpga_0_fpga2bus_wrack, DIR = I, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_fpga2bus_rdack_pin = proc2fpga_0_fpga2bus_rdack, DIR = I, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_fpga2bus_data_pin = proc2fpga_0_fpga2bus_data, DIR = I, VEC = [31:0], BUFFER_TYPE = NONE
+ PORT proc2fpga_0_fpga2bus_addrack_pin = proc2fpga_0_fpga2bus_addrack, DIR = I, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_wrreq_pin = proc2fpga_0_bus2fpga_wrreq, DIR = O, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_rdreq_pin = proc2fpga_0_bus2fpga_rdreq, DIR = O, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_burst_pin = proc2fpga_0_bus2fpga_burst, DIR = O, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_wrce_pin = proc2fpga_0_bus2fpga_wrce, DIR = O, VEC = [5:0], BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_rdce_pin = proc2fpga_0_bus2fpga_rdce, DIR = O, VEC = [5:0], BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_be_pin = proc2fpga_0_bus2fpga_be, DIR = O, VEC = [3:0], BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_data_pin = proc2fpga_0_bus2fpga_data, DIR = O, VEC = [31:0], BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_rnw_pin = proc2fpga_0_bus2fpga_rnw, DIR = O, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_cs_pin = proc2fpga_0_bus2fpga_cs, DIR = O, VEC = [3:0], BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_addr_pin = proc2fpga_0_bus2fpga_addr, DIR = O, VEC = [15:0], BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_reset_pin = proc2fpga_0_bus2fpga_reset, DIR = O, BUFFER_TYPE = NONE
+ PORT proc2fpga_0_bus2fpga_clk_pin = proc2fpga_0_bus2fpga_clk, DIR = O, BUFFER_TYPE = NONE
 
 
 BEGIN ppc440_virtex5
