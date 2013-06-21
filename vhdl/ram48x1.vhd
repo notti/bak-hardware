@@ -41,8 +41,10 @@ architecture Structural of ram48x1 is
     signal dia      : std_logic_vector(0 downto 0);
     signal dib      : std_logic_vector(0 downto 0);
 
-    signal wea_many : std_logic_vector(0 downto 0);
-    signal web_many : std_logic_vector(0 downto 0);
+    signal we36a_many : std_logic_vector(0 downto 0);
+    signal we36b_many : std_logic_vector(0 downto 0);
+    signal we18a_many : std_logic_vector(0 downto 0);
+    signal we18b_many : std_logic_vector(0 downto 0);
 
 begin
     en36a <= addra(15);
@@ -52,8 +54,10 @@ begin
 
     dia(0) <= dina;
     dib(0) <= dinb;
-    wea_many(0) <= wea;
-    web_many(0) <= web;
+    we36a_many(0) <= wea and addra(15);
+    we18a_many(0) <= wea and not addra(15);
+    we36b_many(0) <= web and addra(15);
+    we18b_many(0) <= web and not addra(15);
 
     ram36_i: BRAM_TDP_MACRO
     generic map (
@@ -82,8 +86,8 @@ begin
         REGCEB         => en36b,
         RSTA           => '0',
         RSTB           => '0',
-        WEA         => wea_many,
-        WEB         => web_many
+        WEA         => we36a_many,
+        WEB         => we36b_many
     );
 
     ram18_i: BRAM_TDP_MACRO
@@ -113,8 +117,8 @@ begin
         REGCEB         => en18b,
         RSTA           => '0',
         RSTB           => '0',
-        WEA         => wea_many,
-        WEB         => web_many
+        WEA         => we18a_many,
+        WEB         => we18b_many
     );
 
     douta <= doa36(0) when en36a = '1' else
