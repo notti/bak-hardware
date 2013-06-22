@@ -887,3 +887,7 @@ INST "main_inst/inbuf_inst/average_mem_i/Madd_dataadd_cy<8>" AREA_GROUP = "avera
 INST "main_inst/inbuf_inst/average_mem_i/Madd_dataadd_lut<7>" AREA_GROUP = "average_mem_average_add";
 INST "main_inst/inbuf_inst/average_mem_i/Madd_dataadd_xor<2>" AREA_GROUP = "average_mem_average_add";
 INST "main_inst/inbuf_inst/average_mem_i/Madd_dataadd_cy<9>" AREA_GROUP = "average_mem_average_add";
+AREA_GROUP "core" RANGE=SLICE_X40Y30:SLICE_X67Y109;
+AREA_GROUP "core" RANGE=DSP48_X0Y12:DSP48_X1Y43;
+AREA_GROUP "core" RANGE=RAMB36_X3Y6:RAMB36_X4Y21;
+INST "*/overlap_add_inst/*" AREA_GROUP = "core";
