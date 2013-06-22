@@ -82,15 +82,6 @@ architecture Structural of outbuf is
     signal s_muli            : signed(15 downto 0);
     signal s_mulq            : signed(15 downto 0);
 
-    signal marker            : std_logic;
-    signal marker_1          : std_logic;
-    signal marker_2          : std_logic;
-    signal marker_3          : std_logic;
-    signal marker_4          : std_logic;
-    signal marker_5          : std_logic;
-    signal marker_6          : std_logic;
-    signal marker_7          : std_logic;
-
 begin
 
     depth_r_proc: process(clk)
@@ -235,33 +226,16 @@ begin
         c_im         => c_im
     );
 
-    marker <= '1' when frame_addr = "0000" else
-              '0';
-
-    -- 2 cycle mem + 1 cycle multiplex + 4 cycle cmul
-    marker_dly: process(clk)
-    begin
-        if rising_edge(clk) then
-            marker_1 <= marker;
-            marker_2 <= marker_1;
-            marker_3 <= marker_2;
-            marker_4 <= marker_3;
-            marker_5 <= marker_4;
-            marker_6 <= marker_5;
-            marker_7 <= marker_6;
-        end if;
-    end process;
-    
     e2(0) <= data_valid; --VALID
     e2(1) <= data_enable; --ENABLE
-    e2(2) <= marker_7; --Marker_1
+    e2(2) <= '0'; --Marker_1
     e2(3) <= '0'; --reserved
     e2(7 downto 4) <= "0000";
     e2(23 downto 8) <= i when data_zero = '0' else
         (others => '0');
-    e1(0) <= marker_7; --TRIGGER1
-    e1(1) <= marker_7; --TRIGGER2
-    e1(2) <= marker_7; --Marker_2
+    e1(0) <= '0'; --TRIGGER1
+    e1(1) <= '0'; --TRIGGER2
+    e1(2) <= '0'; --Marker_2
     e1(3) <= '0'; --reserved
     e1(7 downto 4) <= "0000";
     e1(23 downto 8) <= q when data_zero = '0' else
