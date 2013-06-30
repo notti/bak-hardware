@@ -806,3 +806,6 @@ TIMESPEC TS_main_inst_outbuf_inst_transmitter_i_CLKOUT1 = PERIOD "main_inst/outb
 NET "main_inst/outbuf_inst/transmitter_i/outdata_long*" TNM_NET = outdata_long;
 NET "main_inst/outbuf_inst/transmitter_i/outdata_short*" TNM_NET = outdata_short;
 TIMESPEC TS_outdata = FROM "outdata_long" TO "outdata_short" TS_main_inst_inbuf_inst_receiver_i_refclkout_i * 4 DATAPATHONLY;
+
+NET "*/transmitter_i/outdata_long*" KEEP;
+NET "*/transmitter_i/outdata_short*" KEEP;
