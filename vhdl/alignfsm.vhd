@@ -117,7 +117,7 @@ begin
 		end if;
 	end process blank_cnt_r_process;
 
-	aligned_cnt_r_process: process(clk, rst, state, aligned, valid)
+	aligned_cnt_r_process: process(clk, state, aligned, valid)
 	begin
 		if rising_edge(clk) then
             if (not (state = WAIT_SYNC)) or aligned = '0' or valid = '0' then
@@ -128,7 +128,7 @@ begin
 		end if;
 	end process aligned_cnt_r_process;
 
-	wait_cnt_r_process: process(clk, rst, state)
+	wait_cnt_r_process: process(clk, state)
 	begin
 		if rising_edge(clk) then
             if not (state = WAIT_SYNC) then
