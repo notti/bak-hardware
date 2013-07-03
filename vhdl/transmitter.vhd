@@ -73,7 +73,6 @@ port(
 	e2                  : in  std_logic_vector(23 downto 0);
 	deskew              : in  std_logic;
     dc_balance          : in  std_logic;
-    clk_en              : in  std_logic;
 
 -- signals for selectio oserdes transmitter
 	txn                 : out std_logic_vector(7 downto 0);
@@ -398,8 +397,7 @@ begin
         signal tx               : std_ulogic;
         signal tq               : std_ulogic;
     begin
-        outdata_final <= "0000000" when clk_en = '0' else
-                         "1100011" when dc_balance = '0' else
+        outdata_final <= "1100011" when dc_balance = '0' else
                          "1111100" when deskew_out = '1' and buf_cycle(0) = '1' else
                          "1100000" when deskew_out = '1' and buf_cycle(0) = '0' else
                          "1100011" when deskew_out = '0' and buf_cycle(0) = '1' else

@@ -43,10 +43,7 @@ port(
     rec_polarity        : out std_logic_vector(2 downto 0);
     rec_descramble      : out std_logic_vector(2 downto 0);
     mem_req             : out std_logic;
-    tx_clk_en           : out std_logic;
-    tx_data_enable      : out std_logic;
-    tx_data_valid       : out std_logic;
-    tx_data_zero        : out std_logic;
+    tx_shift            : out std_logic;
 
 -- value
     rec_input_select    : out std_logic_vector(1 downto 0);
@@ -127,6 +124,7 @@ architecture Structural of proc_register is
     signal tx_toggle_value          : std_logic;
     signal tx_resync_value          : std_logic;
     signal tx_rst_value             : std_logic;
+    signal tx_ovfl_sycned           : std_logic;
 
     signal mem_req_r                : std_logic;
 
@@ -331,10 +329,10 @@ begin
 -- 0  0                                0 1
 -- 0  0                                0 2
 -- 0  0                                0 3
--- x  tx_data_zero        sample_clk   0 4
--- x  tx_data_enable      sample_clk   1 5
--- x  tx_data_valid       sample_clk   1 6
--- x  tx_clk_en           sample_clk   1 7
+-- 0  0                                0 4
+-- 0  0                                0 5
+-- w  tx_ovfl             sample_clk   0 6  r  tx_ovfl             bus2fpga_clk
+-- x  tx_shift            sample_clk   0 7
     
     reciever_gen: for i in 0 to 2 generate
         signal recv_reg          : std_logic_vector(4 downto 0);
@@ -732,31 +730,10 @@ begin
         clk         => sample_clk
     );
 
-    sync_tx_data_zero: entity work.flag
-    port map(
-        flag_in     => slv_reg(5)(28),
-        flag_out    => tx_data_zero,
-        clk         => sample_clk
-    );
-
-    sync_tx_data_enable: entity work.flag
-    port map(
-        flag_in     => slv_reg(5)(29),
-        flag_out    => tx_data_enable,
-        clk         => sample_clk
-    );
-
-    sync_tx_data_valid: entity work.flag
-    port map(
-        flag_in     => slv_reg(5)(30),
-        flag_out    => tx_data_valid,
-        clk         => sample_clk
-    );
-
-    sync_tx_clk_en: entity work.flag
+    sync_tx_shift: entity work.flag
     port map(
         flag_in     => slv_reg(5)(31),
-        flag_out    => tx_clk_en,
+        flag_out    => tx_shift,
         clk         => sample_clk
     );
 
@@ -767,7 +744,8 @@ begin
                 slv_reg(5)(15 downto 0) <= (others => '0');
                 slv_reg(5)(17) <= '0';
                 mem_req_r <= '0';
-                slv_reg(5)(31 downto 28) <= "1110";
+                slv_reg(5)(30) <= '0';
+                slv_reg(5)(31) <= '0';
             else
                 if bus2fpga_wrce = "000001" then
                     if bus2fpga_be(0) = '1' then
@@ -781,8 +759,13 @@ begin
                     end if;
                     if bus2fpga_be(3) = '1' then
                         mem_req_r      <= bus2fpga_data(24);
-                        slv_reg(5)(31 downto 28) <= bus2fpga_data(31 downto 28);
+                        slv_reg(5)(31) <= bus2fpga_data(31);
                     end if;
+                end if;
+                if tx_ovfl_synced = '1' then
+                    slv_reg(5)(30) <= '1';
+                elsif bus2fpga_wrce = "000001" and bus2fpga_data(30) = '0' then
+                    slv_reg(5)(30) <= '0';
                 end if;
             end if;
         end if;
@@ -802,9 +785,16 @@ begin
         clk         => bus2fpga_clk
     );
 
+    sync_ovfl: entity work.flag
+    port map(
+        flag_in     => tx_ovfl,
+        flag_out    => tx_ovfl_synced,
+        clk         => bus2fpga_clk
+    );
+
     slv_reg(5)(16) <= '0';
     slv_reg(5)(23 downto 19) <= (others => '0');
-    slv_reg(5)(27 downto 25) <= (others => '0');
+    slv_reg(5)(29 downto 25) <= (others => '0');
 --=============================================================================
     slave_reg_read_proc: process(bus2fpga_rdce, slv_reg)
     begin
@@ -858,6 +848,7 @@ begin
         9  => avg_done_synced,
         10 => core_done_synced,
         11 => tx_toggled_synced,
+        12 => tx_ovfl_synced,
         others => '0');
 
     fpga2bus_rdack <= or_many(bus2fpga_rdce);

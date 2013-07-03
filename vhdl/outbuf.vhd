@@ -34,10 +34,8 @@ port(
     frame_offset        : in  std_logic_vector(15 downto 0);
     resync              : in  std_logic;
 	busy				: out std_logic;
-    clk_en              : in  std_logic;
-    data_enable         : in  std_logic;
-    data_valid          : in  std_logic;
-    data_zero           : in  std_logic;
+    shift               : in  std_logic;
+    ovfl                : out std_logic;
 
 -- mem
     mem_clk             : in  std_logic;
@@ -223,11 +221,13 @@ begin
         b_re         => s_muli,
         b_im         => s_mulq,
         c_re         => c_re,
-        c_im         => c_im
+        c_im         => c_im,
+        shift        => shift,
+        ovfl         => ovfl
     );
 
-    e2(0) <= data_valid; --VALID
-    e2(1) <= data_enable; --ENABLE
+    e2(0) <= '1'; --VALID
+    e2(1) <= '1'; --ENABLE
     e2(2) <= '0'; --Marker_1
     e2(3) <= '0'; --reserved
     e2(7 downto 4) <= "0000";
@@ -247,7 +247,6 @@ begin
         rst                 => rst,
         e1                  => e1,
         e2                  => e2,
-        clk_en              => clk_en,
         txn                 => txn,
         txp                 => txp,
         txclkn              => txclkn,

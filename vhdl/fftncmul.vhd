@@ -245,7 +245,9 @@ begin
         b_re         => H_re,
         b_im         => H_im,
         c_re         => scratch_re,
-        c_im         => scratch_im
+        c_im         => scratch_im,
+        shift        => '0',
+        ovfl         => open
     );
 
     -- delay addr + wr for scratch by 2 read + 4 cmul cycles = 6

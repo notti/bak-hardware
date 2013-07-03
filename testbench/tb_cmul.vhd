@@ -20,6 +20,9 @@ architecture behav of tb_cmul is
 
     signal cnt     : signed(15 downto 0) := "0000000000000000";
 
+    signal ovfl    : std_logic           := '0';
+    signal shift   : std_logic           := '0';
+
 begin
     
     process
@@ -52,7 +55,43 @@ begin
         a_im <= X"7FFF";
         b_re <= X"7FFF";
         b_im <= X"7FFF";
-        wait for 100 ns;
+        wait for 40 ns;
+        shift <= '1';
+        a_re <= X"7FFF";
+        wait for 10 ns;
+        b_re <= X"7FFF";
+        wait for 10 ns;
+        a_im <= X"7FFF";
+        wait for 10 ns;
+        a_re <= X"8000";
+        wait for 10 ns;
+        a_im <= X"8000";
+        wait for 10 ns;
+        b_re <= X"8000";
+        wait for 10 ns;
+        a_re <= X"8000";
+        a_im <= X"8000";
+        b_re <= X"8000";
+        b_im <= X"8000";
+        wait for 10 ns;
+        a_re <= X"7FFF";
+        a_im <= X"7FFF";
+        b_re <= X"7FFF";
+        b_im <= X"7FFF";
+        wait for 10 ns;
+        a_re <= X"07FF";
+        b_re <= X"07FF";
+        a_im <= X"07FF";
+        b_im <= X"07FF";
+        wait for 10 ns;
+        a_re <= X"F801";
+        wait for 10 ns;
+        a_im <= X"F801";
+        wait for 10 ns;
+        b_re <= X"F801";
+        wait for 10 ns;
+        b_im <= X"F801";
+        wait for 50 ns;
         assert false report "done" severity failure;
         wait;
     end process;
@@ -65,7 +104,9 @@ begin
         b_re => b_re,
         b_im => b_im,
         c_re => c_re,
-        c_im => c_im
+        c_im => c_im,
+        shift => shift,
+        ovfl  => ovfl
     );
 
     
