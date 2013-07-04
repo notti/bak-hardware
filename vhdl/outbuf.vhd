@@ -231,15 +231,13 @@ begin
     e2(2) <= '0'; --Marker_1
     e2(3) <= '0'; --reserved
     e2(7 downto 4) <= "0000";
-    e2(23 downto 8) <= i when data_zero = '0' else
-        (others => '0');
+    e2(23 downto 8) <= i;
     e1(0) <= '0'; --TRIGGER1
     e1(1) <= '0'; --TRIGGER2
     e1(2) <= '0'; --Marker_2
     e1(3) <= '0'; --reserved
     e1(7 downto 4) <= "0000";
-    e1(23 downto 8) <= q when data_zero = '0' else
-        (others => '0');
+    e1(23 downto 8) <= q;
 
     transmitter_i: entity work.transmitter
     port map(

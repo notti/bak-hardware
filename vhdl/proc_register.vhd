@@ -78,6 +78,7 @@ port(
     avg_done            : in  std_logic;
     core_done           : in  std_logic;
     tx_toggled          : in  std_logic;
+    tx_ovfl             : in  std_logic;
 
 -- clocks
     sample_clk          : in  std_logic;
@@ -124,7 +125,7 @@ architecture Structural of proc_register is
     signal tx_toggle_value          : std_logic;
     signal tx_resync_value          : std_logic;
     signal tx_rst_value             : std_logic;
-    signal tx_ovfl_sycned           : std_logic;
+    signal tx_ovfl_synced           : std_logic;
 
     signal mem_req_r                : std_logic;
 
