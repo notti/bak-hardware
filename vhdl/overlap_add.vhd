@@ -17,6 +17,7 @@ port(
     nfft         : in std_logic_vector(4 downto 0);
     scale_sch    : in std_logic_vector(11 downto 0);
     scale_schi   : in std_logic_vector(11 downto 0);
+    scale_cmul   : in std_logic_vector(1 downto 0);
     L            : in std_logic_vector(11 downto 0);
     Nx           : in std_logic_vector(15 downto 0);
     iq           : in std_logic;
@@ -39,6 +40,7 @@ port(
 
     ovfl_fft     : out std_logic;
     ovfl_ifft    : out std_logic;
+    ovfl_cmul    : out std_logic;
 
     busy         : out std_logic;
     done         : out std_logic
@@ -82,6 +84,7 @@ end component;
     signal circular_i   : std_logic;
     signal scale_sch_i  : std_logic_vector(11 downto 0);
     signal scale_schi_i : std_logic_vector(11 downto 0);
+    signal scale_cmul_i : std_logic_vector(1 downto 0);
 
     signal scratch_din  : std_logic_vector(31 downto 0);
 	signal scratch_addr : std_logic_vector(11 downto 0);
@@ -101,6 +104,7 @@ end component;
     signal start_transform : std_logic;
     signal scale_sch_fft : std_logic_vector(11 downto 0);
 	signal ovflo    : std_logic;
+	signal ovfl_cmul_i    : std_logic;
     signal fft_mem : std_logic;
 	signal xn_index   : std_logic_vector(11 downto 0);
 	signal xk_index   : std_logic_vector(11 downto 0);
@@ -199,6 +203,7 @@ begin
                 circular_i <= circular;
                 scale_sch_i <= scale_sch;
                 scale_schi_i <= scale_schi;
+                scale_cmul_i <= scale_cmul;
             end if;
         end if;
     end process prepare_p;
@@ -259,6 +264,9 @@ begin
         start_fft    => start_fft,
         edone        => fft_edone,
         dv           => dv,
+
+        scale_cmul   => scale_cmul_i,
+        ovfl_cmul    => ovfl_cmul_i,
 
         mem_busy     => fft_mem,
         fft_unload   => fft_unload,
@@ -347,6 +355,7 @@ begin
             if state = PREPARE or rst = '1' then
                 ovfl_fft <= '0';
                 ovfl_ifft <= '0';
+                ovfl_cmul <= '0';
             elsif state = WAIT_COMPLETE then
                 if ovflo = '1' then
                     if fft_unload = '1' then
@@ -355,6 +364,9 @@ begin
                     if ifft_unload = '1' then
                         ovfl_ifft <= '1';
                     end if;
+                end if;
+                if ovfl_cmul_i = '1' then
+                    ovfl_cmul <= '1';
                 end if;
             end if;
         end if;

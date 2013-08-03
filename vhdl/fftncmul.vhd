@@ -43,6 +43,9 @@ port(
     edone        : in  std_logic;
     dv           : in  std_logic;
 
+    scale_cmul   : in  std_logic_vector(1 downto 0);
+    ovfl_cmul    : out std_logic;
+
     mem_busy     : out std_logic;
     fft_unload   : out std_logic;
     done         : out std_logic;
@@ -246,9 +249,9 @@ begin
         b_im         => H_im,
         c_re         => scratch_re,
         c_im         => scratch_im,
-        shift        => "00",
+        shift        => scale_cmul,
         sat          => '0',
-        ovfl         => open
+        ovfl         => ovfl_cmul
     );
 
     -- delay addr + wr for scratch by 2 read + 4 cmul cycles = 6

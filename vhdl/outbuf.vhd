@@ -34,7 +34,8 @@ port(
     frame_offset        : in  std_logic_vector(15 downto 0);
     resync              : in  std_logic;
 	busy				: out std_logic;
-    shift               : in  std_logic;
+    sat                 : in  std_logic;
+    shift               : in  std_logic_vector(1 downto 0);
     ovfl                : out std_logic;
 
 -- mem
@@ -79,8 +80,6 @@ architecture Structural of outbuf is
 
     signal s_muli            : signed(15 downto 0);
     signal s_mulq            : signed(15 downto 0);
-
-    signal shift_tmp         : std_logic_vector(1 downto 0); --FIXME: remove
 
 begin
 
@@ -215,8 +214,6 @@ begin
     a_re <= signed(dout(15 downto 0));
     a_im <= signed(dout(31 downto 16));
 
-    shift_tmp<= "0" & shift; --FIXME
-
     cmul_i: entity work.cmul
     port map(
         clk          => clk,
@@ -226,8 +223,8 @@ begin
         b_im         => s_mulq,
         c_re         => c_re,
         c_im         => c_im,
-        shift        => shift_tmp,
-        sat          => '1',
+        shift        => shift,
+        sat          => sat,
         ovfl         => ovfl
     );
 

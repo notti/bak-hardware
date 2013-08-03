@@ -165,11 +165,13 @@ END COMPONENT;
     signal core_n              : std_logic_vector(4 downto 0);
     signal core_scale_sch      : std_logic_vector(11 downto 0);
     signal core_scale_schi     : std_logic_vector(11 downto 0);
+    signal core_scale_cmul     : std_logic_vector(1 downto 0);
     signal core_L              : std_logic_vector(11 downto 0);
     signal core_iq             : std_logic;
     signal core_circular       : std_logic;
     signal core_ov_fft         : std_logic;
     signal core_ov_ifft        : std_logic;
+    signal core_ov_cmul        : std_logic;
     signal core_busy           : std_logic;
     signal core_done           : std_logic;
     signal tx_rst              : std_logic;
@@ -183,7 +185,8 @@ END COMPONENT;
     signal tx_resync           : std_logic;
     signal tx_busy             : std_logic;
     signal tx_ovfl             : std_logic;
-    signal tx_shift            : std_logic;
+    signal tx_shift            : std_logic_vector(1 downto 0);
+    signal tx_sat              : std_logic;
     signal mem_req             : std_logic;
     signal mem_ack             : std_logic;
 
@@ -284,11 +287,13 @@ begin
         core_n              => core_n,
         core_scale_sch      => core_scale_sch,
         core_scale_schi     => core_scale_schi,
+        core_scale_cmul     => core_scale_cmul,
         core_L              => core_L,
         core_iq             => core_iq,
         core_circular       => core_circular,
         core_ov_fft         => core_ov_fft,
         core_ov_ifft        => core_ov_ifft,
+        core_ov_cmul        => core_ov_cmul,
         core_busy           => core_busy,
         core_done           => core_done,
         tx_txn              => oserdes_txn,
@@ -306,6 +311,7 @@ begin
         tx_resync           => tx_resync,
         tx_busy             => tx_busy,
         tx_ovfl             => tx_ovfl,
+        tx_sat              => tx_sat,
         tx_shift            => tx_shift,
         mem_req             => mem_req,
         mem_ack             => mem_ack,
@@ -361,11 +367,13 @@ begin
         core_n              => core_n,
         core_scale_sch      => core_scale_sch,
         core_scale_schi     => core_scale_schi,
+        core_scale_cmul     => core_scale_cmul,
         core_L              => core_L,
         core_iq             => core_iq,
         core_circular       => core_circular,
         core_ov_fft         => core_ov_fft,
         core_ov_ifft        => core_ov_ifft,
+        core_ov_cmul        => core_ov_cmul,
         core_busy           => core_busy,
         core_done           => core_done,
         tx_rst              => tx_rst,
@@ -379,6 +387,7 @@ begin
         tx_resync           => tx_resync,
         tx_busy             => tx_busy,
         tx_ovfl             => tx_ovfl,
+        tx_sat              => tx_sat,
         tx_shift            => tx_shift,
         mem_req             => mem_req,
         mem_ack             => mem_ack,

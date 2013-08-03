@@ -17,6 +17,7 @@ port(
     core_n          : in  std_logic_vector(4 downto 0);
     core_scale_sch  : in  std_logic_vector(11 downto 0);
     core_scale_schi : in  std_logic_vector(11 downto 0);
+    core_scale_cmul : in  std_logic_vector(1 downto 0);
     core_L          : in  std_logic_vector(11 downto 0);
     core_depth      : in  std_logic_vector(15 downto 0);
     core_iq         : in  std_logic;
@@ -24,6 +25,7 @@ port(
 
     core_ov_fft     : out std_logic;
     core_ov_ifft    : out std_logic;
+    core_ov_cmul    : out std_logic;
 
     core_busy       : out std_logic;
     core_done       : out std_logic;
@@ -65,6 +67,7 @@ begin
         nfft         => core_n,
         scale_sch    => core_scale_sch,
         scale_schi   => core_scale_schi,
+        scale_cmul   => core_scale_cmul,
         L            => core_L,
         Nx           => core_depth,
         iq           => core_iq,
@@ -87,6 +90,7 @@ begin
 
         ovfl_fft     => core_ov_fft,
         ovfl_ifft    => core_ov_ifft,
+        ovfl_cmul    => core_ov_cmul,
 
         busy         => core_busy,
         done         => core_done
