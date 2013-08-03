@@ -14,6 +14,7 @@ tb_toggle: toggle.o
 tb_proc_memory: proc_memory.o
 tb_outbuf: outbuf.o
 tb_cmul: cmul.o
+tb_mul: mul.o
 
 %: %.o
 	$(GHDL) -e $(GHDLFLAGS) $(LIBS) $(WORK) $@

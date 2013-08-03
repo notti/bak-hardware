@@ -80,6 +80,8 @@ architecture Structural of outbuf is
     signal s_muli            : signed(15 downto 0);
     signal s_mulq            : signed(15 downto 0);
 
+    signal shift_tmp         : std_logic_vector(1 downto 0); --FIXME: remove
+
 begin
 
     depth_r_proc: process(clk)
@@ -213,6 +215,8 @@ begin
     a_re <= signed(dout(15 downto 0));
     a_im <= signed(dout(31 downto 16));
 
+    shift_tmp<= "0" & shift; --FIXME
+
     cmul_i: entity work.cmul
     port map(
         clk          => clk,
@@ -222,7 +226,8 @@ begin
         b_im         => s_mulq,
         c_re         => c_re,
         c_im         => c_im,
-        shift        => shift,
+        shift        => shift_tmp,
+        sat          => '1',
         ovfl         => ovfl
     );
 

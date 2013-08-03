@@ -246,7 +246,8 @@ begin
         b_im         => H_im,
         c_re         => scratch_re,
         c_im         => scratch_im,
-        shift        => '0',
+        shift        => "00",
+        sat          => '0',
         ovfl         => open
     );
 

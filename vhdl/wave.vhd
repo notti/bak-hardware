@@ -65,10 +65,16 @@ begin
     );
 
     i_round: entity work.convergent
+    generic map(
+        WIDTH_IN => 32
+    )
     port map(
         clk => clk,
         a   => i_big,
-        c   => i_small
+        c   => i_small,
+        shift => "00",
+        sat => '0',
+        ovfl => open
     );
 
     s_value <= s(conv_integer(cnt));
@@ -82,10 +88,16 @@ begin
     );
 
     q_round: entity work.convergent
+    generic map(
+        WIDTH_IN => 32
+    )
     port map(
         clk => clk,
         a   => q_big,
-        c   => q_small
+        c   => q_small,
+        shift => "00",
+        sat => '0',
+        ovfl => open
     );
 
     dly_p: process(clk)

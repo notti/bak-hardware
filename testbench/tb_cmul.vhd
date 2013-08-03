@@ -18,10 +18,9 @@ architecture behav of tb_cmul is
     signal c_re    : signed(15 downto 0) := "0000000000000000";
     signal c_im    : signed(15 downto 0) := "0000000000000000";
 
-    signal cnt     : signed(15 downto 0) := "0000000000000000";
-
     signal ovfl    : std_logic           := '0';
-    signal shift   : std_logic           := '0';
+    signal shift   : std_logic_vector(1 downto 0) := "00";
+    signal sat     : std_logic           := '0';
 
 begin
     
@@ -35,10 +34,9 @@ begin
     begin
         wait for 10 ns;
         a_re <= X"7FFF";
-        wait for 10 ns;
         b_re <= X"7FFF";
-        wait for 10 ns;
         a_im <= X"7FFF";
+        b_im <= X"7FFF";
         wait for 10 ns;
         a_re <= X"8000";
         wait for 10 ns;
@@ -56,7 +54,7 @@ begin
         b_re <= X"7FFF";
         b_im <= X"7FFF";
         wait for 40 ns;
-        shift <= '1';
+        shift <= "01";
         a_re <= X"7FFF";
         wait for 10 ns;
         b_re <= X"7FFF";
@@ -91,6 +89,93 @@ begin
         b_re <= X"F801";
         wait for 10 ns;
         b_im <= X"F801";
+        wait for 10 ns;
+        a_re <= X"7FFF";
+        a_im <= X"7FFF";
+        b_re <= X"7FFF";
+        b_im <= X"7FFF";
+        shift <= "00";
+        wait for 10 ns;
+        shift <= "01";
+        wait for 10 ns;
+        shift <= "10";
+        wait for 10 ns;
+        shift <= "11";
+        wait for 10 ns;
+        a_re <= X"FFFF";
+        a_im <= X"FFFF";
+        b_re <= X"FFFF";
+        b_im <= X"FFFF";
+        shift <= "00";
+        wait for 10 ns;
+        shift <= "01";
+        wait for 10 ns;
+        shift <= "10";
+        wait for 10 ns;
+        shift <= "11";
+        wait for 10 ns;
+        a_re <= X"FFFF";
+        a_im <= X"FFFF";
+        b_re <= X"0001";
+        b_im <= X"0001";
+        shift <= "00";
+        wait for 10 ns;
+        shift <= "01";
+        wait for 10 ns;
+        shift <= "10";
+        wait for 10 ns;
+        shift <= "11";
+        wait for 10 ns;
+        shift <= "01";
+        sat <= '1';
+        a_re <= X"7FFF";
+        a_im <= X"7FFF";
+        b_re <= X"7FFF";
+        b_im <= X"7FFF";
+        wait for 10 ns;
+        a_re <= X"8000";
+        wait for 10 ns;
+        a_im <= X"8000";
+        wait for 10 ns;
+        b_re <= X"8000";
+        wait for 10 ns;
+        b_im <= X"8000";
+        wait for 10 ns;
+        a_re <= X"7FFF";
+        a_im <= X"7FFF";
+        b_re <= X"7FFF";
+        b_im <= X"7FFF";
+        shift <= "00";
+        wait for 10 ns;
+        shift <= "01";
+        wait for 10 ns;
+        shift <= "10";
+        wait for 10 ns;
+        shift <= "11";
+        wait for 10 ns;
+        a_re <= X"FFFF";
+        a_im <= X"FFFF";
+        b_re <= X"FFFF";
+        b_im <= X"FFFF";
+        shift <= "00";
+        wait for 10 ns;
+        shift <= "01";
+        wait for 10 ns;
+        shift <= "10";
+        wait for 10 ns;
+        shift <= "11";
+        wait for 10 ns;
+        a_re <= X"FFFF";
+        a_im <= X"FFFF";
+        b_re <= X"0001";
+        b_im <= X"0001";
+        shift <= "00";
+        wait for 10 ns;
+        shift <= "01";
+        wait for 10 ns;
+        shift <= "10";
+        wait for 10 ns;
+        shift <= "11";
         wait for 50 ns;
         assert false report "done" severity failure;
         wait;
@@ -106,7 +191,8 @@ begin
         c_re => c_re,
         c_im => c_im,
         shift => shift,
-        ovfl  => ovfl
+        ovfl  => ovfl,
+        sat   => sat
     );
 
     
