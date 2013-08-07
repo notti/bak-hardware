@@ -99,13 +99,35 @@ INST "*/outbuf_mem_0/*" AREA_GROUP = "outbuf_mem_0";
 
 AREA_GROUP "outbuf" RANGE=SLICE_X2Y70:SLICE_X15Y99, SLICE_X50Y80:SLICE_X53Y89;
 AREA_GROUP "outbuf" RANGE=DSP48_X0Y32:DSP48_X0Y35;
-INST "*/outbuf_inst/*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/cmul_i/*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/*do_toggle*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/*frame_*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/*depth_r*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/*toggled*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/active*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/cmul_i/*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/do_*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/dout_*" AREA_GROUP = "outbuf";
+INST "main_inst/outbuf_inst/mem_*" AREA_GROUP = "outbuf";
 
 AREA_GROUP "outdata_long" RANGE=SLICE_X2Y90:SLICE_X7Y91, SLICE_X4Y88:SLICE_X7Y89, SLICE_X2Y85:SLICE_X7Y87, SLICE_X4Y78:SLICE_X7Y84, SLICE_X2Y76:SLICE_X7Y77;
 INST "*/transmitter_i/outdata_long*" AREA_GROUP = "outdata_long";
 INST "*/transmitter_i/outdata_final*" AREA_GROUP = "outdata_long";
 AREA_GROUP "transmitter" RANGE=SLICE_X2Y70:SLICE_X15Y99;
-INST "*/transmitter_i/*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/*buf_cycle*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/*deskew*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/buf_cycle*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/ckf_dly" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/clk_generate*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/deskew*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/en_balance*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/frame_scan*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/in_start*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/locked_i*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/*out_en*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/out_*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/outputs_generate*" AREA_GROUP = "transmitter";
+INST "main_inst/outbuf_inst/transmitter_i/rst*" AREA_GROUP = "transmitter";
 
 
 #####
