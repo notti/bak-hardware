@@ -246,6 +246,9 @@ END COMPONENT;
 begin
 
     sync_inbuf_trigger: entity work.flag
+    generic map(
+        name        => "inbuf_trigger"
+    )
     port map(
         flag_in     => inbuf_trigger,
         flag_out    => inbuf_trigger_synced,

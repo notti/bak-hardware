@@ -2,6 +2,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity value is
+generic(
+    name      : string
+);
 port(
     value_in  : in  std_logic_vector;
     value_out : out std_logic_vector;
@@ -17,6 +20,9 @@ architecture Structural of value is
 begin
 
 req_t: entity work.toggle
+generic map(
+    name        => name
+)
 port map(
     toggle_in   => value_wr,
     toggle_out  => req,

@@ -345,12 +345,18 @@ begin
     begin
         rec_enable(i)   <= recv_reg(0);
         rec_polarity_i: entity work.flag
+        generic map(
+            name        => "rec_enable" & integer'image(i)
+        )
         port map(
             flag_in     => recv_reg(1),
             flag_out    => rec_polarity(i),
             clk         => sample_clk
         );
         rec_descramble_i: entity work.flag
+        generic map(
+            name        => "rec_descramble" & integer'image(i)
+        )
         port map(
             flag_in     => recv_reg(2),
             flag_out    => rec_descramble(i),
@@ -359,6 +365,9 @@ begin
         rec_rxeqmix(i)  <= recv_reg(4 downto 3);
 
         rec_data_valid_i: entity work.flag
+        generic map(
+            name        => "rec_data_valid" & integer'image(i)
+        )
         port map(
             flag_in      => rec_data_valid(i),
             flag_out     => rec_data_valid_s,
@@ -383,6 +392,9 @@ begin
     rec_input_select_wr <= '1' when (bus2fpga_wrce = "100000" and bus2fpga_be(3) = '1') or bus2fpga_reset = '1' else
                            '0';
     sync_rec_input_select: entity work.value
+    generic map(
+        name        => "rec_input_select"
+    )
     port map(
         value_in    => slv_reg(0)(25 downto 24),
         value_out   => rec_input_select,
@@ -392,6 +404,9 @@ begin
         clk_to      => sample_clk
     );
     sync_rec_stream_valid: entity work.flag
+    generic map(
+        name        => "rec_stream_valid"
+    )
     port map(
         flag_in     => rec_stream_valid,
         flag_out    => slv_reg(0)(26),
@@ -401,6 +416,9 @@ begin
                      '1' when bus2fpga_reset = '1' else
                      '0';
     sync_rec_rst: entity work.toggle
+    generic map(
+        name        => "rec_rst"
+    )
     port map(
         toggle_in   => rec_rst_value,
         toggle_out  => rec_rst,
@@ -425,6 +443,9 @@ begin
     depth <= slv_reg(1)(15 downto 0);
 
     sync_trig_type: entity work.flag
+    generic map(
+        name        => "trig_type"
+    )
     port map(
         flag_in    => slv_reg(1)(16),
         flag_out   => trig_type,
@@ -433,6 +454,9 @@ begin
     trig_arm_value <= bus2fpga_data(18) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
                       '0';
     sync_trig_arm: entity work.toggle
+    generic map(
+        name        => "trig_arm"
+    )
     port map(
         toggle_in   => trig_arm_value,
         toggle_out  => trig_arm,
@@ -443,6 +467,9 @@ begin
     trig_int_value  <= bus2fpga_data(19) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
                        '0';
     sync_trig_int: entity work.toggle
+    generic map(
+        name        => "trig_int"
+    )
     port map(
         toggle_in   => trig_int_value,
         toggle_out  => trig_int,
@@ -454,6 +481,9 @@ begin
                        '1' when bus2fpga_reset = '1' else
                        '0';
     sync_trig_rst: entity work.toggle
+    generic map(
+        name        => "trig_rst"
+    )
     port map(
         toggle_in   => trig_rst_value,
         toggle_out  => trig_rst,
@@ -467,6 +497,9 @@ begin
                        '1' when bus2fpga_reset = '1' else
                        '0';
     sync_avg_rst: entity work.toggle
+    generic map(
+        name        => "avg_rst"
+    )
     port map(
         toggle_in   => avg_rst_value,
         toggle_out  => avg_rst,
@@ -501,18 +534,27 @@ begin
     end process write_proc1;
 
     sync_trig_armed: entity work.flag
+    generic map(
+        name        => "trig_armed"
+    )
     port map(
         flag_in     => trig_armed,
         flag_out    => slv_reg(1)(18),
         clk         => bus2fpga_clk
     );
     sync_avg_active: entity work.flag
+    generic map(
+        name        => "avg_active"
+    )
     port map(
         flag_in     => avg_active,
         flag_out    => slv_reg(1)(26),
         clk         => bus2fpga_clk
     );
     sync_avg_err: entity work.flag
+    generic map(
+        name        => "avg_err"
+    )
     port map(
         flag_in     => avg_err,
         flag_out    => slv_reg(1)(27),
@@ -561,6 +603,9 @@ begin
     core_start_value    <= bus2fpga_data(25) when bus2fpga_wrce = "000100" and bus2fpga_be(3) = '1' else
                            '0';
     sync_core_start: entity work.toggle
+    generic map(
+        name        => "core_start"
+    )
     port map(
         toggle_in   => core_start_value,
         toggle_out  => core_start,
@@ -573,6 +618,9 @@ begin
                        '1' when bus2fpga_reset = '1' else
                        '0';
     sync_core_rst: entity work.toggle
+    generic map(
+        name        => "core_rst"
+    )
     port map(
         toggle_in   => core_rst_value,
         toggle_out  => core_rst,
@@ -611,24 +659,36 @@ begin
     end process write_proc3;
 
     sync_core_busy: entity work.flag
+    generic map(
+        name        => "core_busy"
+    )
     port map(
         flag_in     => core_busy,
         flag_out    => slv_reg(3)(25),
         clk         => bus2fpga_clk
     );
     sync_core_ov_fft: entity work.flag
+    generic map(
+        name        => "core_ov_fft"
+    )
     port map(
         flag_in     => core_ov_fft,
         flag_out    => slv_reg(3)(26),
         clk         => bus2fpga_clk
     );
     sync_core_ov_ifft: entity work.flag
+    generic map(
+        name        => "core_ov_ifft"
+    )
     port map(
         flag_in     => core_ov_ifft,
         flag_out    => slv_reg(3)(27),
         clk         => bus2fpga_clk
     );
     sync_core_ov_cmul: entity work.flag
+    generic map(
+        name        => "core_ov_cmul"
+    )
     port map(
         flag_in     => core_ov_cmul,
         flag_out    => slv_reg(3)(28),
@@ -642,6 +702,9 @@ begin
     tx_muli_wr <= '1' when (bus2fpga_wrce = "000010" and (bus2fpga_be(0) = '1' or bus2fpga_be(1) = '1')) or bus2fpga_reset = '1' else
                   '0';
     sync_tx_muli: entity work.value
+    generic map(
+        name        => "tx_muli"
+    )
     port map(
         value_in    => slv_reg(4)(15 downto 0),
         value_out   => tx_muli,
@@ -653,6 +716,9 @@ begin
     tx_mulq_wr <= '1' when (bus2fpga_wrce = "000010" and (bus2fpga_be(2) = '1' or bus2fpga_be(3) = '1')) or bus2fpga_reset = '1' else
                   '0';
     sync_tx_mulq: entity work.value
+    generic map(
+        name        => "tx_mulq"
+    )
     port map(
         value_in    => slv_reg(4)(31 downto 16),
         value_out   => tx_mulq,
@@ -691,6 +757,9 @@ begin
     tx_deskew_value <= bus2fpga_data(16) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
                        '0';
     sync_tx_deskew: entity work.toggle
+    generic map(
+        name        => "tx_deskew"
+    )
     port map(
         toggle_in   => tx_deskew_value,
         toggle_out  => tx_deskew,
@@ -699,6 +768,9 @@ begin
         clk_to      => sample_clk
     );
     sync_tx_dc_balance: entity work.flag
+    generic map(
+        name        => "tx_dc_balance"
+    )
     port map(
         flag_in     => slv_reg(5)(17),
         flag_out    => tx_dc_balance,
@@ -707,6 +779,9 @@ begin
     tx_toggle_value <= bus2fpga_data(18) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
                        '0';
     sync_tx_toggle: entity work.toggle
+    generic map(
+        name        => "tx_toggle"
+    )
     port map(
         toggle_in   => tx_toggle_value,
         toggle_out  => tx_toggle_buf,
@@ -717,6 +792,9 @@ begin
     tx_resync_value <= bus2fpga_data(19) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
                        '0';
     sync_tx_resync: entity work.toggle
+    generic map(
+        name        => "tx_resync"
+    )
     port map(
         toggle_in   => tx_resync_value,
         toggle_out  => tx_resync,
@@ -728,6 +806,9 @@ begin
                      '1' when bus2fpga_reset = '1' else
                      '0';
     sync_tx_rst: entity work.toggle
+    generic map(
+        name        => "tx_rst"
+    )
     port map(
         toggle_in   => tx_rst_value,
         toggle_out  => tx_rst,
@@ -737,6 +818,9 @@ begin
     );
 
     sync_mem_req: entity work.flag
+    generic map(
+        name        => "mem_req"
+    )
     port map(
         flag_in     => mem_req_r,
         flag_out    => mem_req,
@@ -744,6 +828,9 @@ begin
     );
 
     sync_tx_sat: entity work.flag
+    generic map(
+        name        => "tx_sat"
+    )
     port map(
         flag_in     => slv_reg(5)(28),
         flag_out    => tx_sat,
@@ -753,6 +840,9 @@ begin
     tx_shift_wr <= '1' when (bus2fpga_wrce = "000001" and bus2fpga_be(3) = '1') or bus2fpga_reset = '1' else
                   '0';
     sync_tx_shift: entity work.value
+    generic map(
+        name        => "tx_shift"
+    )
     port map(
         value_in    => slv_reg(5)(31 downto 30),
         value_out   => tx_shift,
@@ -799,6 +889,9 @@ begin
     end process write_proc5;
 
     sync_tx_busy: entity work.flag
+    generic map(
+        name        => "tx_busy"
+    )
     port map(
         flag_in     => tx_busy,
         flag_out    => slv_reg(5)(18),
@@ -806,6 +899,9 @@ begin
     );
 
     sync_mem_ack: entity work.flag
+    generic map(
+        name        => "mem_ack"
+    )
     port map(
         flag_in     => mem_ack,
         flag_out    => slv_reg(5)(24),
@@ -813,6 +909,9 @@ begin
     );
 
     sync_ovfl: entity work.flag
+    generic map(
+        name        => "ovfl"
+    )
     port map(
         flag_in     => tx_ovfl,
         flag_out    => tx_ovfl_synced,
@@ -838,24 +937,36 @@ begin
 
 
     sync_trig_trigd: entity work.flag
+    generic map(
+        name        => "trig_trigd"
+    )
     port map(
         flag_in     => trig_trigd,
         flag_out    => trig_trigd_synced,
         clk         => bus2fpga_clk
     );
     sync_avg_done: entity work.flag
+    generic map(
+        name        => "avg_done"
+    )
     port map(
         flag_in     => avg_done,
         flag_out    => avg_done_synced,
         clk         => bus2fpga_clk
     );
     sync_core_done: entity work.flag
+    generic map(
+        name        => "core_done"
+    )
     port map(
         flag_in     => core_done,
         flag_out    => core_done_synced,
         clk         => bus2fpga_clk
     );
     sync_tx_toggled: entity work.flag
+    generic map(
+        name        => "tx_toggled"
+    )
     port map(
         flag_in     => tx_toggled,
         flag_out    => tx_toggled_synced,
