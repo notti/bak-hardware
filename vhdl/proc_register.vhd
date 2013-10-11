@@ -256,8 +256,8 @@ begin
 -- 0  0                                0 5
 -- x  core_scale_cmul(0)               0 6
 -- x  core_scale_cmul(1)               0 7
--- x  core_n(0)                        0 0
--- x  core_n(1)                        0 1
+-- x  core_n(0)                        1 0
+-- x  core_n(1)                        1 1
 -- x  core_n(2)                        0 2
 -- x  core_n(3)                        0 3
 -- x  core_n(4)                        0 4
@@ -634,7 +634,8 @@ begin
         if rising_edge(bus2fpga_clk) then
             if bus2fpga_reset = '1' then
                 slv_reg(3)(11 downto 0) <= (others => '0');
-                slv_reg(3)(20 downto 14) <= (others => '0');
+                slv_reg(3)(15 downto 14) <= (others => '0');
+                slv_reg(3)(20 downto 16) <= "00011";
                 slv_reg(3)(24) <= '0';
                 slv_reg(3)(29) <= '0';
             else
