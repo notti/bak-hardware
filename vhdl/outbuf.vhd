@@ -37,6 +37,7 @@ port(
     sat                 : in  std_logic;
     shift               : in  std_logic_vector(1 downto 0);
     ovfl                : out std_logic;
+    ovfl_ack            : in  std_logic;
 
 -- mem
     mem_clk             : in  std_logic;
@@ -80,6 +81,8 @@ architecture Structural of outbuf is
 
     signal s_muli            : signed(15 downto 0);
     signal s_mulq            : signed(15 downto 0);
+
+    signal ovfl_i            : std_logic;
 
 begin
 
@@ -225,8 +228,19 @@ begin
         c_im         => c_im,
         shift        => shift,
         sat          => sat,
-        ovfl         => ovfl
+        ovfl         => ovfl_i
     );
+
+    ovfl_p: process(clk)
+    begin
+        if rising_edge(clk) then
+            if rst = '1' or ovfl_ack = '1' then
+                ovfl <= '0';
+            elsif ovfl_i = '1' then
+                ovfl <= '1';
+            end if;
+        end if;
+    end process ovfl_p;
 
     e2(0) <= '1'; --VALID
     e2(1) <= '1'; --ENABLE

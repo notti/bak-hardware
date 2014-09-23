@@ -87,6 +87,7 @@ port(
     tx_resync           : in  std_logic;
 	tx_busy				: out std_logic;
     tx_ovfl             : out std_logic;
+    tx_ovfl_ack         : in  std_logic;
     tx_sat              : in  std_logic;
     tx_shift            : in  std_logic_vector(1 downto 0);
 
@@ -386,6 +387,7 @@ begin
 		resync          => tx_resync,
 		busy			=> tx_busy_i,
         ovfl            => tx_ovfl,
+        ovfl_ack        => tx_ovfl_ack,
         sat             => tx_sat,
         shift           => tx_shift,
 

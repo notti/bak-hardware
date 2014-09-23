@@ -185,6 +185,7 @@ END COMPONENT;
     signal tx_resync           : std_logic;
     signal tx_busy             : std_logic;
     signal tx_ovfl             : std_logic;
+    signal tx_ovfl_ack         : std_logic;
     signal tx_shift            : std_logic_vector(1 downto 0);
     signal tx_sat              : std_logic;
     signal mem_req             : std_logic;
@@ -314,6 +315,7 @@ begin
         tx_resync           => tx_resync,
         tx_busy             => tx_busy,
         tx_ovfl             => tx_ovfl,
+        tx_ovfl_ack         => tx_ovfl_ack,
         tx_sat              => tx_sat,
         tx_shift            => tx_shift,
         mem_req             => mem_req,
@@ -390,6 +392,7 @@ begin
         tx_resync           => tx_resync,
         tx_busy             => tx_busy,
         tx_ovfl             => tx_ovfl,
+        tx_ovfl_ack         => tx_ovfl_ack,
         tx_sat              => tx_sat,
         tx_shift            => tx_shift,
         mem_req             => mem_req,

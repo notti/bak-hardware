@@ -39,6 +39,7 @@ port(
     tx_dc_balance       : out std_logic;
     tx_toggle_buf       : out std_logic;
     tx_resync           : out std_logic;
+    tx_ovfl_ack         : out std_logic;
 
 -- flag
     rec_polarity        : out std_logic_vector(2 downto 0);
@@ -75,13 +76,13 @@ port(
     core_busy           : in  std_logic;
     tx_busy             : in  std_logic;
     mem_ack             : in  std_logic;
+    tx_ovfl             : in  std_logic;
 
 -- pulse (intr)
     trig_trigd          : in  std_logic;
     avg_done            : in  std_logic;
     core_done           : in  std_logic;
     tx_toggled          : in  std_logic;
-    tx_ovfl             : in  std_logic;
 
 -- clocks
     sample_clk          : in  std_logic;
@@ -130,10 +131,11 @@ architecture Structural of proc_register is
     signal tx_resync_value          : std_logic;
     signal tx_rst_value             : std_logic;
     signal tx_ovfl_synced           : std_logic;
+    signal tx_ovfl_ack_unsynced     : std_logic;
 
     signal mem_req_r                : std_logic;
 
-    signal busy                     : std_logic_vector(14 downto 0);
+    signal busy                     : std_logic_vector(15 downto 0);
 
     signal trig_trigd_synced        : std_logic;
     signal avg_done_synced          : std_logic;
@@ -861,7 +863,6 @@ begin
                 slv_reg(5)(17) <= '0';
                 mem_req_r <= '0';
                 slv_reg(5)(28) <= '1';
-                slv_reg(5)(29) <= '0';
                 slv_reg(5)(31 downto 30) <= (others => '0');
             else
                 if bus2fpga_wrce = "000001" then
@@ -879,11 +880,6 @@ begin
                         slv_reg(5)(28) <= bus2fpga_data(28);
                         slv_reg(5)(31 downto 30) <= bus2fpga_data(31 downto 30);
                     end if;
-                end if;
-                if tx_ovfl_synced = '1' then
-                    slv_reg(5)(29) <= '1';
-                elsif bus2fpga_wrce = "000001" and bus2fpga_data(30) = '0' then
-                    slv_reg(5)(29) <= '0';
                 end if;
             end if;
         end if;
@@ -919,9 +915,24 @@ begin
         clk         => bus2fpga_clk
     );
 
+    tx_ovfl_ack_unsynced <= '1' when bus2fpga_wrce = "000001" and bus2fpga_be(3) = '1' and bus2fpga_data(29) = '0' else
+                            '0';
+    sync_ovfl_ack: entity work.toggle
+    generic map(
+        name        => "ovfl_ack"
+    )
+    port map(
+        toggle_in   => tx_ovfl_ack_unsynced,
+        toggle_out  => tx_ovfl_ack,
+        busy        => busy(15),
+        clk_from    => bus2fpga_clk,
+        clk_to      => sample_clk
+    );
+
     slv_reg(5)(16) <= '0';
     slv_reg(5)(23 downto 19) <= (others => '0');
     slv_reg(5)(27 downto 25) <= (others => '0');
+    slv_reg(5)(29) <= tx_ovfl_synced;
 --=============================================================================
     slave_reg_read_proc: process(bus2fpga_rdce, slv_reg)
     begin
@@ -937,14 +948,16 @@ begin
     end process slave_reg_read_proc;
 
 
-    sync_trig_trigd: entity work.flag
+    sync_trig_trigd: entity work.toggle
     generic map(
         name        => "trig_trigd"
     )
     port map(
-        flag_in     => trig_trigd,
-        flag_out    => trig_trigd_synced,
-        clk         => bus2fpga_clk
+        toggle_in   => trig_trigd,
+        toggle_out  => trig_trigd_synced,
+        busy        => open,
+        clk_from    => sample_clk,
+        clk_to      => bus2fpga_clk
     );
     sync_avg_done: entity work.flag
     generic map(
@@ -955,23 +968,27 @@ begin
         flag_out    => avg_done_synced,
         clk         => bus2fpga_clk
     );
-    sync_core_done: entity work.flag
+    sync_core_done: entity work.toggle
     generic map(
         name        => "core_done"
     )
     port map(
-        flag_in     => core_done,
-        flag_out    => core_done_synced,
-        clk         => bus2fpga_clk
+        toggle_in   => core_done,
+        toggle_out  => core_done_synced,
+        busy        => open,
+        clk_from    => sample_clk,
+        clk_to      => bus2fpga_clk
     );
-    sync_tx_toggled: entity work.flag
+    sync_tx_toggled: entity work.toggle
     generic map(
         name        => "tx_toggled"
     )
     port map(
-        flag_in     => tx_toggled,
-        flag_out    => tx_toggled_synced,
-        clk         => bus2fpga_clk
+        toggle_in   => tx_toggled,
+        toggle_out  => tx_toggled_synced,
+        busy        => open,
+        clk_from    => sample_clk,
+        clk_to      => bus2fpga_clk
     );
 
     fpga2bus_intr <= (
@@ -987,7 +1004,7 @@ begin
         9  => avg_done_synced,
         10 => core_done_synced,
         11 => tx_toggled_synced,
-        12 => tx_ovfl_synced,
+        12 => slv_reg(5)(29),
         others => '0');
 
     fpga2bus_rdack <= or_many(bus2fpga_rdce);
