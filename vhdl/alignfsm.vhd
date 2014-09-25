@@ -22,9 +22,9 @@ use work.procedures.all;
 entity align_fsm is
 generic(
 	SYNC_PWR_ON_LEN     : integer := 4; -- pwr_on_cnt len
-	SYNC_BLANK_LEN      : integer := 4; -- blank_cnt len
-	SYNC_WAIT_LEN       : integer := 10; -- wait_cnt len
-	SYNC_ALIGNED_LEN    : integer := 7 -- aligned_cnt len
+	SYNC_BLANK_LEN      : integer := 12; -- blank_cnt len
+	SYNC_WAIT_LEN       : integer := 12; -- wait_cnt len
+	SYNC_ALIGNED_LEN    : integer := 5 -- aligned_cnt len
 );
 port(
 	clk                 : in  std_logic;
