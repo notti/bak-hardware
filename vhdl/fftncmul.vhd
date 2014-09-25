@@ -81,6 +81,9 @@ architecture Structural of fftncmul is
     signal do_fft_1     : std_logic;
     signal do_fft_2     : std_logic;
     signal wave_run     : std_logic;
+    signal wave_run_1   : std_logic;
+    signal wave_run_2   : std_logic;
+    signal wave_run_i   : std_logic;
     signal xk_re_1      : signed(15 downto 0);
     signal xk_re_2      : signed(15 downto 0);
     signal xk_im_1      : signed(15 downto 0);
@@ -141,8 +144,9 @@ begin
 -- FFT FILL aka fft(x(block_cnt:block_cnt+L-1),Nf)
 --------------------------------------------------------------------------
 
-    wave_run <= '1' when addr_l_L_1 = '1' and state = LOAD else
+    wave_run <= '1' when state = LOAD and addr_l_l = '1' else
                 '0';
+    wave_run_i <= wave_run and wave_run_2;
 
     wave_i: entity work.wave
     port map(
@@ -150,7 +154,7 @@ begin
         en         => iq,
         rst        => prepare,
         wave_index => wave_index,
-        run        => wave_run,
+        run        => wave_run_i,
         data       => xn_in,
         i          => re,
         q          => im
@@ -203,6 +207,8 @@ begin
     begin
         if rising_edge(clk) then
             addr_1 <= addr;
+            wave_run_1 <= wave_run;
+            wave_run_2 <= wave_run_1;
             addr_cnt_1 <= addr_cnt;
             addr_l_L_1 <= addr_l_L;
             addr_l_Nx_1 <= addr_l_Nx;

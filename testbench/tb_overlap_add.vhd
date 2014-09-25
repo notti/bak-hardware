@@ -150,6 +150,7 @@ begin
     nfft         => nfft,
     scale_sch    => scale_sch,
     scale_schi   => scale_schi,
+    scale_cmul   => (others => '0'),
     L            => L,
     Nx           => n,
     iq           => iq,
