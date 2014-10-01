@@ -77,6 +77,7 @@ architecture Structural of fftncmul is
     signal nzero_pad_1  : std_logic;
     signal nzero_pad_2  : std_logic;
     signal nzero_pad_3  : std_logic;
+    signal nzero_pad_4  : std_logic;
     signal do_fft       : std_logic;
     signal do_fft_1     : std_logic;
     signal do_fft_2     : std_logic;
@@ -219,13 +220,14 @@ begin
             nzero_pad_1 <= nzero_pad;
             nzero_pad_2 <= nzero_pad_1;
             nzero_pad_3 <= nzero_pad_2;
+            nzero_pad_4 <= nzero_pad_3;
         end if;
     end process addr_dly;
 
     --zero pad when addr_cnt >= L or addr >=Nx
-    xn_re <= re when nzero_pad_3 = '1' else
+    xn_re <= re when nzero_pad_4 = '1' else
              (others => '0');
-    xn_im <= im when nzero_pad_3 = '1' else
+    xn_im <= im when nzero_pad_4 = '1' else
              (others => '0');
 
 --------------------------------------------------------------------------
