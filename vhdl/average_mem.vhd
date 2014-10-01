@@ -50,12 +50,13 @@ architecture Structural of average_mem is
     signal web_i        : std_logic_vector(18 downto 0);
     signal doutb_i      : std_logic_vector(18 downto 0);
 
-    signal cycle_cnt    : std_logic_vector(1 downto 0);
+    signal cycle_cnt    : std_logic_vector(2 downto 0);
     signal frame_cnt    : std_logic_vector(15 downto 0);
     signal read_cnt     : std_logic_vector(15 downto 0);
     signal max          : std_logic_vector(15 downto 0);
     signal max_1        : std_logic_vector(15 downto 0);
     signal width_i      : std_logic_vector(1 downto 0);
+    signal width_i2     : std_logic_vector(2 downto 0);
 
     signal wea_long     : std_logic_vector(15 downto 0);
     signal web_long     : std_logic_vector(15 downto 0);
@@ -66,6 +67,11 @@ architecture Structural of average_mem is
     signal data0        : signed(18 downto 0);
     signal dataadd      : signed(18 downto 0);
 begin
+
+    width_i2 <= "001" when width_i = "01" else
+                "011" when width_i = "10" else
+                "111" when width_i = "11" else
+                "000";
 
     active <= '1' when state = FIRST or state = RUN else
               '0';
@@ -131,7 +137,7 @@ begin
             when RUN =>
 				if data_valid = '0' then
 					next_state <= FAILED;
-                elsif cycle_cnt = width_i and frame_cnt = max then
+                elsif cycle_cnt = width_i2 and frame_cnt = max then
                     next_state <= FINISHED;
                 else
                     next_state <= RUN;
