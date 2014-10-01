@@ -31,7 +31,16 @@ architecture Structural of ram4x32 is
 begin
 
     ram_gen: for i in 0 to 3 generate
+        signal doa : std_logic_vector(7 downto 0);
+        signal dob : std_logic_vector(7 downto 0);
+        signal dia : std_logic_vector(7 downto 0);
+        signal dib : std_logic_vector(7 downto 0);
     begin
+        douta((i+1)*8-1 downto i*8) <= doa;
+        dia <= dina((i+1)*8-1 downto i*8);
+        doutb((i+1)*8-1 downto i*8) <= dob;
+        dib <= dinb((i+1)*8-1 downto i*8);
+        
         ram36_i: BRAM_TDP_MACRO
         generic map (
             BRAM_SIZE      => "36Kb",
@@ -45,14 +54,14 @@ begin
             WRITE_WIDTH_A  => 8,
             WRITE_WIDTH_B  => 8)
         port map (
-            DOA         => douta((i+1)*8-1 downto i*8),
-            DOB         => doutb((i+1)*8-1 downto i*8),
+            DOA         => doa,
+            DOB         => dob,
             ADDRA       => addra(11 downto 0),
             ADDRB       => addrb(11 downto 0),
             CLKA        => clka,
             CLKB        => clkb,
-            DIA         => dina((i+1)*8-1 downto i*8),
-            DIB         => dinb((i+1)*8-1 downto i*8),
+            DIA         => dia,
+            DIB         => dib,
             ENA         => '1',
             ENB         => '1',
             REGCEA      => '1',

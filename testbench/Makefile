@@ -53,7 +53,7 @@ vpath %.vhd ../vhdl:../wizard:.
 .SUFFIXES:
 .SUFFIXES: .vhd .o .ghw
 
-overlap_add.o: fft.o fftncmul.o ifftnadd.o ram4x32S.o
+overlap_add.o: fft.o fftncmul.o ifftnadd.o ram4x32.o
 fftncmul.o: cmul.o wave.o
 wave.o: mul.o convergent.o
 cmul.o: mul.o convergent.o
