@@ -86,10 +86,13 @@ end component;
     signal scale_schi_i : std_logic_vector(11 downto 0);
     signal scale_cmul_i : std_logic_vector(1 downto 0);
 
-    signal scratch_din  : std_logic_vector(31 downto 0);
-	signal scratch_addr : std_logic_vector(11 downto 0);
-	signal scratch_we   : std_logic;
-	signal scratch_dout : std_logic_vector(31 downto 0);
+    signal scratch_dina  : std_logic_vector(31 downto 0);
+	signal scratch_addra : std_logic_vector(11 downto 0);
+	signal scratch_wea   : std_logic_vector(3 downto 0);
+	signal scratch_web   : std_logic_vector(3 downto 0);
+	signal scratch_douta : std_logic_vector(31 downto 0);
+	signal scratch_doutb : std_logic_vector(31 downto 0);
+    signal scratch_dinb  : std_logic_vector(31 downto 0);
 
 	signal edone        : std_logic;
 	signal dv           : std_logic;
@@ -126,6 +129,10 @@ end component;
     signal ifft_scratch_im   : signed(15 downto 0);
     signal ifft_scratch_wr   : std_logic;
     signal ifft_scratch_index : std_logic_vector(11 downto 0);
+    signal ifft_scratch_reb  : signed(15 downto 0);
+    signal ifft_scratch_imb  : signed(15 downto 0);
+    signal ifft_scratch_wrb  : std_logic;
+    signal ifft_scratch_indexb: std_logic_vector(11 downto 0);
     signal fft_unload   :std_logic;
     signal ifft_unload :std_logic;
     signal start_1  : std_logic;
@@ -296,12 +303,16 @@ begin
         xk_im        => xk_im,
         xk_index     => xk_index,
 
-        scratch_re_in=> signed(scratch_dout(15 downto 0)),
-        scratch_im_in=> signed(scratch_dout(31 downto 16)),
+        scratch_re_in=> signed(scratch_douta(15 downto 0)),
+        scratch_im_in=> signed(scratch_douta(31 downto 16)),
         scratch_re_out=> ifft_scratch_re,
         scratch_im_out=> ifft_scratch_im,
         scratch_wr   => ifft_scratch_wr,
         scratch_index=> ifft_scratch_index,
+        scratch_re_outb=> ifft_scratch_reb,
+        scratch_im_outb=> ifft_scratch_imb,
+        scratch_wrb   => ifft_scratch_wrb,
+        scratch_indexb=> ifft_scratch_indexb,
 
         y_index      => y_index,
         y_re_in      => y_re_in,
@@ -322,23 +333,31 @@ begin
         next_block   => next_block
     );
 
-    scratch_din <= std_logic_vector(fft_scratch_im) & std_logic_vector(fft_scratch_re) when fft_mem = '1' and ifft_mem = '0' else
+    scratch_dina <= std_logic_vector(fft_scratch_im) & std_logic_vector(fft_scratch_re) when fft_mem = '1' and ifft_mem = '0' else
                    std_logic_vector(ifft_scratch_im) & std_logic_vector(ifft_scratch_re);
-    scratch_we <= fft_scratch_wr when fft_mem = '1' and ifft_mem = '0' else
-                  ifft_scratch_wr;
-    scratch_addr <= fft_scratch_index when fft_mem = '1' and ifft_mem = '0' else
+    scratch_wea <= (others => fft_scratch_wr) when fft_mem = '1' and ifft_mem = '0' else
+                   (others => ifft_scratch_wr);
+    scratch_addra <= fft_scratch_index when fft_mem = '1' and ifft_mem = '0' else
                     ifft_scratch_index;
+    scratch_dinb <= std_logic_vector(ifft_scratch_imb) & std_logic_vector(ifft_scratch_reb);
+    scratch_web <= (others => ifft_scratch_wrb);
 
-    scratch_i: entity work.ram4x32S
+    scratch_i: entity work.ram4x32
     generic map(
-        DO_REG             => 1
+        DOA_REG             => 1,
+        DOB_REG             => 1
     )
 	port map (
 		clka  => clk,
-		dina  => scratch_din,
-		addra => scratch_addr,
-		wea   => scratch_we,
-		douta => scratch_dout
+		dina  => scratch_dina,
+		addra => scratch_addra,
+		wea   => scratch_wea,
+		douta => scratch_douta,
+        clkb  => clk,
+		dinb  => scratch_dinb,
+		addrb => ifft_scratch_indexb,
+		web   => scratch_web,
+		doutb => scratch_doutb
     );
 
     xn_re <= fft_xn_re when fft_mem = '1' else

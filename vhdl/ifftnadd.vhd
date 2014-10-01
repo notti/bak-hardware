@@ -34,6 +34,10 @@ port(
     scratch_im_out:out signed(15 downto 0);
     scratch_wr   : out std_logic;
     scratch_index: out std_logic_vector(11 downto 0);
+    scratch_re_outb:out signed(15 downto 0);
+    scratch_im_outb:out signed(15 downto 0);
+    scratch_wrb   : out std_logic;
+    scratch_indexb: out std_logic_vector(11 downto 0);
 
     y_index      : out std_logic_vector(15 downto 0);
     y_re_in      : in  signed(15 downto 0);
@@ -56,7 +60,7 @@ port(
 end ifftnadd;
 
 architecture Structural of ifftnadd is
-    type fft_fsm_type is (INACTIVE, LOAD_IFFT, LOAD_SCRATCH, WAIT_IFFT, UNLOAD, YADD2SCRATCH, SCRATCH2Y, INCR, FINISHED);
+    type fft_fsm_type is (INACTIVE, LOAD_IFFT, WAIT_IFFT, UNLOAD, YADD2SCRATCH, SCRATCH2Y, INCR, FINISHED);
 
     signal state : fft_fsm_type;
     signal block_cnt    : std_logic_vector(15 downto 0);
@@ -117,15 +121,9 @@ begin
                         end if;
                     when LOAD_IFFT =>
                         if rfd = '0' then
-                            state <= LOAD_SCRATCH;
-                        else
-                            state <= LOAD_IFFT;
-                        end if;
-                    when LOAD_SCRATCH =>
-                        if addr_cnt = (NH - L + 2) then
                             state <= WAIT_IFFT;
                         else
-                            state <= LOAD_SCRATCH;
+                            state <= LOAD_IFFT;
                         end if;
                     when WAIT_IFFT =>
                         if edone = '1' then
@@ -183,9 +181,9 @@ begin
 
     scratch_index <= scratch_cnt when state = SCRATCH2Y else
                      circ_cnt_3 when state = YADD2SCRATCH else
-                     addr_cnt_3 when state = LOAD_SCRATCH else
                      xn_index when state = LOAD_IFFT else
                      xk_index;
+    scratch_indexb <= addr_cnt_3;
     --scratch: 2 read cycles; fft 3 -> delay by one
     xn_dly: process(clk)
     begin
@@ -201,7 +199,7 @@ begin
     addr_cnt_impl: process(clk)
     begin
         if rising_edge(clk) then
-            if state /= LOAD_SCRATCH then
+            if state /= LOAD_IFFT then
                 addr_cnt <= (others => '0');
             else
                 addr_cnt <= addr_cnt + 1;
@@ -218,7 +216,7 @@ begin
         end if;
     end process addr_cnt_dly;
 
-    addr <= addr_cnt + block_cnt when state = LOAD_SCRATCH else
+    addr <= addr_cnt + block_cnt when state = LOAD_IFFT else
             addr_2;
 
     y_index_dly: process(clk)
@@ -239,9 +237,12 @@ begin
     scratch_im_out <= y_im_in + y_im_in_1 when state = YADD2SCRATCH else
                       (others => '0') when block_cnt = "0000" else
                       y_im_in;
+    scratch_re_outb <= y_re_in;
+    scratch_im_outb <= y_im_in;
     scratch_wr <= lowhi when circ_cnt_3 < Nh - L and state = YADD2SCRATCH else
-                  '1' when addr_cnt > 2 and state = LOAD_SCRATCH else
                   '0';
+    scratch_wrb <= '1' when addr_cnt > 2 and state = LOAD_IFFT else
+                   '0';
 
 --------------------------------------------------------------------------
 -- UNLOAD aka y=scratch(0:Nf-L-1) + ifft()
@@ -378,7 +379,7 @@ begin
 -- tell the rest of the world what we're doing
 --------------------------------------------------------------------------
 
-    mem_busy <= '1' when state = UNLOAD or state = LOAD_IFFT or state = LOAD_SCRATCH else
+    mem_busy <= '1' when state = UNLOAD or state = LOAD_IFFT else
                 '0';
     ifft_unload <= '1' when state = UNLOAD else
                    '0';
@@ -386,7 +387,7 @@ begin
             '0';
     waiting <= '1' when state = WAIT_IFFT else
                '0';
-    next_0 <= '1' when state = LOAD_SCRATCH else
+    next_0 <= '1' when state = WAIT_IFFT else
               '0';
 
     next_dly: process(clk)
