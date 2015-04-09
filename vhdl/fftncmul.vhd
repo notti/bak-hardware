@@ -202,7 +202,7 @@ begin
                  '0';
     addr_l_NH <= '1' when addr_cnt_1 < NH else
                  '0';
-    nzero_pad <= addr_l_L_1 and addr_l_Nx_1;
+    nzero_pad <= addr_l_L and addr_l_Nx_1;
 
     addr_dly: process(clk)
     begin

@@ -85,10 +85,13 @@ INST "*/transmitter_i/mux27_*" LOC = SLICE_X3Y78;
 
 #####
 #
-AREA_GROUP "inbuf" RANGE=SLICE_X54Y70:SLICE_X67Y89;
+AREA_GROUP "inbuf" RANGE=SLICE_X54Y70:SLICE_X67Y89, SLICE_X68Y60:SLICE_X75Y119;
 AREA_GROUP "inbuf" RANGE=DSP48_X1Y28:DSP48_X1Y35;
 AREA_GROUP "inbuf" RANGE=RAMB36_X3Y24:RAMB36_X4Y25, RAMB36_X3Y22:RAMB36_X5Y23, RAMB36_X3Y20:RAMB36_X4Y21, RAMB36_X3Y18:RAMB36_X5Y19, RAMB36_X3Y6:RAMB36_X4Y17;
-INST "*/inbuf_inst/*" AREA_GROUP = "inbuf";
+INST "main_inst/inbuf_inst/*/" AREA_GROUP = "inbuf";
+INST "main_inst/inbuf_inst/average_mem_i/*" AREA_GROUP = "inbuf";
+INST "main_inst/inbuf_inst/trigger_i/*" AREA_GROUP = "inbuf";
+INST "main_inst/inbuf_inst/wallclk_i/*" AREA_GROUP = "inbuf";
 
 #####
 
@@ -97,7 +100,7 @@ INST "*/outbuf_mem_1/*" AREA_GROUP = "outbuf_mem_1";
 AREA_GROUP "outbuf_mem_0" RANGE=RAMB36_X0Y26:RAMB36_X4Y31, RAMB36_X0Y24:RAMB36_X2Y25, RAMB36_X0Y20:RAMB36_X2Y23, RAMB36_X0Y16:RAMB36_X0Y19;
 INST "*/outbuf_mem_0/*" AREA_GROUP = "outbuf_mem_0";
 
-AREA_GROUP "outbuf" RANGE=SLICE_X2Y70:SLICE_X15Y99, SLICE_X50Y80:SLICE_X53Y89;
+AREA_GROUP "outbuf" RANGE=SLICE_X2Y70:SLICE_X45Y99, SLICE_X50Y80:SLICE_X53Y89;
 AREA_GROUP "outbuf" RANGE=DSP48_X0Y32:DSP48_X0Y35;
 INST "main_inst/outbuf_inst/cmul_i/*" AREA_GROUP = "outbuf";
 INST "main_inst/outbuf_inst/*do_toggle*" AREA_GROUP = "outbuf";
@@ -134,7 +137,18 @@ INST "main_inst/outbuf_inst/transmitter_i/rst*" AREA_GROUP = "transmitter";
 AREA_GROUP "proc_interface" RANGE=SLICE_X12Y100:SLICE_X45Y104, SLICE_X40Y60:SLICE_X45Y99, SLICE_X12Y60:SLICE_X15Y69, SLICE_X12Y55:SLICE_X45Y59;
 INST "inst_proc_register/*" AREA_GROUP = "proc_interface";
 INST "Inst_processor/proc2fpga_0/*" AREA_GROUP = "proc_interface";
-AREA_GROUP "core" RANGE=SLICE_X40Y105:SLICE_X67Y129, SLICE_X46Y90:SLICE_X67Y104, SLICE_X46Y80:SLICE_X49Y89, SLICE_X46Y70:SLICE_X53Y79, SLICE_X46Y55:SLICE_X67Y69, SLICE_X40Y30:SLICE_X67Y54;
+AREA_GROUP "core" RANGE=SLICE_X40Y105:SLICE_X67Y129, SLICE_X46Y90:SLICE_X67Y104, SLICE_X46Y80:SLICE_X49Y89, SLICE_X46Y70:SLICE_X53Y79, SLICE_X46Y55:SLICE_X67Y69, SLICE_X40Y30:SLICE_X67Y54, SLICE_X14Y0:SLICE_X25Y159;
 AREA_GROUP "core" RANGE=DSP48_X0Y36:DSP48_X1Y51, DSP48_X0Y28:DSP48_X0Y31, DSP48_X0Y12:DSP48_X1Y27;
 AREA_GROUP "core" RANGE=RAMB36_X3Y18:RAMB36_X4Y23, RAMB36_X3Y14:RAMB36_X3Y17, RAMB36_X3Y6:RAMB36_X4Y13;
 INST "*/core_inst/*" AREA_GROUP = "core";
+
+AREA_GROUP "rec_1" RANGE=SLICE_X68Y70:SLICE_X75Y79;
+INST "main_inst/inbuf_inst/receiver_i/syncs[1].*/*" AREA_GROUP = "rec_1";
+INST "main_inst/inbuf_inst/receiver_i/resetdone_r2_1" AREA_GROUP = "rec_1";
+INST "main_inst/inbuf_inst/receiver_i/resetdone_r_1" AREA_GROUP = "rec_1";
+INST "main_inst/inbuf_inst/receiver_i/datavalidaligned_r_1" AREA_GROUP = "rec_1";
+AREA_GROUP "rec_0" RANGE=SLICE_X68Y60:SLICE_X75Y69;
+INST "main_inst/inbuf_inst/receiver_i/syncs[0].*/*" AREA_GROUP = "rec_0";
+INST "main_inst/inbuf_inst/receiver_i/resetdone_r_0" AREA_GROUP = "rec_0";
+INST "main_inst/inbuf_inst/receiver_i/datavalidaligned_r_0" AREA_GROUP = "rec_0";
+INST "main_inst/inbuf_inst/receiver_i/resetdone_r2_0" AREA_GROUP = "rec_0";

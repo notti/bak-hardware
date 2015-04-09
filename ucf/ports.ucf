@@ -1,6 +1,6 @@
 ######################################
-NET gtx_refclk_n  LOC=H15;
-NET gtx_refclk_p  LOC=H14;
+NET gtx_refclk_n  LOC=H3;
+NET gtx_refclk_p  LOC=H4;
 NET oserdes_txp(0) LOC = L34 |FAST;
 NET oserdes_txn(0) LOC = K34 |FAST;
 NET oserdes_txp(1) LOC = K33 |FAST;
@@ -22,7 +22,8 @@ NET oserdes_txn(7) LOC = V34 |FAST;
 NET frame_clk LOC = AN34 |IOSTANDARD=LVCMOS25 |FAST;
 NET inbuf_trigger LOC = AN33 |IOSTANDARD=LVCMOS25 |PULLDOWN;
 INST main_inst/inbuf_inst/receiver_i/gtx_i/tile0_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y3;
-INST main_inst/inbuf_inst/receiver_i/gtx_i/tile1_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y5;
+INST main_inst/inbuf_inst/receiver_i/gtx_i/tile1_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y4;
+INST main_inst/inbuf_inst/receiver_i/gtx_i/tile2_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y5;
 NET "main_inst/inbuf_inst/receiver_i/refclkout_i" TNM_NET = main_inst/inbuf_inst/receiver_i/refclkout_i;
 TIMESPEC TS_main_inst_inbuf_inst_receiver_i_refclkout_i = PERIOD "main_inst/inbuf_inst/receiver_i/refclkout_i" 10 ns HIGH 50%;
 Net fpga_0_Hard_Ethernet_MAC_PHY_MII_INT LOC=H20;

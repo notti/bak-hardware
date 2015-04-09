@@ -34,7 +34,7 @@ port(
 	valid               : in  std_logic;
 
 	align               : out std_logic;
-	tx                  : out std_logic_vector(19 downto 0);
+	tx                  : out std_logic;
 	unsynced            : out std_logic
 );
 end align_fsm;
@@ -44,10 +44,10 @@ architecture Structural of align_fsm is
 	signal state        : reciever_state;
 	signal next_state   : reciever_state;
 
-	signal pwr_on_cnt_r : std_logic_vector(SYNC_PWR_ON_LEN-1 downto 0);
-	signal blank_cnt_r  : std_logic_vector(SYNC_BLANK_LEN-1 downto 0);
-	signal aligned_cnt_r: std_logic_vector(SYNC_ALIGNED_LEN-1 downto 0);
-	signal wait_cnt_r   : std_logic_vector(SYNC_WAIT_LEN-1 downto 0);
+	signal pwr_on_cnt_r : std_logic_vector(SYNC_PWR_ON_LEN downto 0);
+	signal blank_cnt_r  : std_logic_vector(SYNC_BLANK_LEN downto 0);
+	signal aligned_cnt_r: std_logic_vector(SYNC_ALIGNED_LEN downto 0);
+	signal wait_cnt_r   : std_logic_vector(SYNC_WAIT_LEN downto 0);
 begin
 
 
@@ -67,15 +67,15 @@ begin
 		next_state <= state;
 		case state is
 			when RESET      =>  next_state <= POWERON;
-			when POWERON    =>  if and_many(pwr_on_cnt_r) = '1' then
+			when POWERON    =>  if pwr_on_cnt_r(SYNC_PWR_ON_LEN) = '1' then
 									next_state <= BLANK_CLK;
 								end if;
-			when BLANK_CLK  =>  if and_many(blank_cnt_r) = '1' then
+			when BLANK_CLK  =>  if blank_cnt_r(SYNC_BLANK_LEN) = '1' then
 									next_state <= WAIT_SYNC;
 								end if;
-			when WAIT_SYNC  =>  if and_many(aligned_cnt_r) = '1' then
+			when WAIT_SYNC  =>  if aligned_cnt_r(SYNC_ALIGNED_LEN) = '1' then
 									next_state <= SYNCED;
-								elsif and_many(wait_cnt_r) = '1' then
+								elsif wait_cnt_r(SYNC_WAIT_LEN) = '1' then
 									next_state <= BLANK_CLK;
 								end if;
 			when SYNCED     =>  if aligned='0' or valid='0' then
@@ -87,11 +87,11 @@ begin
 	output_function_process: process(state)
 	begin
 		case state is
-			when RESET      => align <= '0'; tx <= (others => '0');        unsynced <= '1';
-			when POWERON    => align <= '0'; tx <= "11111111110000000000"; unsynced <= '1';
-			when BLANK_CLK  => align <= '0'; tx <= (others => '0');        unsynced <= '1';
-			when WAIT_SYNC  => align <= '1'; tx <= "11111111110000000000"; unsynced <= '1';
-			when SYNCED     => align <= '0'; tx <= "11111111110000000000"; unsynced <= '0';
+			when RESET      => align <= '0'; tx <= '0'; unsynced <= '1';
+			when POWERON    => align <= '0'; tx <= '1'; unsynced <= '1';
+			when BLANK_CLK  => align <= '0'; tx <= '0'; unsynced <= '1';
+			when WAIT_SYNC  => align <= '1'; tx <= '1'; unsynced <= '1';
+			when SYNCED     => align <= '0'; tx <= '1'; unsynced <= '0';
 		end case;
 	end process output_function_process;
 

@@ -154,7 +154,7 @@ begin
     L            => L,
     Nx           => n,
     iq           => iq,
-    circular     => '1',
+    circular     => '0',
 
     wave_index   => wave_index,
     x_in         => x_in,

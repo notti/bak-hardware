@@ -41,10 +41,12 @@ port(
 
 -- mem
     mem_clk             : in  std_logic;
+    mem_eni             : in  std_logic;
     mem_dini            : in  std_logic_vector(31 downto 0);
     mem_addri           : in  std_logic_vector(15 downto 0);
     mem_wei             : in  std_logic_vector(3 downto 0);
     mem_douti           : out std_logic_vector(31 downto 0);
+    mem_ena             : in  std_logic;
     mem_addra           : in  std_logic_vector(15 downto 0);
     mem_douta           : out std_logic_vector(31 downto 0)
 );
@@ -67,6 +69,10 @@ architecture Structural of outbuf is
     signal mem_we1           : std_logic_vector(31 downto 0);
     signal mem_out0          : std_logic_vector(31 downto 0);
     signal mem_out1          : std_logic_vector(31 downto 0);
+    signal mem_en0           : std_logic_vector(31 downto 0);
+    signal mem_en1           : std_logic_vector(31 downto 0);
+    signal mem_enactive0     : std_logic_vector(31 downto 0);
+    signal mem_enactive1     : std_logic_vector(31 downto 0);
 
     signal e1                : std_logic_vector(23 downto 0);
     signal e2                : std_logic_vector(23 downto 0);
@@ -153,15 +159,17 @@ begin
     )
     port map (
         clka                => clk,
-        dina                => "00000000000000000000000000000000",
+        dina                => "11111111111111111111111111111111",
         addra               => frame_addr,
         wea                 => "00000000000000000000000000000000",
+        ena                 => mem_enactive0,
         douta               => dout0,
         clkb                => mem_clk,
         dinb                => mem_dini,
         addrb               => mem_addr0,
         web                 => mem_we0,
-        doutb               => mem_out0
+        doutb               => mem_out0,
+        enb                 => mem_en0
     );
     outbuf_mem_1: entity work.ram48xi
     generic map(
@@ -171,21 +179,27 @@ begin
     )
     port map (
         clka                => clk,
-        dina                => "00000000000000000000000000000000",
+        dina                => "11111111111111111111111111111111",
         addra               => frame_addr,
         wea                 => "00000000000000000000000000000000",
+        ena                 => mem_enactive1,
         douta               => dout1,
         clkb                => mem_clk,
         dinb                => mem_dini,
         addrb               => mem_addr1,
         web                 => mem_we1,
-        doutb               => mem_out1
+        doutb               => mem_out1,
+        enb                 => mem_en1
     );
     
     mem_addr0 <= mem_addra when active = '0' else
                  mem_addri;
     mem_addr1 <= mem_addra when active = '1' else
                  mem_addri;
+    mem_en0(31 downto 0) <= (others => mem_ena) when active = '0' else
+                 (others => mem_eni);
+    mem_en1(31 downto 0) <= (others => mem_ena) when active = '1' else
+                 (others => mem_eni);
     we_gen: for i in 0 to 3 generate
     begin
         mem_we0((i+1)*8-1 downto i*8) <= (others => mem_wei(i)) when active = '1' else
@@ -198,6 +212,11 @@ begin
                  mem_out1;
     mem_douta <= mem_out1 when active = '1' else
                  mem_out0;
+
+    mem_enactive0 <= (others => '1') when active = '0' else
+                     (others => '0');
+    mem_enactive1 <= (others => '1') when active = '1' else
+                     (others => '0');
 
     dout_p: process(clk)
     begin

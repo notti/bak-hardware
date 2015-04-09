@@ -18,12 +18,14 @@ port(
     dina            : in  std_logic_vector(31 downto 0);
     douta           : out std_logic_vector(31 downto 0);
     wea             : in  std_logic_vector(3 downto 0);
+    ena             : in  std_logic;
 
     clkb            : in  std_logic;
     addrb           : in  std_logic_vector(11 downto 0);
     dinb            : in  std_logic_vector(31 downto 0);
     doutb           : out std_logic_vector(31 downto 0);
-    web             : in  std_logic_vector(3 downto 0)
+    web             : in  std_logic_vector(3 downto 0);
+    enb             : in  std_logic
 );
 end ram4x32;
 
@@ -62,8 +64,8 @@ begin
             CLKB        => clkb,
             DIA         => dia,
             DIB         => dib,
-            ENA         => '1',
-            ENB         => '1',
+            ENA         => ena,
+            ENB         => enb,
             REGCEA      => '1',
             REGCEB      => '1',
             RSTA        => '0',

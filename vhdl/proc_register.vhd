@@ -14,8 +14,10 @@ entity proc_register is
 port(
 -- unsynced
     depth               : out std_logic_vector(15 downto 0); -- registered on rst
-    rec_rxeqmix         : out t_cfg_array(2 downto 0);       -- async
-    rec_enable          : out std_logic_vector(2 downto 0);  -- async
+    rec_rxeqmix         : out t_cfg_array(1 downto 0);       -- async
+    rec_enable          : out std_logic_vector(1 downto 0);  -- async
+    rec_polarity        : out std_logic_vector(1 downto 0);
+    rec_descramble      : out std_logic_vector(1 downto 0);
     avg_width           : out std_logic_vector(1 downto 0);  -- registered on start
     core_L              : out std_logic_vector(11 downto 0); -- registered on start
     core_n              : out std_logic_vector(4 downto 0);  -- registered on start
@@ -25,11 +27,13 @@ port(
     core_iq             : out std_logic;                     -- registered on start
     core_circular       : out std_logic;                     -- registered on start
     tx_frame_offset     : out std_logic_vector(15 downto 0); -- registered on resync, rst
+    rec_rst             : out std_logic;
+    rec_input_select    : out std_logic_vector(0 downto 0);
+    rec_input_select_changed : out std_logic;
 
 
 -- ============ SAMPLE_CLK =============
 -- pulse
-    rec_rst             : out std_logic;
     trig_rst            : out std_logic;
     trig_arm            : out std_logic;
     trig_int            : out std_logic;
@@ -42,13 +46,10 @@ port(
     tx_ovfl_ack         : out std_logic;
 
 -- flag
-    rec_polarity        : out std_logic_vector(2 downto 0);
-    rec_descramble      : out std_logic_vector(2 downto 0);
     mem_req             : out std_logic;
     tx_sat              : out std_logic;
 
 -- value
-    rec_input_select    : out std_logic_vector(1 downto 0);
     trig_type           : out std_logic;
     tx_shift            : out std_logic_vector(1 downto 0);
     tx_muli             : out std_logic_vector(15 downto 0);
@@ -65,7 +66,7 @@ port(
 -- ============ CPU_CLK =============
 
 -- flag
-    rec_data_valid      : in  std_logic_vector(2 downto 0);
+    rec_data_valid      : in  std_logic_vector(1 downto 0);
     rec_stream_valid    : in  std_logic;
     trig_armed          : in  std_logic;
     avg_active          : in  std_logic;
@@ -110,8 +111,12 @@ architecture Structural of proc_register is
     type reg is array(5 downto 0) of std_logic_vector(31 downto 0);
     signal slv_reg                  : reg;
 
-    signal rec_input_select_wr      : std_logic;
-    signal rec_rst_value            : std_logic;
+    signal rec_input_select_i       : std_logic_vector(0 downto 0);
+    signal rec_input_select_r       : std_logic_vector(0 downto 0);
+    signal rec_input_select_changed_i : std_logic;
+    signal rec_input_select_changed_r : std_logic;
+    signal rec_input_select_changed_r1 : std_logic;
+    signal rec_input_select_changed_r2 : std_logic;
 
     signal trig_arm_value           : std_logic;
     signal trig_int_value           : std_logic;
@@ -135,7 +140,7 @@ architecture Structural of proc_register is
 
     signal mem_req_r                : std_logic;
 
-    signal busy                     : std_logic_vector(15 downto 0);
+    signal busy                     : std_logic_vector(13 downto 0);
 
     signal trig_trigd_synced        : std_logic;
     signal avg_done_synced          : std_logic;
@@ -144,37 +149,37 @@ architecture Structural of proc_register is
 begin
 
 -- x  rec_enable(0)                    1 0
--- x  rec_polarity(0)     sample_clk   1 1
--- x  rec_descramble(0)   sample_clk   1 2
+-- x  rec_polarity(0)                  1 1
+-- x  rec_descramble(0)                1 2
 -- x  rec_rxeqmix(0)(0)                0 3
 -- x  rec_rxeqmix(0)(1)                0 4
 -- r  rec_data_valid(0)   bus2fpga_clk 0 5
 -- 0  0                                0 6
 -- 0  0                                0 7
 -- x  rec_enable(1)                    1 0
--- x  rec_polarity(1)     sample_clk   1 1
--- x  rec_descramble(1)   sample_clk   1 2
+-- x  rec_polarity(1)                  1 1
+-- x  rec_descramble(1)                1 2
 -- x  rec_rxeqmix(0)(1)                0 3
 -- x  rec_rxeqmix(1)(1)                0 4
 -- r  rec_data_valid(1)   bus2fpga_clk 0 5
 -- 0  0                                0 6
 -- 0  0                                0 7
--- x  rec_enable(2)                    1 0
--- x  rec_polarity(2)     sample_clk   1 1
--- x  rec_descramble(2)   sample_clk   1 2
--- x  rec_rxeqmix(0)(2)                0 3
--- x  rec_rxeqmix(1)(2)                0 4
--- r  rec_data_valid(2)   bus2fpga_clk 0 5
+-- 0  0                                0 0
+-- 0  0                                0 1
+-- 0  0                                0 2
+-- 0  0                                0 3
+-- 0  0                                0 4
+-- 0  0                                0 5
 -- 0  0                                0 6
 -- 0  0                                0 7
--- x  rec_input_select(0) sample_clk   0 0
--- x  rec_input_select(1) sample_clk   0 1
+-- x  rec_input_select(0)              0 0
+-- 0  0                                0 1
 -- r  rec_stream_valid    bus2fpga_clk 0 2
 -- 0  0                                0 3
 -- 0  0                                0 4
 -- 0  0                                0 5
 -- 0  0                                0 6
--- t  rec_rst             sample_clk   0 7
+-- t  rec_rst                          0 7
 -------------------------------------------------------------------------------
 -- x  depth(0)                         0 0
 -- x  depth(1)                         0 1
@@ -332,7 +337,7 @@ begin
 -- 0  0                                0 5
 -- 0  0                                0 6
 -- t  tx_rst              sample_clk   0 7
--- w  mem_req             sample_clk   0 0  r  mem_ack             bus2fpga_clk
+-- w  mem_req                          0 0  r  mem_ack
 -- 0  0                                0 1
 -- 0  0                                0 2
 -- 0  0                                0 3
@@ -341,29 +346,13 @@ begin
 -- x  tx_shift(0)         sample_clk   0 6
 -- x  tx_shift(1)         sample_clk   0 7
     
-    reciever_gen: for i in 0 to 2 generate
+    reciever_gen: for i in 0 to 1 generate
         signal recv_reg          : std_logic_vector(4 downto 0);
         signal rec_data_valid_s  : std_logic;
     begin
         rec_enable(i)   <= recv_reg(0);
-        rec_polarity_i: entity work.flag
-        generic map(
-            name        => "rec_enable" & integer'image(i)
-        )
-        port map(
-            flag_in     => recv_reg(1),
-            flag_out    => rec_polarity(i),
-            clk         => sample_clk
-        );
-        rec_descramble_i: entity work.flag
-        generic map(
-            name        => "rec_descramble" & integer'image(i)
-        )
-        port map(
-            flag_in     => recv_reg(2),
-            flag_out    => rec_descramble(i),
-            clk         => sample_clk
-        );
+        rec_polarity(i) <= recv_reg(1);
+        rec_descramble(i) <= recv_reg(2);
         rec_rxeqmix(i)  <= recv_reg(4 downto 3);
 
         rec_data_valid_i: entity work.flag
@@ -391,20 +380,23 @@ begin
         slv_reg(0)((i+1)*8-1 downto i*8) <= "00" & rec_data_valid_s & recv_reg;
     end generate;
 
-    rec_input_select_wr <= '1' when (bus2fpga_wrce = "100000" and bus2fpga_be(3) = '1') or bus2fpga_reset = '1' else
-                           '0';
-    sync_rec_input_select: entity work.value
-    generic map(
-        name        => "rec_input_select"
-    )
-    port map(
-        value_in    => slv_reg(0)(25 downto 24),
-        value_out   => rec_input_select,
-        value_wr    => rec_input_select_wr,
-        busy        => busy(0),
-        clk_from    => bus2fpga_clk,
-        clk_to      => sample_clk
-    );
+    rec_input_select_i <= slv_reg(0)(24 downto 24);
+    rec_input_select <= rec_input_select_i;
+
+    rec_input_select_changed_i <= or_many(rec_input_select_i xor rec_input_select_r);
+
+    rec_input_select_changed_p: process(bus2fpga_clk)
+    begin
+        if rising_edge(bus2fpga_clk) then
+            rec_input_select_r <= rec_input_select_i;
+            rec_input_select_changed_r <= rec_input_select_changed_i;
+            rec_input_select_changed_r1 <= rec_input_select_changed_r;
+            rec_input_select_changed_r2 <= rec_input_select_changed_r1;
+        end if;
+    end process rec_input_select_changed_p;
+
+    rec_input_select_changed <= or_many(rec_input_select_changed_i & rec_input_select_changed_r & rec_input_select_changed_r1 & rec_input_select_changed_r2);
+    
     sync_rec_stream_valid: entity work.flag
     generic map(
         name        => "rec_stream_valid"
@@ -414,29 +406,20 @@ begin
         flag_out    => slv_reg(0)(26),
         clk         => bus2fpga_clk
     );
-    rec_rst_value <= bus2fpga_data(31) when bus2fpga_wrce = "100000" and bus2fpga_be(3) = '1' else
-                     '1' when bus2fpga_reset = '1' else
-                     '0';
-    sync_rec_rst: entity work.toggle
-    generic map(
-        name        => "rec_rst"
-    )
-    port map(
-        toggle_in   => rec_rst_value,
-        toggle_out  => rec_rst,
-        busy        => busy(1),
-        clk_from    => bus2fpga_clk,
-        clk_to      => sample_clk
-    );
+    rec_rst <= bus2fpga_data(31) when bus2fpga_wrce = "100000" and bus2fpga_be(3) = '1' else
+               '1' when bus2fpga_reset = '1' else
+               '0';
+    slv_reg(0)(23 downto 16) <= "00000000";
+    slv_reg(0)(25) <= '0';
     slv_reg(0)(31 downto 27) <= "00000";
     write_proc0: process(bus2fpga_clk, bus2fpga_reset, bus2fpga_wrce) is
     begin
         if rising_edge(bus2fpga_clk) then
             if bus2fpga_reset = '1' then
-                slv_reg(0)(25 downto 24) <= "00";
+                slv_reg(0)(24 downto 24) <= "0";
             else
                 if bus2fpga_wrce = "100000" and bus2fpga_be(3) = '1' then
-                    slv_reg(0)(25 downto 24) <= bus2fpga_data(25 downto 24);
+                    slv_reg(0)(24 downto 24) <= bus2fpga_data(24 downto 24);
                 end if;
             end if;
         end if;
@@ -462,7 +445,7 @@ begin
     port map(
         toggle_in   => trig_arm_value,
         toggle_out  => trig_arm,
-        busy        => busy(2),
+        busy        => busy(0),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -475,7 +458,7 @@ begin
     port map(
         toggle_in   => trig_int_value,
         toggle_out  => trig_int,
-        busy        => busy(3),
+        busy        => busy(1),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -489,7 +472,7 @@ begin
     port map(
         toggle_in   => trig_rst_value,
         toggle_out  => trig_rst,
-        busy        => busy(4),
+        busy        => busy(2),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -505,7 +488,7 @@ begin
     port map(
         toggle_in   => avg_rst_value,
         toggle_out  => avg_rst,
-        busy        => busy(5),
+        busy        => busy(3),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -611,7 +594,7 @@ begin
     port map(
         toggle_in   => core_start_value,
         toggle_out  => core_start,
-        busy        => busy(6),
+        busy        => busy(4),
         clk_from    => bus2fpga_clk,
         clk_to      => core_clk
     );
@@ -626,7 +609,7 @@ begin
     port map(
         toggle_in   => core_rst_value,
         toggle_out  => core_rst,
-        busy        => busy(7),
+        busy        => busy(5),
         clk_from    => bus2fpga_clk,
         clk_to      => core_clk
     );
@@ -712,7 +695,7 @@ begin
         value_in    => slv_reg(4)(15 downto 0),
         value_out   => tx_muli,
         value_wr    => tx_muli_wr,
-        busy        => busy(8),
+        busy        => busy(6),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -726,7 +709,7 @@ begin
         value_in    => slv_reg(4)(31 downto 16),
         value_out   => tx_mulq,
         value_wr    => tx_mulq_wr,
-        busy        => busy(9),
+        busy        => busy(7),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -766,7 +749,7 @@ begin
     port map(
         toggle_in   => tx_deskew_value,
         toggle_out  => tx_deskew,
-        busy        => busy(10),
+        busy        => busy(8),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -788,7 +771,7 @@ begin
     port map(
         toggle_in   => tx_toggle_value,
         toggle_out  => tx_toggle_buf,
-        busy        => busy(11),
+        busy        => busy(9),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -801,7 +784,7 @@ begin
     port map(
         toggle_in   => tx_resync_value,
         toggle_out  => tx_resync,
-        busy        => busy(12),
+        busy        => busy(10),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -815,20 +798,12 @@ begin
     port map(
         toggle_in   => tx_rst_value,
         toggle_out  => tx_rst,
-        busy        => busy(13),
+        busy        => busy(11),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
 
-    sync_mem_req: entity work.flag
-    generic map(
-        name        => "mem_req"
-    )
-    port map(
-        flag_in     => mem_req_r,
-        flag_out    => mem_req,
-        clk         => sample_clk
-    );
+    mem_req <= mem_req_r;
 
     sync_tx_sat: entity work.flag
     generic map(
@@ -850,7 +825,7 @@ begin
         value_in    => slv_reg(5)(31 downto 30),
         value_out   => tx_shift,
         value_wr    => tx_shift_wr,
-        busy        => busy(14),
+        busy        => busy(12),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -895,15 +870,7 @@ begin
         clk         => bus2fpga_clk
     );
 
-    sync_mem_ack: entity work.flag
-    generic map(
-        name        => "mem_ack"
-    )
-    port map(
-        flag_in     => mem_ack,
-        flag_out    => slv_reg(5)(24),
-        clk         => bus2fpga_clk
-    );
+    slv_reg(5)(24) <= mem_ack;
 
     sync_ovfl: entity work.flag
     generic map(
@@ -924,7 +891,7 @@ begin
     port map(
         toggle_in   => tx_ovfl_ack_unsynced,
         toggle_out  => tx_ovfl_ack,
-        busy        => busy(15),
+        busy        => busy(13),
         clk_from    => bus2fpga_clk,
         clk_to      => sample_clk
     );
@@ -996,15 +963,13 @@ begin
         1  => not slv_reg(0)(5),
         2  => slv_reg(0)(13),
         3  => not slv_reg(0)(13),
-        4  => slv_reg(0)(21),
-        5  => not slv_reg(0)(21),
-        6  => slv_reg(0)(26),
-        7  => not slv_reg(0)(26),
-        8  => trig_trigd_synced,
-        9  => avg_done_synced,
-        10 => core_done_synced,
-        11 => tx_toggled_synced,
-        12 => slv_reg(5)(29),
+        4  => slv_reg(0)(26),
+        5  => not slv_reg(0)(26),
+        6  => trig_trigd_synced,
+        7  => avg_done_synced,
+        8  => core_done_synced,
+        9  => tx_toggled_synced,
+        10 => slv_reg(5)(29),
         others => '0');
 
     fpga2bus_rdack <= or_many(bus2fpga_rdce);

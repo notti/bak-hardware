@@ -16,19 +16,20 @@ port(
 -- signals for gtx transciever
     refclk_n            : in  std_logic;
     refclk_p            : in  std_logic;
-    rxn                 : in  std_logic_vector(3 downto 0);
-    rxp                 : in  std_logic_vector(3 downto 0);
-    txn                 : out std_logic_vector(3 downto 0);
-    txp                 : out std_logic_vector(3 downto 0);
+    rxn                 : in  std_logic_vector(5 downto 0);
+    rxp                 : in  std_logic_vector(5 downto 0);
+    txn                 : out std_logic_vector(5 downto 0);
+    txp                 : out std_logic_vector(5 downto 0);
 
 -- control signals receiver
     rec_rst             : in  std_logic;
-    rec_polarity        : in  std_logic_vector(2 downto 0);
-    rec_descramble      : in  std_logic_vector(2 downto 0);
-    rec_rxeqmix         : in  t_cfg_array(2 downto 0);
-    rec_data_valid      : out std_logic_vector(2 downto 0);
-    rec_enable          : in  std_logic_vector(2 downto 0);
-    rec_input_select    : in  std_logic_vector(1 downto 0);
+    rec_polarity        : in  std_logic_vector(1 downto 0);
+    rec_descramble      : in  std_logic_vector(1 downto 0);
+    rec_rxeqmix         : in  t_cfg_array(1 downto 0);
+    rec_data_valid      : out std_logic_vector(1 downto 0);
+    rec_enable          : in  std_logic_vector(1 downto 0);
+    rec_input_select    : in  std_logic_vector(0 downto 0);
+    rec_input_select_changed : in  std_logic;
     rec_stream_valid    : out std_logic;
 
     sample_clk          : out std_logic;
@@ -62,20 +63,27 @@ port(
     mem_dina            : in  std_logic_vector(15 downto 0);
     mem_addra           : in  std_logic_vector(15 downto 0);
     mem_wea             : in  std_logic_vector(1 downto 0);
+    mem_ena             : in  std_logic;
     mem_douta           : out std_logic_vector(15 downto 0);
     mem_dinb            : in  std_logic_vector(15 downto 0);
     mem_addrb           : in  std_logic_vector(15 downto 0);
     mem_web             : in  std_logic_vector(1 downto 0);
-    mem_doutb           : out std_logic_vector(15 downto 0)
+    mem_doutb           : out std_logic_vector(15 downto 0);
+    mem_enb             : in  std_logic
 );
 end inbuf;
 
 architecture Structural of inbuf is
-    signal sample_locked_i     : std_logic;
+    signal sample_rst_gen0     : std_logic;
+    signal sample_rst_gen1     : std_logic;
+    signal sample_rst_gen2     : std_logic;
+    signal sample_rst_gen3     : std_logic;
     signal sample_rst_i        : std_logic;
     signal sample_clk_i        : std_logic;
-    signal rec_data_i          : t_data_array(2 downto 0);
-    signal rec_data_valid_i    : std_logic_vector(2 downto 0);
+    signal rxclk_i             : std_logic_vector(1 downto 0);
+    signal rec_rst_out         : std_logic_vector(1 downto 0);
+    signal rec_data_i          : t_data_array(1 downto 0);
+    signal rec_data_valid_i    : std_logic_vector(1 downto 0);
     signal data_i              : t_data;
     signal stream_valid_i      : std_logic;
 
@@ -101,9 +109,8 @@ begin
         rxp                 => rxp,
         txn                 => txn,
         txp                 => txp,
-        pll_locked          => sample_locked_i,
-        clk                 => sample_clk_i,
-        rst_out             => open,
+        rxclk               => rxclk_i,
+        rst_out             => rec_rst_out,
         data                => rec_data_i,
         polarity            => rec_polarity,
         descramble          => rec_descramble,
@@ -112,20 +119,47 @@ begin
         enable              => rec_enable
     );
 
-    sample_rst_i   <= not sample_locked_i;
+    async_mux_inst0: BUFGCTRL
+    port map
+    (
+        O => sample_clk_i,
+        I0 => rxclk_i(0),
+        I1 => rxclk_i(1),
+        CE0 => '1',
+        CE1 => '1',
+        S0 => not rec_input_select(0),
+        S1 => rec_input_select(0),
+        IGNORE0 => '1',
+        IGNORE1 => '1'
+    );
+
+
+    rst_generate: process(sample_clk_i, rec_input_select_changed, rec_rst_out, rec_input_select)
+    begin
+        if rec_input_select_changed = '1' or rec_rst_out(conv_integer(rec_input_select)) = '1' then
+            sample_rst_gen0 <= '1';
+            sample_rst_gen1 <= '1';
+            sample_rst_gen2 <= '1';
+            sample_rst_gen3 <= '1';
+        elsif rising_edge(sample_clk_i) then
+            sample_rst_gen0 <= '0';
+            sample_rst_gen1 <= sample_rst_gen0;
+            sample_rst_gen2 <= sample_rst_gen1;
+            sample_rst_gen3 <= sample_rst_gen2;
+        end if;
+    end process rst_generate;
+
+    sample_rst_i <= sample_rst_gen3;
+
     sample_rst     <= sample_rst_i;
     sample_clk     <= sample_clk_i;
     rec_data_valid <= rec_data_valid_i;
 
-	mux_process: process(sample_clk_i, rec_data_i, rec_input_select, rec_data_valid_i)
+	mux_process: process(sample_clk_i)
 	begin
 		if rising_edge(sample_clk_i) then
-			case rec_input_select is
-				when "00" => data_i <= rec_data_i(0); stream_valid_i <= rec_data_valid_i(0);
-				when "01" => data_i <= rec_data_i(1); stream_valid_i <= rec_data_valid_i(1);
-				when "10" => data_i <= rec_data_i(2); stream_valid_i <= rec_data_valid_i(2);
-				when others => data_i <= (others => '0'); stream_valid_i <= '0';
-			end case;
+            data_i <= rec_data_i(conv_integer(rec_input_select));
+            stream_valid_i <= rec_data_valid_i(conv_integer(rec_input_select));
 		end if;
 	end process;
 
@@ -178,12 +212,18 @@ begin
     mem_en_i <= '0' when trig_armed_i = '1' or avg_active_i = '1' else
                 mem_en;
 
-    mem_clk_mux : BUFGMUX_CTRL
+    mem_clk_mux : BUFGCTRL
     port map (
         O                       => mem_clk_i,
         I0                      => sample_clk_i,
         I1                      => mem_clk,
-        S                       => mem_en_i
+        CE0                     => '1',
+        CE1                     => '1',
+        S0                      => not mem_en_i,
+        S1                      => mem_en_i,
+        IGNORE0                 => '1',
+        IGNORE1                 => '1'
+
     );
 
     average_mem_i: entity work.average_mem
@@ -199,14 +239,16 @@ begin
         data                    => data_i,
         data_valid              => stream_valid_i,
         memclk                  => mem_clk_i,
-        ext                     => mem_en,
+        ext                     => mem_en_i,
         dina                    => mem_dina,
         addra                   => mem_addra,
         wea                     => mem_wea,
+        ena                     => mem_ena,
         douta                   => mem_douta,
         dinb                    => mem_dinb,
         addrb                   => mem_addrb,
         web                     => mem_web,
+        enb                     => mem_enb,
         doutb                   => mem_doutb
     );
 

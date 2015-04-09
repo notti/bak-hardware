@@ -16,22 +16,23 @@ port(
 -- signals for gtx transciever
     rx_refclk_n         : in  std_logic;
     rx_refclk_p         : in  std_logic;
-    rx_rxn              : in  std_logic_vector(3 downto 0);
-    rx_rxp              : in  std_logic_vector(3 downto 0);
-    rx_txn              : out std_logic_vector(3 downto 0);
-    rx_txp              : out std_logic_vector(3 downto 0);
+    rx_rxn              : in  std_logic_vector(5 downto 0);
+    rx_rxp              : in  std_logic_vector(5 downto 0);
+    rx_txn              : out std_logic_vector(5 downto 0);
+    rx_txp              : out std_logic_vector(5 downto 0);
 
 -- overall settings
 	depth				: in  std_logic_vector(15 downto 0);
 
 -- control signals receiver
     rec_rst             : in  std_logic;
-    rec_polarity        : in  std_logic_vector(2 downto 0);
-    rec_descramble      : in  std_logic_vector(2 downto 0);
-    rec_rxeqmix         : in  t_cfg_array(2 downto 0);
-    rec_data_valid      : out std_logic_vector(2 downto 0);
-    rec_enable          : in  std_logic_vector(2 downto 0);
-    rec_input_select    : in  std_logic_vector(1 downto 0);
+    rec_polarity        : in  std_logic_vector(1 downto 0);
+    rec_descramble      : in  std_logic_vector(1 downto 0);
+    rec_rxeqmix         : in  t_cfg_array(1 downto 0);
+    rec_data_valid      : out std_logic_vector(1 downto 0);
+    rec_enable          : in  std_logic_vector(1 downto 0);
+    rec_input_select    : in  std_logic_vector(0 downto 0);
+    rec_input_select_changed : in std_logic;
     rec_stream_valid    : out std_logic;
 
 -- control signals trigger
@@ -101,23 +102,28 @@ port(
 	mem_addria			: in  std_logic_vector(15 downto 0);
 	mem_weaia			: in  std_logic_vector(1 downto 0);
 	mem_doutia			: out std_logic_vector(15 downto 0);
+    mem_enia            : in  std_logic;
 	mem_dinib			: in  std_logic_vector(15 downto 0);
 	mem_addrib			: in  std_logic_vector(15 downto 0);
 	mem_weaib			: in  std_logic_vector(1 downto 0);
 	mem_doutib			: out std_logic_vector(15 downto 0);
+    mem_enib            : in  std_logic;
 
 	mem_dinh			: in  std_logic_vector(31 downto 0);
 	mem_addrh			: in  std_logic_vector(15 downto 0);
 	mem_weh				: in  std_logic_vector(3 downto 0);
 	mem_douth			: out std_logic_vector(31 downto 0);
+    mem_enh             : in  std_logic;
 
 	mem_dinoi			: in  std_logic_vector(31 downto 0);
 	mem_addroi			: in  std_logic_vector(15 downto 0);
 	mem_weoi			: in  std_logic_vector(3 downto 0);
 	mem_doutoi			: out std_logic_vector(31 downto 0);
+    mem_enoi            : in  std_logic;
 
 	mem_addroa			: in  std_logic_vector(15 downto 0);
 	mem_doutoa			: out std_logic_vector(31 downto 0);
+    mem_enoa            : in  std_logic;
 
 -- clk out
     sample_clk          : out std_logic;
@@ -128,6 +134,10 @@ end main;
 architecture Structural of main is
 
 	signal mem_extern		   : std_logic;
+	signal mem_extern1		   : std_logic;
+	signal mem_extern2		   : std_logic;
+    signal mem_extern_synced   : std_logic;
+    signal mem_en_i            : std_logic;
 	signal mem_clk_i		   : std_logic;
 
 	signal core_mem_dinx	   : std_logic_vector(15 downto 0);
@@ -146,6 +156,10 @@ architecture Structural of main is
 	signal mem_doutoi_i		   : std_logic_vector(31 downto 0);
 	signal mem_addroa_i		   : std_logic_vector(15 downto 0);
 	signal mem_doutoa_i		   : std_logic_vector(31 downto 0);
+    signal mem_enia_i          : std_logic;
+    signal mem_enib_i          : std_logic;
+    signal mem_enoi_i          : std_logic;
+    signal mem_enoa_i          : std_logic;
 
     signal sample_clk_i          : std_logic;
     signal sample_rst          : std_logic;
@@ -170,55 +184,98 @@ architecture Structural of main is
 	signal tx_busy_i		   : std_logic;
 
     signal mem_extern_inbuf    : std_logic;
+    signal mem_allowed         : std_logic;
+    signal mem_allowed_synced  : std_logic;
 begin
 
 	-- mem access handling
 
-	mem_extern_process: process(sample_clk_i, sample_rst, mem_req, trig_armed_i, trig_trigd_i, avg_active_i, core_busy_i, tx_busy_i)
+    mem_allowed <= not or_many(trig_armed_i & trig_trigd_i & avg_active_i & core_busy_i & tx_busy_i);
+
+    mem_allowed_syncer: entity work.flag
+    generic map(
+        name        => "mem_allowed"
+    )
+    port map(
+        flag_in      => mem_allowed,
+        flag_out     => mem_allowed_synced,
+        clk          => mem_clk 
+    );
+
+	mem_extern_process: process(mem_clk)
 	begin
-		if rising_edge(sample_clk_i) then
+		if rising_edge(mem_clk) then
+            mem_extern1 <= mem_extern;
+            mem_extern2 <= mem_extern1;
 			if sample_rst = '1' then
 				mem_extern <= '0';
-            elsif trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and core_busy_i = '0' and tx_busy_i = '0' then
+            elsif mem_allowed_synced = '1' then
                 mem_extern <= mem_req;
 			end if;
 		end if;
 	end process mem_extern_process;
 
-	mem_ack <= mem_extern;
-
-    mem_clk_mux : BUFGMUX_CTRL
-    port map (
-        O                       => mem_clk_i,
-        I0                      => core_clk_i,
-        I1                      => mem_clk,
-        S                       => mem_extern
+    mem_extern_syncer: entity work.flag
+    generic map(
+        name        => "mem_extern"
+    )
+    port map(
+        flag_in      => mem_extern,
+        flag_out     => mem_extern_synced,
+        clk          => sample_clk_i
     );
+
+	mem_ack <= mem_extern2;
+
+    mem_clk_mux : BUFGCTRL
+    port map (
+        O           => mem_clk_i,
+        I0          => core_clk_i,
+        I1          => mem_clk,
+        CE0         => '1',
+        CE1         => '1',
+        S0          => not mem_extern,
+        S1          => mem_extern,
+        IGNORE0     => '1',
+        IGNORE1     => '1'
+    );
+
+    mem_en_i <= '0' when mem_extern = '0' else
+                mem_extern2;
+
+    mem_enia_i<= mem_enia when mem_en_i = '1' else
+                 core_busy_i;
+    mem_enib_i<= mem_enib when mem_en_i = '1' else
+                 core_busy_i;
+    mem_enoi_i<= mem_enoi when mem_en_i = '1' else
+                 core_busy_i;
+    mem_enoa_i<= mem_enoa when mem_en_i = '1' else
+                 core_busy_i;
 
 	core_mem_dinx <= mem_doutia_i;
 	mem_doutia    <= mem_doutia_i;
-	mem_weaia_i   <= mem_weaia when mem_extern = '1' else
+	mem_weaia_i   <= mem_weaia when mem_en_i = '1' else
 				     (others => '0');
-	mem_addria_i  <= mem_addria when mem_extern = '1' else
+	mem_addria_i  <= mem_addria when mem_en_i = '1' else
 					 core_mem_addrx;
-	mem_weaib_i   <= mem_weaib when mem_extern = '1' else
+	mem_weaib_i   <= mem_weaib when mem_en_i = '1' else
 				     (others => '0');
 
 	core_mem_diny <= mem_doutoi_i;
-	mem_dinoi_i   <= mem_dinoi when mem_extern = '1' else
+	mem_dinoi_i   <= mem_dinoi when mem_en_i = '1' else
 					 core_mem_douty ;
-	mem_addroi_i  <= mem_addroi when mem_extern = '1' else
+	mem_addroi_i  <= mem_addroi when mem_en_i = '1' else
 					 core_mem_addry ;
-	mem_weoi_i    <= mem_weoi when mem_extern = '1' else
+	mem_weoi_i    <= mem_weoi when mem_en_i = '1' else
 					 (others => core_mem_wey);
 	mem_doutoi    <= mem_doutoi_i;
 	mem_addroa_i  <= mem_addroa;
 	mem_doutoa    <= mem_doutoa_i;
-    mem_extern_inbuf <= mem_extern or core_busy_i;
+    mem_extern_inbuf <= mem_extern_synced or core_busy_i;
     
 	-- entities
 
-	trig_arm_i <= trig_arm when mem_extern = '0' and core_busy_i = '0' else
+	trig_arm_i <= trig_arm when mem_extern_synced = '0' and core_busy_i = '0' else
 				  '0';
 
 	inbuf_inst: entity work.inbuf
@@ -236,6 +293,7 @@ begin
 		rec_data_valid      => rec_data_valid,
 		rec_enable          => rec_enable,
 		rec_input_select    => rec_input_select,
+		rec_input_select_changed => rec_input_select_changed,
 		rec_stream_valid    => rec_stream_valid,
 		sample_clk          => sample_clk_i,
 		sample_rst          => sample_rst,
@@ -261,10 +319,12 @@ begin
 		mem_addra           => mem_addria_i,
 		mem_wea             => mem_weaia_i,
 		mem_douta           => mem_doutia_i,
+        mem_ena             => mem_enia_i,
 		mem_dinb            => mem_dinib,
 		mem_addrb           => mem_addrib,
 		mem_web             => mem_weaib_i,
-		mem_doutb           => mem_doutib
+		mem_doutb           => mem_doutib,
+        mem_enb             => mem_enib_i
 	);
 
 
@@ -317,7 +377,7 @@ begin
     core_rst_i <= core_rst or sample_rst;
 
 --	core_rst_i   <= core_rst or not dcm_locked;
-	core_start_i <= core_start when mem_extern = '0' and trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and tx_busy_i = '0' else
+	core_start_i <= core_start when mem_extern_synced = '0' and trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and tx_busy_i = '0' else
 					'0';
 
 	core_inst: entity work.core
@@ -356,13 +416,14 @@ begin
 		mem_dinh        => mem_dinh,
 		mem_addrh       => mem_addrh,
 		mem_weh         => mem_weh,
-		mem_douth       => mem_douth
+		mem_douth       => mem_douth,
+        mem_enh         => mem_enh
 	);
 
 	core_busy <= core_busy_i;
 
 	tx_rst_i <= sample_rst or tx_rst;
-	tx_toggle_buf_i <= tx_toggle_buf when mem_extern = '0' and core_busy_i = '0' else
+	tx_toggle_buf_i <= tx_toggle_buf when mem_extern_synced = '0' and core_busy_i = '0' else
 					   '0';
 
 	outbuf_inst: entity work.outbuf
@@ -396,8 +457,10 @@ begin
 		mem_addri       => mem_addroi_i,
 		mem_wei         => mem_weoi_i,
 		mem_douti       => mem_doutoi_i,
+        mem_eni         => mem_enoi_i,
 		mem_addra       => mem_addroa_i,
-		mem_douta       => mem_doutoa_i
+		mem_douta       => mem_doutoa_i,
+        mem_ena         => mem_enoa_i
 	);
 
 	tx_busy <= tx_busy_i;

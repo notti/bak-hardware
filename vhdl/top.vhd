@@ -15,10 +15,10 @@ port(
 -- signals for gtx transciever
     gtx_refclk_n                                : in  std_logic;
     gtx_refclk_p                                : in  std_logic;
-    gtx_rxn                                     : in  std_logic_vector(3 downto 0);
-    gtx_rxp                                     : in  std_logic_vector(3 downto 0);
-    gtx_txn                                     : out std_logic_vector(3 downto 0);
-    gtx_txp                                     : out std_logic_vector(3 downto 0);
+    gtx_rxn                                     : in  std_logic_vector(5 downto 0);
+    gtx_rxp                                     : in  std_logic_vector(5 downto 0);
+    gtx_txn                                     : out std_logic_vector(5 downto 0);
+    gtx_txp                                     : out std_logic_vector(5 downto 0);
     inbuf_trigger                               : in  std_logic;
     frame_clk                                   : out std_logic;
 -- signals for oserdes transmitter
@@ -142,12 +142,13 @@ END COMPONENT;
 
     signal depth               : std_logic_vector(15 downto 0);
     signal rec_rst             : std_logic;
-    signal rec_polarity        : std_logic_vector(2 downto 0);
-    signal rec_descramble      : std_logic_vector(2 downto 0);
-    signal rec_rxeqmix         : t_cfg_array(2 downto 0);
-    signal rec_data_valid      : std_logic_vector(2 downto 0);
-    signal rec_enable          : std_logic_vector(2 downto 0);
-    signal rec_input_select    : std_logic_vector(1 downto 0);
+    signal rec_polarity        : std_logic_vector(1 downto 0);
+    signal rec_descramble      : std_logic_vector(1 downto 0);
+    signal rec_rxeqmix         : t_cfg_array(1 downto 0);
+    signal rec_data_valid      : std_logic_vector(1 downto 0);
+    signal rec_enable          : std_logic_vector(1 downto 0);
+    signal rec_input_select    : std_logic_vector(0 downto 0);
+    signal rec_input_select_changed : std_logic;
     signal rec_stream_valid    : std_logic;
     signal trig_rst            : std_logic;
     signal trig_arm            : std_logic;
@@ -195,20 +196,25 @@ END COMPONENT;
     signal mem_addria          : std_logic_vector(15 downto 0);
     signal mem_weaia           : std_logic_vector(1 downto 0);
     signal mem_doutia          : std_logic_vector(15 downto 0);
+    signal mem_enia            : std_logic;
     signal mem_dinib           : std_logic_vector(15 downto 0);
     signal mem_addrib          : std_logic_vector(15 downto 0);
     signal mem_weaib           : std_logic_vector(1 downto 0);
     signal mem_doutib          : std_logic_vector(15 downto 0);
+    signal mem_enib            : std_logic;
     signal mem_dinh            : std_logic_vector(31 downto 0);
     signal mem_addrh           : std_logic_vector(15 downto 0);
     signal mem_weh             : std_logic_vector(3 downto 0);
     signal mem_douth           : std_logic_vector(31 downto 0);
+    signal mem_enh             : std_logic;
     signal mem_dinoi           : std_logic_vector(31 downto 0);
     signal mem_addroi          : std_logic_vector(15 downto 0);
     signal mem_weoi            : std_logic_vector(3 downto 0);
     signal mem_doutoi          : std_logic_vector(31 downto 0);
+    signal mem_enoi            : std_logic;
     signal mem_addroa          : std_logic_vector(15 downto 0);
     signal mem_doutoa          : std_logic_vector(31 downto 0);
+    signal mem_enoa            : std_logic;
 
     signal core_clk            : std_logic;
     signal sample_clk          : std_logic;
@@ -272,6 +278,7 @@ begin
         rec_data_valid      => rec_data_valid,
         rec_enable          => rec_enable,
         rec_input_select    => rec_input_select,
+        rec_input_select_changed => rec_input_select_changed,
         rec_stream_valid    => rec_stream_valid,
         trig_rst            => trig_rst,
         trig_arm            => trig_arm,
@@ -326,20 +333,25 @@ begin
         mem_addria          => mem_addria,
         mem_weaia           => mem_weaia,
         mem_doutia          => mem_doutia,
+        mem_enia            => mem_enia,
         mem_dinib           => mem_dinib,
         mem_addrib          => mem_addrib,
         mem_weaib           => mem_weaib,
         mem_doutib          => mem_doutib,
+        mem_enib            => mem_enib,
         mem_dinh            => mem_dinh,
         mem_addrh           => mem_addrh,
         mem_weh             => mem_weh,
         mem_douth           => mem_douth,
+        mem_enh             => mem_enh,
         mem_dinoi           => mem_dinoi,
         mem_addroi          => mem_addroi,
         mem_weoi            => mem_weoi,
         mem_doutoi          => mem_doutoi,
+        mem_enoi            => mem_enoi,
         mem_addroa          => mem_addroa,
         mem_doutoa          => mem_doutoa,
+        mem_enoa            => mem_enoa,
         sample_clk          => sample_clk,
         core_clk            => core_clk
     );
@@ -355,6 +367,7 @@ begin
         rec_data_valid      => rec_data_valid,
         rec_enable          => rec_enable,
         rec_input_select    => rec_input_select,
+        rec_input_select_changed => rec_input_select_changed,
         rec_stream_valid    => rec_stream_valid,
         trig_rst            => trig_rst,
         trig_arm            => trig_arm,
@@ -421,20 +434,25 @@ begin
         mem_addria          => mem_addria,
         mem_weaia           => mem_weaia,
         mem_doutia          => mem_doutia,
+        mem_enia            => mem_enia,
         mem_dinib           => mem_dinib,
         mem_addrib          => mem_addrib,
         mem_weaib           => mem_weaib,
         mem_doutib          => mem_doutib,
+        mem_enib            => mem_enib,
         mem_dinh            => mem_dinh,
         mem_addrh           => mem_addrh,
         mem_weh             => mem_weh,
         mem_douth           => mem_douth,
+        mem_enh             => mem_enh,
         mem_dinoi           => mem_dinoi,
         mem_addroi          => mem_addroi,
         mem_weoi            => mem_weoi,
         mem_doutoi          => mem_doutoi,
+        mem_enoi            => mem_enoi,
         mem_addroa          => mem_addroa,
         mem_doutoa          => mem_doutoa,
+        mem_enoa            => mem_enoa,
 
         fpga2bus_error      => mem_error,
         fpga2bus_wrack      => mem_wrack,

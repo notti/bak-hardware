@@ -44,7 +44,8 @@ port(
     mem_dinh        : in  std_logic_vector(31 downto 0);
     mem_addrh       : in  std_logic_vector(15 downto 0);
     mem_weh         : in  std_logic_vector(3 downto 0);
-    mem_douth       : out std_logic_vector(31 downto 0)
+    mem_douth       : out std_logic_vector(31 downto 0);
+    mem_enh         : in  std_logic
 );
 end core;
 
@@ -53,6 +54,7 @@ architecture Structural of core is
     signal douta    : std_logic_vector(31 downto 0);
     signal y_re_out : signed(15 downto 0);
     signal y_im_out : signed(15 downto 0);
+    signal core_busy_i : std_logic;
 begin
 
     mem_douty(15 downto 0) <= std_logic_vector(y_re_out);
@@ -92,10 +94,11 @@ begin
         ovfl_ifft    => core_ov_ifft,
         ovfl_cmul    => core_ov_cmul,
 
-        busy         => core_busy,
+        busy         => core_busy_i,
         done         => core_done
     );
 
+    core_busy <= core_busy_i;
     
     h_inst: entity work.ram4x32
     generic map(
@@ -107,11 +110,13 @@ begin
         addra      => addra,
         wea        => (others => '0'),
         douta      => douta,
+        ena        => core_busy_i,
         clkb       => mem_clkh,
         dinb       => mem_dinh,
         addrb      => mem_addrh(11 downto 0),
         web        => mem_weh,
-        doutb      => mem_douth
+        doutb      => mem_douth,
+        enb        => mem_enh
     );
 end Structural;
 

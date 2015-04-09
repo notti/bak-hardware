@@ -19,12 +19,14 @@ port(
     dina            : in  std_logic_vector(WIDTH-1 downto 0);
     douta           : out std_logic_vector(WIDTH-1 downto 0);
     wea             : in  std_logic_vector(WIDTH-1 downto 0);
+    ena             : in  std_logic_vector(WIDTH-1 downto 0);
 
     clkb            : in  std_logic;
     addrb           : in  std_logic_vector(15 downto 0);
     dinb            : in  std_logic_vector(WIDTH-1 downto 0);
     doutb           : out std_logic_vector(WIDTH-1 downto 0);
-    web             : in  std_logic_vector(WIDTH-1 downto 0)
+    web             : in  std_logic_vector(WIDTH-1 downto 0);
+    enb             : in  std_logic_vector(WIDTH-1 downto 0)
 );
 end ram48xi;
 
@@ -43,12 +45,14 @@ begin
             dina           => dina(i),
             douta          => douta(i),
             wea            => wea(i),
+            ena            => ena(i),
 
             clkb           => clkb,
             addrb          => addrb,
             dinb           => dinb(i),
             doutb          => doutb(i),
-            web            => web(i)
+            web            => web(i),
+            enb            => enb(i)
         );
     end generate;
 

@@ -14,20 +14,25 @@ port(
     mem_addria          : out std_logic_vector(15 downto 0);
     mem_weaia           : out std_logic_vector(1 downto 0);
     mem_doutia          : in  std_logic_vector(15 downto 0);
+    mem_enia            : out std_logic;
     mem_dinib           : out std_logic_vector(15 downto 0);
     mem_addrib          : out std_logic_vector(15 downto 0);
     mem_weaib           : out std_logic_vector(1 downto 0);
     mem_doutib          : in  std_logic_vector(15 downto 0);
+    mem_enib            : out std_logic;
     mem_dinh            : out std_logic_vector(31 downto 0);
     mem_addrh           : out std_logic_vector(15 downto 0);
     mem_weh             : out std_logic_vector(3 downto 0);
     mem_douth           : in  std_logic_vector(31 downto 0);
+    mem_enh             : out std_logic;
     mem_dinoi           : out std_logic_vector(31 downto 0);
     mem_addroi          : out std_logic_vector(15 downto 0);
     mem_weoi            : out std_logic_vector(3 downto 0);
     mem_doutoi          : in  std_logic_vector(31 downto 0);
+    mem_enoi            : out std_logic;
     mem_addroa          : out std_logic_vector(15 downto 0);
     mem_doutoa          : in  std_logic_vector(31 downto 0);
+    mem_enoa            : out std_logic;
 
 -- CPU Interface
 
@@ -99,6 +104,19 @@ begin
     mem_addrh   <= bus2fpga_addr;
     mem_addroi  <= bus2fpga_addr;
     mem_addroa  <= bus2fpga_addr;
+
+-- enables
+
+    mem_enia  <= '1' when bus2fpga_cs = "1000" else
+                 '0';
+    mem_enib  <= '1' when bus2fpga_cs = "1000" else
+                 '0';
+    mem_enh   <= '1' when bus2fpga_cs = "0100" else
+                 '0';
+    mem_enoi  <= '1' when bus2fpga_cs = "0010" else
+                 '0';
+    mem_enoa  <= '1' when bus2fpga_cs = "0001" else
+                 '0';
 
 -- read
 

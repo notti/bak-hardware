@@ -353,11 +353,13 @@ begin
 		addra => scratch_addra,
 		wea   => scratch_wea,
 		douta => scratch_douta,
+        ena   => '1',
         clkb  => clk,
 		dinb  => scratch_dinb,
 		addrb => ifft_scratch_indexb,
 		web   => scratch_web,
-		doutb => scratch_doutb
+		doutb => scratch_doutb,
+        enb   => scratch_web(0)
     );
 
     xn_re <= fft_xn_re when fft_mem = '1' else

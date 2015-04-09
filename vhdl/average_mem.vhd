@@ -28,10 +28,12 @@ port(
     dina         : in std_logic_vector(15 downto 0);
     addra        : in std_logic_vector(15 downto 0);
     wea          : in std_logic_vector(1 downto 0);
+    ena          : in std_logic;
     douta        : out std_logic_vector(15 downto 0);
     dinb         : in std_logic_vector(15 downto 0);
     addrb        : in std_logic_vector(15 downto 0);
     web          : in std_logic_vector(1 downto 0);
+    enb          : in std_logic;
     doutb        : out std_logic_vector(15 downto 0)
 );
 end average_mem;
@@ -49,6 +51,8 @@ architecture Structural of average_mem is
     signal addrb_i      : std_logic_vector(15 downto 0);
     signal web_i        : std_logic_vector(18 downto 0);
     signal doutb_i      : std_logic_vector(18 downto 0);
+    signal ena_i        : std_logic_vector(18 downto 0);
+    signal enb_i        : std_logic_vector(18 downto 0);
 
     signal cycle_cnt    : std_logic_vector(2 downto 0);
     signal frame_cnt    : std_logic_vector(15 downto 0);
@@ -115,7 +119,7 @@ begin
         end if;
     end process;
 
-    fsm_b: process (clk, state, trig, width_i, frame_cnt, cycle_cnt, depth, width, data_valid, max, max_1)
+    fsm_b: process (clk, state, trig, width_i, width_i2, frame_cnt, cycle_cnt, depth, width, data_valid, max, max_1)
     begin
         case state is
             when IDLE =>
@@ -192,6 +196,12 @@ begin
               (others => '0');
     web_i  <= web_shift when ext = '1' else
               (others => '0');
+    ena_i  <= (others => ena) when ext = '1' else
+              (others => '1') when state = FIRST or state = RUN else
+              (others => '0');
+    enb_i  <= (others => enb) when ext = '1' else
+              (others => '1') when state = FIRST or state = RUN else
+              (others => '0');
     data0   <= resize(signed(data), 19);
     dataadd <= resize(signed(data), 19) + signed(doutb_i);
     dina_i <= std_logic_vector(data0) when ext = '0' and cycle_cnt = "00" else
@@ -224,12 +234,14 @@ begin
         dina                => dina_i,
         addra               => addra_i,
         wea                 => wea_i,
+        ena                 => ena_i,
         douta               => douta_i,
         clkb                => memclk,
         dinb                => dinb_i,
         addrb               => addrb_i,
         web                 => web_i,
-        doutb               => doutb_i
+        doutb               => doutb_i,
+        enb                 => enb_i
     );
 
 end Structural;

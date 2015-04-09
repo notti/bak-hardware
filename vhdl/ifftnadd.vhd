@@ -231,14 +231,12 @@ begin
                "0000" & scratch_cnt_2 when state = SCRATCH2Y else
                y_index_1;
 
-    scratch_re_out <= y_re_in + y_re_in_1 when state = YADD2SCRATCH else
-                      (others => '0') when block_cnt = "0000" else
-                      y_re_in;
-    scratch_im_out <= y_im_in + y_im_in_1 when state = YADD2SCRATCH else
-                      (others => '0') when block_cnt = "0000" else
-                      y_im_in;
-    scratch_re_outb <= y_re_in;
-    scratch_im_outb <= y_im_in;
+    scratch_re_out <= y_re_in + y_re_in_1;
+    scratch_im_out <= y_im_in + y_im_in_1;
+    scratch_re_outb <= (others => '0') when block_cnt = "0000" else
+                       y_re_in;
+    scratch_im_outb <= (others => '0') when block_cnt = "0000" else
+                       y_im_in;
     scratch_wr <= lowhi when circ_cnt_3 < Nh - L and state = YADD2SCRATCH else
                   '0';
     scratch_wrb <= '1' when addr_cnt > 2 and state = LOAD_IFFT else
