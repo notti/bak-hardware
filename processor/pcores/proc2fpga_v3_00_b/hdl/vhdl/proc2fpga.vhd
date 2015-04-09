@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------------
 --
 -- ***************************************************************************
--- ** Copyright (c) 1995-2008 Xilinx, Inc.  All rights reserved.            **
+-- ** Copyright (c) 1995-2012 Xilinx, Inc.  All rights reserved.            **
 -- **                                                                       **
 -- ** Xilinx, Inc.                                                          **
 -- ** XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS"         **
@@ -35,7 +35,7 @@
 -- Filename:          proc2fpga.vhd
 -- Version:           3.00.b
 -- Description:       Top level design, instantiates library components and user logic.
--- Date:              Tue Aug 21 22:56:36 2012 (by Create and Import Peripheral Wizard)
+-- Date:              Wed Apr 08 15:01:46 2015 (by Create and Import Peripheral Wizard)
 -- VHDL Standard:     VHDL'93
 ------------------------------------------------------------------------------
 -- Naming Conventions:
@@ -62,16 +62,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library proc_common_v2_00_a;
-use proc_common_v2_00_a.proc_common_pkg.all;
-use proc_common_v2_00_a.ipif_pkg.all;
-use proc_common_v2_00_a.soft_reset;
+library proc_common_v3_00_a;
+use proc_common_v3_00_a.proc_common_pkg.all;
+use proc_common_v3_00_a.ipif_pkg.all;
+use proc_common_v3_00_a.soft_reset;
 
-library interrupt_control_v2_00_a;
-use interrupt_control_v2_00_a.interrupt_control;
+library interrupt_control_v2_01_a;
+use interrupt_control_v2_01_a.interrupt_control;
 
-library plbv46_slave_burst_v1_00_a;
-use plbv46_slave_burst_v1_00_a.plbv46_slave_burst;
+library plbv46_slave_burst_v1_01_a;
+use plbv46_slave_burst_v1_01_a.plbv46_slave_burst;
 
 library proc2fpga_v3_00_b;
 use proc2fpga_v3_00_b.user_logic;
@@ -169,7 +169,7 @@ entity proc2fpga is
     C_SPLB_SMALLEST_MASTER         : integer              := 32;
     C_SPLB_CLK_PERIOD_PS           : integer              := 10000;
     C_INCLUDE_DPHASE_TIMER         : integer              := 0;
-    C_FAMILY                       : string               := "virtex5";
+    C_FAMILY                       : string               := "virtex6";
     C_MEM0_BASEADDR                : std_logic_vector     := X"FFFFFFFF";
     C_MEM0_HIGHADDR                : std_logic_vector     := X"00000000";
     C_MEM1_BASEADDR                : std_logic_vector     := X"FFFFFFFF";
@@ -251,7 +251,9 @@ entity proc2fpga is
     -- DO NOT EDIT ABOVE THIS LINE ---------------------
   );
 
+  attribute MAX_FANOUT : string;
   attribute SIGIS : string;
+
   attribute SIGIS of SPLB_Clk      : signal is "CLK";
   attribute SIGIS of SPLB_Rst      : signal is "RST";
   attribute SIGIS of IP2INTC_Irpt  : signal is "INTR_LEVEL_HIGH";
@@ -325,7 +327,7 @@ architecture IMP of proc2fpga is
   -- Valid depths are 0, 16, 32, or 64
   -- 0 = no write buffer implemented
   ------------------------------------------
-  constant IPIF_WR_BUFFER_DEPTH           : integer              := 16;
+  constant IPIF_WR_BUFFER_DEPTH           : integer              := 32;
 
   ------------------------------------------
   -- The type out of the Bus2IP_BurstLength signal
@@ -388,7 +390,7 @@ architecture IMP of proc2fpga is
   -- true  = include priority encoder
   -- false = omit priority encoder
   ------------------------------------------
-  constant INTR_INCLUDE_DEV_PENCODER      : boolean              := true;
+  constant INTR_INCLUDE_DEV_PENCODER      : boolean              := false;
 
   ------------------------------------------
   -- Device ISC feature inclusion/omission
@@ -461,7 +463,7 @@ begin
   ------------------------------------------
   -- instantiate plbv46_slave_burst
   ------------------------------------------
-  PLBV46_SLAVE_BURST_I : entity plbv46_slave_burst_v1_00_a.plbv46_slave_burst
+  PLBV46_SLAVE_BURST_I : entity plbv46_slave_burst_v1_01_a.plbv46_slave_burst
     generic map
     (
       C_ARD_ADDR_RANGE_ARRAY         => IPIF_ARD_ADDR_RANGE_ARRAY,
@@ -546,7 +548,7 @@ begin
   ------------------------------------------
   -- instantiate soft_reset
   ------------------------------------------
-  SOFT_RESET_I : entity proc_common_v2_00_a.soft_reset
+  SOFT_RESET_I : entity proc_common_v3_00_a.soft_reset
     generic map
     (
       C_SIPIF_DWIDTH                 => IPIF_SLV_DWIDTH,
@@ -568,7 +570,7 @@ begin
   ------------------------------------------
   -- instantiate interrupt_control
   ------------------------------------------
-  INTERRUPT_CONTROL_I : entity interrupt_control_v2_00_a.interrupt_control
+  INTERRUPT_CONTROL_I : entity interrupt_control_v2_01_a.interrupt_control
     generic map
     (
       C_NUM_CE                       => INTR_NUM_CE,
