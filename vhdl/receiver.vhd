@@ -56,8 +56,6 @@ architecture Structural of receiver is
     --------------- Receive Ports - Comma Detection and Alignment --------------
     TILE0_RXBYTEISALIGNED0_OUT              : out  std_logic;
     TILE0_RXBYTEISALIGNED1_OUT              : out  std_logic;
-    TILE0_RXBYTEREALIGN0_OUT                : out  std_logic;
-    TILE0_RXBYTEREALIGN1_OUT                : out  std_logic;
     TILE0_RXENMCOMMAALIGN0_IN               : in   std_logic;
     TILE0_RXENMCOMMAALIGN1_IN               : in   std_logic;
     TILE0_RXENPCOMMAALIGN0_IN               : in   std_logic;
@@ -113,8 +111,6 @@ architecture Structural of receiver is
     --------------- Receive Ports - Comma Detection and Alignment --------------
     TILE1_RXBYTEISALIGNED0_OUT              : out  std_logic;
     TILE1_RXBYTEISALIGNED1_OUT              : out  std_logic;
-    TILE1_RXBYTEREALIGN0_OUT                : out  std_logic;
-    TILE1_RXBYTEREALIGN1_OUT                : out  std_logic;
     TILE1_RXENMCOMMAALIGN0_IN               : in   std_logic;
     TILE1_RXENMCOMMAALIGN1_IN               : in   std_logic;
     TILE1_RXENPCOMMAALIGN0_IN               : in   std_logic;
@@ -223,8 +219,6 @@ begin
 		TILE0_RXNOTINTABLE0_OUT         =>      rxnotintable_i(0),
 		TILE0_RXNOTINTABLE1_OUT         =>      rxnotintable_i(1),
 		--------------- Receive Ports - Comma Detection and Alignment --------------
-		TILE0_RXBYTEREALIGN0_OUT        =>      open,
-		TILE0_RXBYTEREALIGN1_OUT        =>      open,
 		TILE0_RXBYTEISALIGNED0_OUT      =>      rxbyteisaligned_i(0),
 		TILE0_RXBYTEISALIGNED1_OUT      =>      rxbyteisaligned_i(1),
 		TILE0_RXENMCOMMAALIGN0_IN       =>      rxencommaalign_i(0),
@@ -281,8 +275,6 @@ begin
 		TILE1_RXNOTINTABLE0_OUT         =>      open,
 		TILE1_RXNOTINTABLE1_OUT         =>      rxnotintable_i(2),
 		--------------- Receive Ports - Comma Detection and Alignment --------------
-		TILE1_RXBYTEREALIGN0_OUT        =>      open,
-		TILE1_RXBYTEREALIGN1_OUT        =>      open,
 		TILE1_RXBYTEISALIGNED0_OUT      =>      open,
 		TILE1_RXBYTEISALIGNED1_OUT      =>      rxbyteisaligned_i(2),
 		TILE1_RXENMCOMMAALIGN0_IN       =>      '0',

@@ -3,7 +3,7 @@
 ------------------------------------------------------------------------------
 --
 -- ***************************************************************************
--- ** Copyright (c) 1995-2008 Xilinx, Inc.  All rights reserved.            **
+-- ** Copyright (c) 1995-2012 Xilinx, Inc.  All rights reserved.            **
 -- **                                                                       **
 -- ** Xilinx, Inc.                                                          **
 -- ** XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS"         **
@@ -26,7 +26,7 @@
 -- Filename:          user_logic.vhd
 -- Version:           3.00.b
 -- Description:       User logic.
--- Date:              Tue Aug 21 22:56:36 2012 (by Create and Import Peripheral Wizard)
+-- Date:              Wed Apr 08 15:01:46 2015 (by Create and Import Peripheral Wizard)
 -- VHDL Standard:     VHDL'93
 ------------------------------------------------------------------------------
 -- Naming Conventions:
@@ -54,8 +54,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library proc_common_v2_00_a;
-use proc_common_v2_00_a.proc_common_pkg.all;
+library proc_common_v3_00_a;
+use proc_common_v3_00_a.proc_common_pkg.all;
 
 -- DO NOT EDIT ABOVE THIS LINE --------------------
 
@@ -156,7 +156,9 @@ entity user_logic is
     -- DO NOT EDIT ABOVE THIS LINE ---------------------
   );
 
+  attribute MAX_FANOUT : string;
   attribute SIGIS : string;
+
   attribute SIGIS of Bus2IP_Clk    : signal is "CLK";
   attribute SIGIS of Bus2IP_Reset  : signal is "RST";
 

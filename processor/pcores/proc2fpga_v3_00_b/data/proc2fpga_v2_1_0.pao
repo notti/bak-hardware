@@ -1,26 +1,11 @@
 ##############################################################################
-## Filename:          /home/notti/test/bakk/processor/pcores/proc2fpga_v3_00_b/data/proc2fpga_v2_1_0.pao
+## Filename:          D:\Projekte\bak-hardware\processor\pcores/proc2fpga_v3_00_b/data/proc2fpga_v2_1_0.pao
 ## Description:       Peripheral Analysis Order
-## Date:              Tue Aug 21 23:31:13 2012 (by Create and Import Peripheral Wizard)
+## Date:              Wed Apr 08 15:15:28 2015 (by Create and Import Peripheral Wizard)
 ##############################################################################
 
-lib proc_common_v2_00_a proc_common_pkg vhdl
-lib proc_common_v2_00_a ipif_pkg vhdl
-lib proc_common_v2_00_a or_muxcy vhdl
-lib proc_common_v2_00_a or_gate128 vhdl
-lib proc_common_v2_00_a family_support vhdl
-lib proc_common_v2_00_a pselect_f vhdl
-lib proc_common_v2_00_a counter_f vhdl
-lib plbv46_slave_burst_v1_00_a flex_addr_cntr vhdl
-lib plbv46_slave_burst_v1_00_a addr_reg_cntr_brst_flex vhdl
-lib plbv46_slave_burst_v1_00_a plb_address_decoder vhdl
-lib plbv46_slave_burst_v1_00_a burst_support vhdl
-lib plbv46_slave_burst_v1_00_a wr_buffer vhdl
-lib plbv46_slave_burst_v1_00_a be_reset_gen vhdl
-lib plbv46_slave_burst_v1_00_a plb_slave_attachment vhdl
-lib plbv46_slave_burst_v1_00_a data_mirror_128 vhdl
-lib plbv46_slave_burst_v1_00_a plbv46_slave_burst vhdl
-lib proc_common_v2_00_a soft_reset vhdl
-lib interrupt_control_v2_00_a interrupt_control vhdl
+lib proc_common_v3_00_a all vhdl
+lib plbv46_slave_burst_v1_01_a all vhdl
+lib interrupt_control_v2_01_a all vhdl
 lib proc2fpga_v3_00_b user_logic vhdl
 lib proc2fpga_v3_00_b proc2fpga vhdl

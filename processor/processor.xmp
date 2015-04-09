@@ -1,11 +1,9 @@
 #Please do not modify this file by hand
-XmpVersion: 10.1.03
-VerMgmt: 10.1.03
+XmpVersion: 14.7
+VerMgmt: 14.7
 IntStyle: ise
-ModuleSearchPath: /mnt/bak/notti/fpga/ise/
+Flow: ise
 MHS File: processor.mhs
-MSS File: processor.mss
-NPL File: projnav/processor.ise
 Architecture: virtex5
 Device: xc5vfx70t
 Package: ff1136
@@ -14,23 +12,22 @@ UserCmd1:
 UserCmd1Type: 0
 UserCmd2: 
 UserCmd2Type: 0
-TopInst: processor_i
 GenSimTB: 0
-InsertNoPads: 0
+SdkExportBmmBit: 0
+SdkExportDir: SDK/SDK_Export
+InsertNoPads: 1
 WarnForEAArch: 1
 HdlLang: vhdl
-Simulator: mti
 SimModel: BEHAVIORAL
-MixLangSim: 1
+ExternalMemSim: 0
 UcfFile: data/processor.ucf
-FpgaImpMode: 0
 EnableParTimingError: 1
-EnableResetOptimization: 0
-ShowLicenseDialog: 1
+ShowLicenseDialog: 0
+BInfo: 
 ICacheAddr: DDR2_SDRAM,
 ICacheAddr: xps_bram_if_cntlr_1,
 DCacheAddr: DDR2_SDRAM,
 DCacheAddr: xps_bram_if_cntlr_1,
 Processor: ppc440_0
-BootLoop: 1
-XmdStub: 0
+ElfImp: 
+ElfSim: 

@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version K.39
-# Date: Thu Sep  6 19:56:44 2012
+# Xilinx Core Generator version 14.7
+# Date: Wed Apr 08 14:50:44 2015
 #
 ##############################################################
 #
@@ -12,44 +12,48 @@
 #
 ##############################################################
 #
+#  Generated from component: xilinx.com:ip:xfft:7.1
+#
+##############################################################
+#
 # BEGIN Project Options
-SET addpads = False
-SET asysymbol = True
+SET addpads = false
+SET asysymbol = true
 SET busformat = BusFormatAngleBracketNotRipped
-SET createndf = False
+SET createndf = false
 SET designentry = VHDL
 SET device = xc5vfx70t
 SET devicefamily = virtex5
-SET flowvendor = Foundation_iSE
-SET formalverification = False
-SET foundationsym = False
+SET flowvendor = Other
+SET formalverification = false
+SET foundationsym = false
 SET implementationfiletype = Ngc
 SET package = ff1136
-SET removerpms = False
+SET removerpms = false
 SET simulationfiles = Behavioral
 SET speedgrade = -1
-SET verilogsim = True
-SET vhdlsim = True
+SET verilogsim = false
+SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT Fast_Fourier_Transform family Xilinx,_Inc. 6.0
+SELECT Fast_Fourier_Transform xilinx.com:ip:xfft:7.1
 # END Select
 # BEGIN Parameters
+CSET butterfly_type=use_xtremedsp_slices
 CSET ce=false
 CSET channels=1
+CSET complex_mult_type=use_mults_performance
 CSET component_name=fft
 CSET cyclic_prefix_insertion=false
 CSET data_format=fixed_point
-CSET fast_butterfly=true
-CSET fast_complex_mult=true
 CSET implementation_options=pipelined_streaming_io
+CSET input_data_offset=three_cycle_offset
 CSET input_width=16
 CSET memory_options_data=block_ram
 CSET memory_options_hybrid=false
 CSET memory_options_phase_factors=block_ram
 CSET memory_options_reorder=block_ram
 CSET number_of_stages_using_block_ram_for_data_and_phase_factors=3
-CSET optimize_for_speed_using_xtreme_dsp_slices=true
 CSET output_ordering=bit_reversed_order
 CSET ovflo=true
 CSET phase_factor_width=16
@@ -61,6 +65,8 @@ CSET target_clock_frequency=250
 CSET target_data_throughput=50
 CSET transform_length=4096
 # END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2012-08-28T14:48:07Z
+# END Extra information
 GENERATE
-# CRC: 12f2f21a
-
+# CRC: 6f829a3e
