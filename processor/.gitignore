@@ -1,10 +1,2 @@
-*log
-*opt
-implementation
-__xps
-blkdiagram
-bootloops
-hdl
-ppc440_0
-*.make
-synthesis
+SDK/
+__xps/

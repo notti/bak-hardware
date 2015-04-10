@@ -3,6 +3,7 @@ XmpVersion: 14.7
 VerMgmt: 14.7
 IntStyle: ise
 Flow: ise
+ModuleSearchPath: D:/Projekte/MyProcessorIPLib/pcores/proc2fpga_v3_00_b/../../../
 MHS File: processor.mhs
 Architecture: virtex5
 Device: xc5vfx70t
@@ -12,6 +13,7 @@ UserCmd1:
 UserCmd1Type: 0
 UserCmd2: 
 UserCmd2Type: 0
+ClockInfo: USE_UNIQUE_CLOCK_PRIMS=FALSE|
 GenSimTB: 0
 SdkExportBmmBit: 0
 SdkExportDir: SDK/SDK_Export

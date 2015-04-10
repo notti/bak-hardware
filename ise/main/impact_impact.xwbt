@@ -1,0 +1,8 @@
+INTSTYLE=impact
+INFILE=D:\Projekte\bak-hardware\ise\main\impact.xsl
+OUTFILE=D:\Projekte\bak-hardware\ise\main\impact.xsl
+FAMILY=Multiple
+PART=Multiple
+WORKINGDIR=D:\Projekte\bak-hardware\ise\main
+LICENSE=iMPACT
+USER_INFO=iMPACT

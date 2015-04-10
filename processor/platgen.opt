@@ -1,0 +1,17 @@
+-p
+xc5vfx70tff1136-1
+-lang
+vhdl
+-intstyle
+pa
+-lp
+D:/Projekte/
+-toplevel
+no
+-ti
+processor_i
+-msg
+__xps/ise/xmsgprops.lst
+-parallel
+yes
+processor.mhs

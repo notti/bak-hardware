@@ -1,14 +1,2 @@
 _xmsgs
-main_xdb
-*.restore
-*.ngc
-xlnx_auto*
-*.bmm
-*log
-*html
-templates
-*tcl
-*twr
-top*
-xst
-_ngo
+auto_project_xdb

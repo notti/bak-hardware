@@ -23,14 +23,19 @@ architecture Structural of flag is
     attribute ASYNC_REG             : string;
     attribute SHIFT_EXTRACT         : string;
     attribute HBLKNM                : string;
+    attribute KEEP_HIERARCHY        : string;
+    attribute KEEP                  : string;
 
     attribute TIG of flag_in        : signal is "TRUE";
     attribute IOB of flag_in        : signal is "FALSE";
-    attribute SHIFT_EXTRACT of s    : signal is "NO";
+    attribute SHIFT_EXTRACT of s    : signal is "FALSE";
+    attribute KEEP of s             : signal is "TRUE";
     attribute ASYNC_REG of fd0      : label is "TRUE";
     attribute HBLKNM of fd0         : label is name;
     attribute ASYNC_REG of fd1      : label is "TRUE";
     attribute HBLKNM of fd1         : label is name;
+
+    attribute KEEP_HIERARCHY of Structural : architecture is "TRUE";
 begin
 
     fd0: FD

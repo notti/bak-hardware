@@ -1,42 +1,61 @@
 ######################################
-NET gtx_refclk_n  LOC=H3;
-NET gtx_refclk_p  LOC=H4;
-NET oserdes_txp(0) LOC = L34 |FAST;
-NET oserdes_txn(0) LOC = K34 |FAST;
-NET oserdes_txp(1) LOC = K33 |FAST;
-NET oserdes_txn(1) LOC = K32 |FAST;
-NET oserdes_txp(2) LOC = P32 |FAST;
-NET oserdes_txn(2) LOC = N32 |FAST;
-NET oserdes_txclkp LOC = T33 |FAST;
-NET oserdes_txclkn LOC = R34 |FAST;
-NET oserdes_txp(3) LOC = R33 |FAST;
-NET oserdes_txn(3) LOC = R32 |FAST;
-NET oserdes_txp(4) LOC = U33 |FAST;
-NET oserdes_txn(4) LOC = T34 |FAST;
-NET oserdes_txp(5) LOC = U32 |FAST;
-NET oserdes_txn(5) LOC = U31 |FAST;
-NET oserdes_txp(6) LOC = V32 |FAST;
-NET oserdes_txn(6) LOC = V33 |FAST;
-NET oserdes_txp(7) LOC = W34 |FAST;
-NET oserdes_txn(7) LOC = V34 |FAST;
-NET frame_clk LOC = AN34 |IOSTANDARD=LVCMOS25 |FAST;
-NET inbuf_trigger LOC = AN33 |IOSTANDARD=LVCMOS25 |PULLDOWN;
-INST main_inst/inbuf_inst/receiver_i/gtx_i/tile0_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y3;
-INST main_inst/inbuf_inst/receiver_i/gtx_i/tile1_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y4;
-INST main_inst/inbuf_inst/receiver_i/gtx_i/tile2_gtx_i/gtx_dual_i LOC=GTX_DUAL_X0Y5;
-NET "main_inst/inbuf_inst/receiver_i/refclkout_i" TNM_NET = main_inst/inbuf_inst/receiver_i/refclkout_i;
-TIMESPEC TS_main_inst_inbuf_inst_receiver_i_refclkout_i = PERIOD "main_inst/inbuf_inst/receiver_i/refclkout_i" 10 ns HIGH 50%;
+NET "gtx_refclk_n" LOC = H3;
+NET "gtx_refclk_p" LOC = H4;
+NET "oserdes_txp[0]" LOC = L34;
+NET "oserdes_txp[0]" SLEW = FAST;
+NET "oserdes_txn[0]" LOC = K34;
+NET "oserdes_txn[0]" SLEW = FAST;
+NET "oserdes_txp[1]" LOC = K33;
+NET "oserdes_txp[1]" SLEW = FAST;
+NET "oserdes_txn[1]" LOC = K32;
+NET "oserdes_txn[1]" SLEW = FAST;
+NET "oserdes_txp[2]" LOC = P32;
+NET "oserdes_txp[2]" SLEW = FAST;
+NET "oserdes_txn[2]" LOC = N32;
+NET "oserdes_txn[2]" SLEW = FAST;
+NET "oserdes_txclkp" LOC = T33;
+NET "oserdes_txclkp" SLEW = FAST;
+NET "oserdes_txclkn" LOC = R34;
+NET "oserdes_txclkn" SLEW = FAST;
+NET "oserdes_txp[3]" LOC = R33;
+NET "oserdes_txp[3]" SLEW = FAST;
+NET "oserdes_txn[3]" LOC = R32;
+NET "oserdes_txn[3]" SLEW = FAST;
+NET "oserdes_txp[4]" LOC = U33;
+NET "oserdes_txp[4]" SLEW = FAST;
+NET "oserdes_txn[4]" LOC = T34;
+NET "oserdes_txn[4]" SLEW = FAST;
+NET "oserdes_txp[5]" LOC = U32;
+NET "oserdes_txp[5]" SLEW = FAST;
+NET "oserdes_txn[5]" LOC = U31;
+NET "oserdes_txn[5]" SLEW = FAST;
+NET "oserdes_txp[6]" LOC = V32;
+NET "oserdes_txp[6]" SLEW = FAST;
+NET "oserdes_txn[6]" LOC = V33;
+NET "oserdes_txn[6]" SLEW = FAST;
+NET "oserdes_txp[7]" LOC = W34;
+NET "oserdes_txp[7]" SLEW = FAST;
+NET "oserdes_txn[7]" LOC = V34;
+NET "oserdes_txn[7]" SLEW = FAST;
+NET "frame_clk" LOC = AN34;
+NET "frame_clk" IOSTANDARD = LVCMOS25;
+NET "frame_clk" SLEW = FAST;
+NET "inbuf_trigger" LOC = AN33;
+NET "inbuf_trigger" IOSTANDARD = LVCMOS25;
+NET "inbuf_trigger" PULLDOWN;
+INST "main_inst/inbuf_inst/receiver_i/gtx_i/tile0_gtx_i/gtx_dual_i" LOC = GTX_DUAL_X0Y3;
+INST "main_inst/inbuf_inst/receiver_i/gtx_i/tile1_gtx_i/gtx_dual_i" LOC = GTX_DUAL_X0Y4;
+INST "main_inst/inbuf_inst/receiver_i/gtx_i/tile2_gtx_i/gtx_dual_i" LOC = GTX_DUAL_X0Y5;
+NET "main_inst/inbuf_inst/receiver_i/refclkout_i" TNM_NET = "main_inst/inbuf_inst/receiver_i/refclkout_i";
+TIMESPEC TS_main_inst_inbuf_inst_receiver_i_refclkout_i = PERIOD "main_inst/inbuf_inst/receiver_i/refclkout_i" 10 ns HIGH 50 %;
 
-NET "main_inst/outbuf_inst/transmitter_i/CLKOUT0" TNM_NET = main_inst/outbuf_inst/transmitter_i/CLKOUT0;
-TIMESPEC TS_main_inst_outbuf_inst_transmitter_i_CLKOUT0 = PERIOD "main_inst/outbuf_inst/transmitter_i/CLKOUT0" 350 MHz HIGH 50%;
-NET "main_inst/outbuf_inst/transmitter_i/CLKOUT1" TNM_NET = main_inst/outbuf_inst/transmitter_i/CLKOUT1;
-TIMESPEC TS_main_inst_outbuf_inst_transmitter_i_CLKOUT1 = PERIOD "main_inst/outbuf_inst/transmitter_i/CLKOUT1" 175 MHz HIGH 50%;
-NET "main_inst/outbuf_inst/transmitter_i/outdata_long*" TNM_NET = outdata_long;
-NET "main_inst/outbuf_inst/transmitter_i/outdata_short*" TNM_NET = outdata_short;
+NET "main_inst/outbuf_inst/transmitter_i/CLKOUT0" TNM_NET = "main_inst/outbuf_inst/transmitter_i/CLKOUT0";
+TIMESPEC TS_main_inst_outbuf_inst_transmitter_i_CLKOUT0 = PERIOD "main_inst/outbuf_inst/transmitter_i/CLKOUT0" 350 MHz HIGH 50 %;
+NET "main_inst/outbuf_inst/transmitter_i/CLKOUT1" TNM_NET = "main_inst/outbuf_inst/transmitter_i/CLKOUT1";
+TIMESPEC TS_main_inst_outbuf_inst_transmitter_i_CLKOUT1 = PERIOD "main_inst/outbuf_inst/transmitter_i/CLKOUT1" 175 MHz HIGH 50 %;
+NET "main_inst/outbuf_inst/transmitter_i/outdata_long*" TNM_NET = "outdata_long";
+NET "main_inst/outbuf_inst/transmitter_i/outdata_short*" TNM_NET = "outdata_short";
 TIMESPEC TS_outdata = FROM "outdata_long" TO "outdata_short" TS_main_inst_inbuf_inst_receiver_i_refclkout_i * 4 DATAPATHONLY;
-
-NET "*/transmitter_i/outdata_long*" KEEP;
-NET "*/transmitter_i/outdata_short*" KEEP;
 
 
 #  Virtex 5 ML507 Evaluation Platform
@@ -66,6 +85,8 @@ Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<4> LOC=AE27  |  IOSTANDARD=LVCMOS18  | 
 Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<5> LOC=AE26  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
 Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<6> LOC=AC25  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
 Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<7> LOC=AC24  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
+Net fpga_0_IIC_EEPROM_Sda_pin LOC=F8  |  SLEW = SLOW  |  DRIVE = 6  |  IOSTANDARD=LVCMOS33;
+Net fpga_0_IIC_EEPROM_Scl_pin LOC=F9  |  SLEW = SLOW  |  DRIVE = 6  |  IOSTANDARD=LVCMOS33;
 Net fpga_0_DDR2_SDRAM_DDR2_DQ_pin<0> LOC=AF30  |  IOSTANDARD = SSTL18_II;
 Net fpga_0_DDR2_SDRAM_DDR2_DQ_pin<1> LOC=AK31  |  IOSTANDARD = SSTL18_II;
 Net fpga_0_DDR2_SDRAM_DDR2_DQ_pin<2> LOC=AF31  |  IOSTANDARD = SSTL18_II;
@@ -208,8 +229,6 @@ Net fpga_0_SysACE_CompactFlash_SysACE_MPD_pin<12> LOC=J5  |  IOSTANDARD = LVCMOS
 Net fpga_0_SysACE_CompactFlash_SysACE_MPD_pin<13> LOC=T6  |  IOSTANDARD = LVCMOS33;
 Net fpga_0_SysACE_CompactFlash_SysACE_MPD_pin<14> LOC=K7  |  IOSTANDARD = LVCMOS33;
 Net fpga_0_SysACE_CompactFlash_SysACE_MPD_pin<15> LOC=J6  |  IOSTANDARD = LVCMOS33;
-Net fpga_0_IIC_EEPROM_Sda_pin LOC=F8  |  SLEW = SLOW  |  DRIVE = 6  |  IOSTANDARD=LVCMOS33;
-Net fpga_0_IIC_EEPROM_Scl_pin LOC=F9  |  SLEW = SLOW  |  DRIVE = 6  |  IOSTANDARD=LVCMOS33;
 Net fpga_0_RS232_Uart_1_sin_pin LOC = AG15  |  IOSTANDARD=LVCMOS33;
 Net fpga_0_RS232_Uart_1_sout_pin LOC = AG20  |  IOSTANDARD=LVCMOS33;
 Net fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin LOC=J14  |  IOSTANDARD = LVCMOS25  |  TIG;
@@ -260,10 +279,10 @@ Net fpga_0_rst_1_sys_rst_pin LOC = E9  |  IOSTANDARD=LVCMOS33  |  PULLUP;
 ## time allowed for logic to settle in calibration/initialization FSM
 ###########################################################################
 
-NET "DDR2_SDRAM*/mc_mibclk" TNM = FFS "TNM_CLK0";
-NET "DDR2_SDRAM*/mi_mcclk90" TNM = FFS "TNM_CLK90";
+NET "*/DDR2_SDRAM*/mc_mibclk" TNM = FFS "TNM_CLK0";
+NET "*/DDR2_SDRAM*/mi_mcclk90" TNM = FFS "TNM_CLK90";
 
-NET "DDR2_SDRAM*/mc_mibclk" TNM_NET =  "mc_clk";
+NET "*/DDR2_SDRAM*/mc_mibclk" TNM_NET =  "mc_clk";
 TIMESPEC "TS_MC_CLK" = PERIOD "mc_clk" 5.000 ns;
 
 
@@ -374,10 +393,10 @@ NET "*/u_phy_io/gen_dqs*.u_iob_dqs/en_dqs_sync" MAXDELAY = 850 ps;
 ###########################################################################
 
 
-INST "DDR2_SDRAM/*/*u_rdf" LOC = RAMB36_X0Y19;
-INST "DDR2_SDRAM/*/*u_rdf1" LOC = RAMB36_X0Y18;
-INST "DDR2_SDRAM/*/*gen_wdf[0]*u_wdf" LOC = RAMB36_X0Y17;
-INST "DDR2_SDRAM/*/*gen_wdf[1]*u_wdf" LOC = RAMB36_X0Y16;
+INST "*/DDR2_SDRAM/*/*u_rdf" LOC = RAMB36_X0Y19;
+INST "*/DDR2_SDRAM/*/*u_rdf1" LOC = RAMB36_X0Y18;
+INST "*/DDR2_SDRAM/*/*gen_wdf[0]*u_wdf" LOC = RAMB36_X0Y17;
+INST "*/DDR2_SDRAM/*/*gen_wdf[1]*u_wdf" LOC = RAMB36_X0Y16;
 
 
 ###############################################################################
@@ -398,7 +417,7 @@ INST "DDR2_SDRAM/*/*gen_wdf[1]*u_wdf" LOC = RAMB36_X0Y16;
 
 ###############################################################################
 
-AREA_GROUP "DDR_CAPTURE_FFS" GROUP = CLOSED;
+#AREA_GROUP "DDR_CAPTURE_FFS" GROUP = CLOSED;
 
  
 INST "*/gen_dq[*].u_iob_dq/gen*.u_iddr_dq" TIG ;
@@ -411,7 +430,7 @@ net "*Hard_Ethernet_MAC*/REFCLK"   TNM_NET = "REFCLK"; #name of signal connected
 TIMEGRP  "delayctrl_clk_200"       = "REFCLK";
 TIMESPEC "TS_delayctrl_clk_200"    = PERIOD "delayctrl_clk_200" 5000 ps HIGH 50 %; #constant value based on constant 200 MHZ ref clock
 
-net "Hard_Ethernet_MAC*/GTX_CLK_0"   TNM_NET = "clk_125"; #name of signal connected to TEMAC GTX_CLK_0 input
+net "*/Hard_Ethernet_MAC*/GTX_CLK_0"   TNM_NET = "clk_125"; #name of signal connected to TEMAC GTX_CLK_0 input
 TIMEGRP  "ethernet_gtx_clk_125"    = "clk_125";
 TIMESPEC "TS_ethernet_gtx_clk_125" = PERIOD "ethernet_gtx_clk_125" 8000 ps HIGH 50 %; #constant value based on constant 125 MHZ GTX clock
 
@@ -501,6 +520,5 @@ TIMESPEC "TS_RX_CLIENT_CLK0_2_REF_CLK"  = FROM clk_client_rx0 TO REFCLK 5000 ps 
 
 net "*/hrst*" TIG;
 net "*/V5HARD_SYS.I_TEMAC/speed_vector_0_i*" TIG;
-
 
 

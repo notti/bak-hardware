@@ -1,14 +1,2 @@
-gtx
-*.txt
-*.tcl
-*.xrpt
-*.v
-*.vhd
-*.vho
-*.sym
-*.veo
-*.ngc
-*.asy
-*.mif
+tmp
 *.pdf
-xlnx_auto_0*
