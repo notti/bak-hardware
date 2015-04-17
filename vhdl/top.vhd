@@ -31,8 +31,6 @@ port(
     fpga_0_LEDs_Positions_GPIO_IO_pin : inout std_logic_vector(0 to 4);
     fpga_0_Push_Buttons_5Bit_GPIO_IO_pin : inout std_logic_vector(0 to 4);
     fpga_0_DIP_Switches_8Bit_GPIO_IO_pin : inout std_logic_vector(0 to 7);
-    fpga_0_IIC_EEPROM_Sda_pin : inout std_logic;
-    fpga_0_IIC_EEPROM_Scl_pin : inout std_logic;
     fpga_0_DDR2_SDRAM_DDR2_DQ_pin : inout std_logic_vector(63 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_DQS_pin : inout std_logic_vector(7 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_DQS_N_pin : inout std_logic_vector(7 downto 0);
@@ -99,8 +97,6 @@ PORT(
     fpga_0_LEDs_Positions_GPIO_IO_pin : inout std_logic_vector(0 to 4);
     fpga_0_Push_Buttons_5Bit_GPIO_IO_pin : inout std_logic_vector(0 to 4);
     fpga_0_DIP_Switches_8Bit_GPIO_IO_pin : inout std_logic_vector(0 to 7);
-    fpga_0_IIC_EEPROM_Sda_pin : inout std_logic;
-    fpga_0_IIC_EEPROM_Scl_pin : inout std_logic;
     fpga_0_DDR2_SDRAM_DDR2_DQ_pin : inout std_logic_vector(63 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_DQS_pin : inout std_logic_vector(7 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_DQS_N_pin : inout std_logic_vector(7 downto 0);
@@ -561,9 +557,7 @@ begin
 		proc2fpga_0_bus2fpga_cs_pin                 => bus2fpga_cs,
 		proc2fpga_0_bus2fpga_addr_pin               => bus2fpga_addr,
 		proc2fpga_0_bus2fpga_reset_pin              => bus2fpga_reset,
-		proc2fpga_0_bus2fpga_clk_pin                => bus2fpga_clk,
-	   fpga_0_IIC_EEPROM_Scl_pin                   => fpga_0_IIC_EEPROM_Scl_pin,
-      fpga_0_IIC_EEPROM_Sda_pin                   => fpga_0_IIC_EEPROM_Sda_pin
+		proc2fpga_0_bus2fpga_clk_pin                => bus2fpga_clk
     );
 
 end Structural;
