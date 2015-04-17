@@ -5,9 +5,6 @@ library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
 
 entity flag is
-generic(
-    name    : string
-);
 port(
     flag_in  : in std_logic;
     flag_out : out std_logic;
@@ -16,41 +13,20 @@ port(
 end flag;
 
 architecture Structural of flag is
-    signal s                        : std_logic;
+    signal s                        : std_logic_vector(1 downto 0);
 
-    attribute TIG                   : string;
-    attribute IOB                   : string;
     attribute ASYNC_REG             : string;
-    attribute SHIFT_EXTRACT         : string;
-    attribute HBLKNM                : string;
-    attribute KEEP_HIERARCHY        : string;
-    attribute KEEP                  : string;
-
-    attribute TIG of flag_in        : signal is "TRUE";
-    attribute IOB of flag_in        : signal is "FALSE";
-    attribute SHIFT_EXTRACT of s    : signal is "FALSE";
-    attribute KEEP of s             : signal is "TRUE";
-    attribute ASYNC_REG of fd0      : label is "TRUE";
-    attribute HBLKNM of fd0         : label is name;
-    attribute ASYNC_REG of fd1      : label is "TRUE";
-    attribute HBLKNM of fd1         : label is name;
-
-    attribute KEEP_HIERARCHY of Structural : architecture is "TRUE";
+    attribute ASYNC_REG of s        : signal is "TRUE";
 begin
 
-    fd0: FD
-    port map(
-        C => clk,
-        D => flag_in,
-        Q => s
-    );
+process(clk)
+begin
+    if rising_edge(clk) then
+        flag_out <= s(1);
+        s <= s(0) & flag_in;
+    end if;
+end process;
 
-    fd1: FD
-    port map(
-        C => clk,
-        D => s,
-        Q => flag_out
-    );
 
 end Structural;
 
