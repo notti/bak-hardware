@@ -140,6 +140,10 @@ PORT(
 END COMPONENT;
 
     signal depth               : std_logic_vector(15 downto 0);
+    signal auto_rst            : std_logic;
+    signal auto_run            : std_logic;
+    signal auto_active         : std_logic;
+    signal auto_stop           : std_logic;
     signal rec_rst             : std_logic;
     signal rec_polarity        : std_logic_vector(1 downto 0);
     signal rec_descramble      : std_logic_vector(1 downto 0);
@@ -256,6 +260,10 @@ begin
         rx_txn              => gtx_txn,
         rx_txp              => gtx_txp,
         depth               => depth,
+        auto_rst            => auto_rst,
+        auto_run            => auto_run,
+        auto_active         => auto_active,
+        auto_stop           => auto_stop,
         rec_rst             => rec_rst,
         rec_polarity        => rec_polarity,
         rec_descramble      => rec_descramble,
@@ -343,6 +351,10 @@ begin
 
     inst_proc_register: entity work.proc_register
     port map(
+        auto_rst            => auto_rst,
+        auto_run            => auto_run,
+        auto_active         => auto_active,
+        auto_stop           => auto_stop,
         avg_active          => avg_active,
         avg_done            => avg_done,
         avg_err             => avg_err,

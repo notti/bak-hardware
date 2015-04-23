@@ -25,6 +25,10 @@ port(
 
 -- overall settings
 	depth				: in  std_logic_vector(15 downto 0);
+    auto_rst            : in  std_logic;
+    auto_run            : in  std_logic;
+    auto_active         : out std_logic;
+    auto_stop           : out std_logic;
 
 -- control signals receiver
     rec_rst             : in  std_logic;
@@ -129,6 +133,13 @@ end main;
 
 architecture Structural of main is
 
+    type auto_t is (AUTO_OFF, AUTO_ARM, AUTO_WAIT_AVG, AUTO_CORE_START,
+        AUTO_WAIT_CORE, AUTO_TX_TOGGLE, AUTO_WAIT_TX, AUTO_ERROR);
+
+    signal auto                : auto_t;
+
+    signal avg_done_i          : std_logic;
+
 	signal core_mem_dinx	   : std_logic_vector(15 downto 0);
 	signal core_mem_addrx	   : std_logic_vector(15 downto 0);
 	signal mem_addria_i		   : std_logic_vector(15 downto 0);
@@ -150,15 +161,21 @@ architecture Structural of main is
     signal mem_enoi_i          : std_logic;
     signal mem_enoa_i          : std_logic;
 
-    signal sample_clk_i          : std_logic;
+    signal sample_clk_i        : std_logic;
     signal sample_rst          : std_logic;
 	signal frame_clk_i		   : std_logic;
 	signal wave_index		   : std_logic_vector(3 downto 0);
 	signal avg_active_i		   : std_logic;
+    signal avg_err_i           : std_logic;
 	signal trig_arm_i		   : std_logic;
 
 	signal core_start_i		   : std_logic;
 	signal core_busy_i		   : std_logic;
+    signal core_done_i         : std_logic;
+    signal core_ov_fft_i       : std_logic;
+    signal core_ov_ifft_i      : std_logic;
+    signal core_ov_cmul_i      : std_logic;
+    signal core_ov_i           : std_logic;
 
     signal tx_muli_synced      : std_logic_vector(15 downto 0);
     signal tx_mulq_synced      : std_logic_vector(15 downto 0);
@@ -183,9 +200,64 @@ architecture Structural of main is
     signal mem_allowed         : std_logic;
 begin
 
+    auto_fsm: process(sys_clk)
+    begin
+        if rising_edge(sys_clk) then
+            if auto_rst = '1' then
+                auto <= AUTO_OFF;
+            else
+                case auto is
+                    when AUTO_OFF =>
+                        if auto_run = '1' then
+                            auto <= AUTO_ARM;
+                        end if;
+                    when AUTO_ARM => 
+                        auto <= AUTO_WAIT_AVG;
+                    when AUTO_WAIT_AVG =>
+                        if avg_done_i = '1' then
+                            if avg_err_i = '1' then
+                                auto <= AUTO_ERROR;
+                            else
+                                auto <= AUTO_CORE_START;
+                            end if;
+                        end if;
+                    when AUTO_CORE_START => 
+                        auto <= AUTO_WAIT_CORE;
+                    when AUTO_WAIT_CORE => 
+                        if core_done_i = '1' then
+                            if core_ov_i = '1' then
+                                auto <= AUTO_ERROR;
+                            else
+                                auto <= AUTO_TX_TOGGLE;
+                            end if;
+                        end if;
+                    when AUTO_TX_TOGGLE => 
+                        auto <= AUTO_WAIT_TX;
+                    when AUTO_WAIT_TX => 
+                        if tx_toggled_i = '1' then
+                            if auto_run = '1' then
+                                auto <= AUTO_ARM;
+                            else
+                                auto <= AUTO_OFF;
+                            end if;
+                        end if;
+                    when AUTO_ERROR =>
+                        auto <= AUTO_OFF;
+                end case;
+            end if;
+        end if;
+    end process auto_fsm;
+
+    auto_active <= '0' when auto = AUTO_OFF else
+                   '1';
+
+    auto_stop   <= '1' when auto = AUTO_ERROR else
+                   '0';
+
 	-- mem access handling
 
-    mem_allowed <= not or_many(avg_active_i & core_busy_i & tx_busy_i);
+    mem_allowed <= not or_many(avg_active_i & core_busy_i & tx_busy_i) when auto = AUTO_OFF else
+                   '0';
 
     mem_enia_i  <= mem_enia when mem_allowed = '1' else
                    core_busy_i;
@@ -207,9 +279,9 @@ begin
 
 	core_mem_diny <= mem_doutoi_i;
 	mem_dinoi_i   <= mem_dinoi when mem_allowed = '1' else
-					 core_mem_douty ;
+					 core_mem_douty;
 	mem_addroi_i  <= mem_addroi when mem_allowed = '1' else
-					 core_mem_addry ;
+					 core_mem_addry;
 	mem_weoi_i    <= mem_weoi when mem_allowed = '1' else
 					 (others => core_mem_wey);
 	mem_doutoi    <= mem_doutoi_i;
@@ -218,7 +290,8 @@ begin
     
 	-- entities
 
-	trig_arm_i <= trig_arm when core_busy_i = '0' else
+    trig_arm_i <= '1' when auto = AUTO_ARM else
+                  trig_arm when mem_allowed = '1' else
 				  '0';
 
 	inbuf_inst: entity work.inbuf
@@ -251,9 +324,9 @@ begin
 		avg_rst             => avg_rst,
 		avg_depth           => depth,
 		avg_width           => avg_width,
-		avg_done            => avg_done,
+		avg_done            => avg_done_i,
 		avg_active          => avg_active_i,
-		avg_err             => avg_err,
+		avg_err             => avg_err_i,
 		frame_index         => open, -- don't we need this?
 		frame_clk           => frame_clk_i,
 		wave_index          => wave_index,
@@ -269,10 +342,13 @@ begin
         mem_enb             => mem_enib_i
 	);
 
+    avg_done   <= avg_done_i;
+    avg_err    <= avg_err_i;
 	avg_active <= avg_active_i;
 	frame_clk  <= frame_clk_i;
 
-	core_start_i <= core_start when mem_allowed = '1' else
+    core_start_i <= '1' when auto = AUTO_CORE_START else
+                    core_start when mem_allowed = '1' else
 					'0';
 
 	core_inst: entity work.core
@@ -290,12 +366,12 @@ begin
 		core_iq         => core_iq,
         core_circular   => core_circular,
 
-		core_ov_fft     => core_ov_fft,
-		core_ov_ifft    => core_ov_ifft,
-		core_ov_cmul    => core_ov_cmul,
+		core_ov_fft     => core_ov_fft_i,
+		core_ov_ifft    => core_ov_ifft_i,
+		core_ov_cmul    => core_ov_cmul_i,
 
 		core_busy       => core_busy_i,
-		core_done       => core_done,
+		core_done       => core_done_i,
 
 		wave_index      => wave_index,
 
@@ -314,7 +390,13 @@ begin
         mem_enh         => mem_enh
 	);
 
-	core_busy <= core_busy_i;
+	core_ov_fft  <= core_ov_fft_i;
+	core_ov_ifft <= core_ov_ifft_i;
+	core_ov_cmul <= core_ov_cmul_i;
+	core_busy    <= core_busy_i;
+    core_done    <= core_done_i;
+
+    core_ov_i <= or_many(core_ov_fft_i & core_ov_ifft_i & core_ov_cmul_i);
 
     tx_rst_generate: entity work.async_rst
     port map (
@@ -323,7 +405,8 @@ begin
         rst_out => tx_rst_gen
     );
 	tx_rst_i <= sample_rst or tx_rst_gen;
-	tx_toggle_buf_i <= tx_toggle_buf when mem_allowed = '1' else
+    tx_toggle_buf_i <= '1' when auto = AUTO_TX_TOGGLE else
+                       tx_toggle_buf when mem_allowed = '1' else
 					   '0';
 
     tx_busy_gen: process(sys_clk)
