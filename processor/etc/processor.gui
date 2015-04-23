@@ -17,9 +17,7 @@
     <SET ID="SysACE_CompactFlash" IS_EXPANDED="TRUE"/>
     <SET ID="proc2fpga_0" IS_EXPANDED="TRUE"/>
     <STATUS>
-      <SELECTIONS>
-        <VARIABLE ID="proc2fpga_0"/>
-      </SELECTIONS>
+      <SELECTIONS/>
     </STATUS>
     <SEQUENCES IS_DEF_SEQUENCES="TRUE">
       <VARIABLE ID="ppc440_0" ROW_INDEX="1"/>
@@ -103,9 +101,7 @@
     <SET ID="ExternalPorts" IS_EXPANDED="TRUE"/>
     <SET ID="proc2fpga_0" IS_EXPANDED="TRUE"/>
     <STATUS>
-      <SELECTIONS>
-        <VARIABLE ID="bus2fpga_clk" PARENT="proc2fpga_0"/>
-      </SELECTIONS>
+      <SELECTIONS/>
     </STATUS>
     <SEQUENCES IS_DEF_SEQUENCES="TRUE">
       <VARIABLE ID="ExternalPorts" IS_EXPANDED="TRUE" ROW_INDEX="0"/>

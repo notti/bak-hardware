@@ -42,102 +42,33 @@
     <file xil_pn:fileType="FILE_XMSGS" xil_pn:name="_xmsgs/trce.xmsgs"/>
     <file xil_pn:fileType="FILE_XMSGS" xil_pn:name="_xmsgs/xst.xmsgs"/>
     <file xil_pn:fileType="FILE_SYNPLIFY_MISC" xil_pn:name="processor.ncf"/>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor.ngc"/>
     <file xil_pn:fileType="FILE_SYNPLIFY_MISC" xil_pn:name="processor_clock_generator_0_wrapper.ncf"/>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_clock_generator_0_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_clock_generator_0_wrapper.ngc"/>
     <file xil_pn:fileType="FILE_SYNPLIFY_MISC" xil_pn:name="processor_ddr2_sdram_wrapper.ncf"/>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_ddr2_sdram_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_dip_switches_8bit_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_ddr2_sdram_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_dip_switches_8bit_wrapper.ngc"/>
     <file xil_pn:fileType="FILE_SYNPLIFY_MISC" xil_pn:name="processor_hard_ethernet_mac_wrapper.ncf"/>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_blk_mem_gen_v2_7_blk_mem_gen_v2_7_xst_1.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_fifo_generator_v4_3_1_fifo_generator_v4_3_xst_1.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_fifo_generator_v4_3_2_fifo_generator_v4_3_xst_1.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_fifo_generator_v4_3_3_fifo_generator_v4_3_xst_1.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_fifo_generator_v4_3_4_fifo_generator_v4_3_xst_1.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_jtagppc_cntlr_inst_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_leds_8bit_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_leds_positions_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_plb_v46_0_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_blk_mem_gen_v2_7_blk_mem_gen_v2_7_xst_1.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_fifo_generator_v4_3_1_fifo_generator_v4_3_xst_1.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_fifo_generator_v4_3_2_fifo_generator_v4_3_xst_1.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_fifo_generator_v4_3_3_fifo_generator_v4_3_xst_1.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_hard_ethernet_mac_wrapper_fifo_generator_v4_3_4_fifo_generator_v4_3_xst_1.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_jtagppc_cntlr_inst_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_leds_8bit_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_leds_positions_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_plb_v46_0_wrapper.ngc"/>
     <file xil_pn:fileType="FILE_SYNPLIFY_MISC" xil_pn:name="processor_ppc440_0_wrapper.ncf"/>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_ppc440_0_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_proc2fpga_0_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_proc_sys_reset_0_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_push_buttons_5bit_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_rs232_uart_1_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_sysace_compactflash_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_xps_bram_if_cntlr_1_bram_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_xps_bram_if_cntlr_1_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
-    <file xil_pn:fileType="FILE_NGC" xil_pn:name="processor_xps_intc_0_wrapper.ngc">
-      <branch xil_pn:name="Implementation"/>
-      <branch xil_pn:name="PostSynthSim"/>
-    </file>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_ppc440_0_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_proc2fpga_0_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_proc_sys_reset_0_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_push_buttons_5bit_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_rs232_uart_1_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_sysace_compactflash_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_xps_bram_if_cntlr_1_bram_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_xps_bram_if_cntlr_1_wrapper.ngc"/>
+    <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGC" xil_pn:name="processor_xps_intc_0_wrapper.ngc"/>
     <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_NGDBUILD_LOG" xil_pn:name="top.bld"/>
     <file xil_pn:branch="Implementation" xil_pn:fileType="FILE_CLK_RGN" xil_pn:name="top.clk_rgn" xil_pn:subbranch="Par"/>
     <file xil_pn:fileType="FILE_CMD_LOG" xil_pn:name="top.cmd_log"/>
