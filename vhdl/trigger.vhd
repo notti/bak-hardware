@@ -25,7 +25,7 @@ architecture Structural of trigger is
     signal state: trigger_state;
 
 begin
-    process(clk, rst)
+    process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' then

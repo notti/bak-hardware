@@ -29,7 +29,7 @@ begin
     frame_clk <= '1' when cnt_frame = X"0000" else
                  '0';
 
-    cnt_p: process(clk, rst)
+    cnt_p: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' then

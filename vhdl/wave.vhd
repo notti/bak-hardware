@@ -39,7 +39,7 @@ architecture Structural of wave is
     signal i_small  : signed(15 downto 0);
     signal q_small  : signed(15 downto 0);
 begin
-    cnt_p: process(clk, rst)
+    cnt_p: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' then

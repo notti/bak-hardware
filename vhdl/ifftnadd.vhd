@@ -106,7 +106,7 @@ architecture Structural of ifftnadd is
 
 begin
 
-    fft_p1: process(clk, rst)
+    fft_p1: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -292,7 +292,7 @@ begin
              dv_1 when addr_1 < Nx + Nh - L - 1 and circular = '1' else
              '0';
 
-    dv_dly: process(clK)
+    dv_dly: process(clk)
     begin
         if rising_edge(clk) then
             dv_1 <= dv;

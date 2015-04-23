@@ -1,6 +1,6 @@
-INST "main_inst/mem_clk_mux" LOC = "BUFGCTRL_X0Y1" ;
-INST "main_inst/inbuf_inst/receiver_i/syncs[1].rxclk_bufg_i" LOC = "BUFGCTRL_X0Y2" ;
-INST "main_inst/inbuf_inst/receiver_i/syncs[0].rxclk_bufg_i" LOC = "BUFGCTRL_X0Y3" ;
-INST "main_inst/inbuf_inst/async_mux_inst0" LOC = "BUFGCTRL_X0Y4" ;
-INST "main_inst/inbuf_inst/receiver_i/refclkout_bufg0_i" LOC = "BUFGCTRL_X0Y7" ;
-INST "main_inst/inbuf_inst/mem_clk_mux" LOC = "BUFGCTRL_X0Y9" ;
+# INST "main_inst/mem_clk_mux" LOC = "BUFGCTRL_X0Y1" ;
+# INST "main_inst/inbuf_inst/receiver_i/syncs[1].rxclk_bufg_i" LOC = "BUFGCTRL_X0Y2" ;
+# INST "main_inst/inbuf_inst/receiver_i/syncs[0].rxclk_bufg_i" LOC = "BUFGCTRL_X0Y3" ;
+# INST "main_inst/inbuf_inst/async_mux_inst0" LOC = "BUFGCTRL_X0Y4" ;
+# INST "main_inst/inbuf_inst/receiver_i/refclkout_bufg0_i" LOC = "BUFGCTRL_X0Y7" ;
+# INST "main_inst/inbuf_inst/mem_clk_mux" LOC = "BUFGCTRL_X0Y9" ;

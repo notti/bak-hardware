@@ -18,13 +18,12 @@ port(
     depth        : in std_logic_vector(15 downto 0);
     trig         : in std_logic;
     done         : out std_logic;
-    active       : out std_logic;
     err			 : out std_logic;
     data         : in std_logic_vector(15 downto 0);
 	data_valid	 : in std_logic;
 
     memclk       : in std_logic;
-    ext          : in std_logic;
+    sample_enable: in std_logic;
     dina         : in std_logic_vector(15 downto 0);
     addra        : in std_logic_vector(15 downto 0);
     wea          : in std_logic_vector(1 downto 0);
@@ -77,10 +76,7 @@ begin
                 "111" when width_i = "11" else
                 "000";
 
-    active <= '1' when state = FIRST or state = RUN else
-              '0';
-
-    status: process(clk, state, rst)
+    status: process(clk)
     begin
         if rising_edge(clk) then
             if (state = IDLE and trig = '1') or rst = '1' then
@@ -119,7 +115,7 @@ begin
         end if;
     end process;
 
-    fsm_b: process (clk, state, trig, width_i, width_i2, frame_cnt, cycle_cnt, depth, width, data_valid, max, max_1)
+    fsm_b: process (state, trig, width_i, width_i2, frame_cnt, cycle_cnt, depth, width, data_valid, max, max_1)
     begin
         case state is
             when IDLE =>
@@ -187,25 +183,25 @@ begin
                  (web_long & "000") when width_i = "11" else
                  ("000" & web_long);
 
-    addra_i <= addra when ext = '1' else
+    addra_i <= addra when sample_enable = '0' else
                frame_cnt;
-    addrb_i <= addrb when ext = '1' else
+    addrb_i <= addrb when sample_enable = '0' else
                read_cnt;
-    wea_i  <= wea_shift when ext = '1' else
+    wea_i  <= wea_shift when sample_enable = '0' else
               (others => '1') when state = FIRST or state = RUN else
               (others => '0');
-    web_i  <= web_shift when ext = '1' else
+    web_i  <= web_shift when sample_enable = '0' else
               (others => '0');
-    ena_i  <= (others => ena) when ext = '1' else
+    ena_i  <= (others => ena) when sample_enable = '0' else
               (others => '1') when state = FIRST or state = RUN else
               (others => '0');
-    enb_i  <= (others => enb) when ext = '1' else
+    enb_i  <= (others => enb) when sample_enable = '0' else
               (others => '1') when state = FIRST or state = RUN else
               (others => '0');
     data0   <= resize(signed(data), 19);
     dataadd <= resize(signed(data), 19) + signed(doutb_i);
-    dina_i <= std_logic_vector(data0) when ext = '0' and cycle_cnt = "00" else
-              std_logic_vector(dataadd) when ext = '0' and cycle_cnt /= "00" else
+    dina_i <= std_logic_vector(data0) when sample_enable = '1' and cycle_cnt = "00" else
+              std_logic_vector(dataadd) when sample_enable = '1' and cycle_cnt /= "00" else
               ("00" & dina & "0") when width_i = "01" else
               ("0" & dina & "00") when width_i = "10" else
               (dina & "000") when width_i = "11" else

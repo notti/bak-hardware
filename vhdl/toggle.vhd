@@ -2,13 +2,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity toggle is
-generic(
-    name       : string
-);
 port(
     toggle_in  : in  std_logic;
     toggle_out : out std_logic;
-    busy       : out std_logic;
     clk_from   : in  std_logic;
     clk_to     : in  std_logic
 );
@@ -19,7 +15,6 @@ architecture Structural of toggle is
     signal in_level     : std_logic := '0';
     signal in_level_s   : std_logic := '0';
     signal in_level_sr  : std_logic := '0';
-    signal in_level_srs : std_logic := '0';
 begin
 
 in_level_p: process(clk_from)
@@ -33,9 +28,6 @@ begin
 end process in_level_p;
 
 in_level_i: entity work.flag
-generic map(
-    name        => name & "i"
-)
 port map(
     flag_in     => in_level,
     flag_out    => in_level_s,
@@ -49,18 +41,7 @@ begin
     end if;
 end process in_level_r_p;
 
-in_level_srs_p: entity work.flag
-generic map(
-    name        => name & "b"
-)
-port map(
-    flag_in     => in_level_sr,
-    flag_out    => in_level_srs,
-    clk         => clk_from
-);
-
 toggle_out <= in_level_s xor in_level_sr;
-busy <= in_level xor in_level_srs;
 
 end Structural;
 

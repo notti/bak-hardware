@@ -51,7 +51,7 @@ architecture Structural of align_fsm is
 begin
 
 
-	next_state_process: process(clk, rst, enable)
+	next_state_process: process(clk)
 	begin
         if rising_edge(clk) then
             if rst = '1' or enable = '0' then
@@ -95,7 +95,7 @@ begin
 		end case;
 	end process output_function_process;
 
-	pwr_on_cnt_r_process: process(clk, state)
+	pwr_on_cnt_r_process: process(clk)
 	begin
 		if rising_edge(clk) then
             if not (state = POWERON) then
@@ -106,7 +106,7 @@ begin
 		end if;
 	end process pwr_on_cnt_r_process;
 
-	blank_cnt_r_process: process(clk, state)
+	blank_cnt_r_process: process(clk)
 	begin
 		if rising_edge(clk) then
             if not (state = BLANK_CLK) then
@@ -117,7 +117,7 @@ begin
 		end if;
 	end process blank_cnt_r_process;
 
-	aligned_cnt_r_process: process(clk, state, aligned, valid)
+	aligned_cnt_r_process: process(clk)
 	begin
 		if rising_edge(clk) then
             if (not (state = WAIT_SYNC)) or aligned = '0' or valid = '0' then
@@ -128,7 +128,7 @@ begin
 		end if;
 	end process aligned_cnt_r_process;
 
-	wait_cnt_r_process: process(clk, state)
+	wait_cnt_r_process: process(clk)
 	begin
 		if rising_edge(clk) then
             if not (state = WAIT_SYNC) then

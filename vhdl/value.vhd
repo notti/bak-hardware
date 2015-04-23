@@ -2,14 +2,10 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity value is
-generic(
-    name      : string
-);
 port(
     value_in  : in  std_logic_vector;
     value_out : out std_logic_vector;
     value_wr  : in  std_logic;
-    busy      : out std_logic;
     clk_from  : in  std_logic;
     clk_to    : in  std_logic
 );
@@ -20,13 +16,9 @@ architecture Structural of value is
 begin
 
 req_t: entity work.toggle
-generic map(
-    name        => name
-)
 port map(
     toggle_in   => value_wr,
     toggle_out  => req,
-    busy        => busy,
     clk_from    => clk_from,
     clk_to      => clk_to
 );

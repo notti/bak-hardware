@@ -103,7 +103,7 @@ architecture Structural of fftncmul is
     signal dv_6         : std_logic;
 begin
 
-    fft_p1: process(clk, rst)
+    fft_p1: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' then

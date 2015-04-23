@@ -40,7 +40,6 @@ port(
     mem_douty       : out std_logic_vector(31 downto 0);
     mem_wey         : out std_logic;
 
-    mem_clkh        : in  std_logic;
     mem_dinh        : in  std_logic_vector(31 downto 0);
     mem_addrh       : in  std_logic_vector(15 downto 0);
     mem_weh         : in  std_logic_vector(3 downto 0);
@@ -111,7 +110,7 @@ begin
         wea        => (others => '0'),
         douta      => douta,
         ena        => core_busy_i,
-        clkb       => mem_clkh,
+        clkb       => clk,
         dinb       => mem_dinh,
         addrb      => mem_addrh(11 downto 0),
         web        => mem_weh,

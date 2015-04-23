@@ -68,25 +68,7 @@ port(
     fpga_0_Hard_Ethernet_MAC_MDIO_0_pin : inout std_logic;
     fpga_0_Hard_Ethernet_MAC_PHY_MII_INT_pin : in std_logic;
     fpga_0_clk_1_sys_clk_pin : in std_logic;
-    fpga_0_rst_1_sys_rst_pin : in std_logic;
-    proc2fpga_0_bus2fpga_be_pin : out std_logic_vector(3 downto 0);
-    proc2fpga_0_bus2fpga_clk_pin : out std_logic;
-    proc2fpga_0_bus2fpga_burst_pin : out std_logic;
-    proc2fpga_0_bus2fpga_cs_pin : out std_logic_vector(3 downto 0);
-    proc2fpga_0_bus2fpga_addr_pin : out std_logic_vector(15 downto 0);
-    proc2fpga_0_bus2fpga_rdreq_pin : out std_logic;
-    proc2fpga_0_bus2fpga_wrce_pin : out std_logic_vector(5 downto 0);
-    proc2fpga_0_fpga2bus_wrack_pin : in std_logic;
-    proc2fpga_0_bus2fpga_data_pin : out std_logic_vector(31 downto 0);
-    proc2fpga_0_bus2fpga_rnw_pin : out std_logic;
-    proc2fpga_0_bus2fpga_wrreq_pin : out std_logic;
-    proc2fpga_0_fpga2bus_addrack_pin : in std_logic;
-    proc2fpga_0_fpga2bus_rdack_pin : in std_logic;
-    proc2fpga_0_bus2fpga_rdce_pin : out std_logic_vector(5 downto 0);
-    proc2fpga_0_fpga2bus_error_pin : in std_logic;
-    proc2fpga_0_fpga2bus_intr_pin : in std_logic_vector(15 downto 0);
-    proc2fpga_0_fpga2bus_data_pin : in std_logic_vector(31 downto 0);
-    proc2fpga_0_bus2fpga_reset_pin : out std_logic
+    fpga_0_rst_1_sys_rst_pin : in std_logic
 );
 end top;
 
@@ -157,8 +139,6 @@ PORT(
 );
 END COMPONENT;
 
-    signal inbuf_trigger_synced: std_logic;
-
     signal depth               : std_logic_vector(15 downto 0);
     signal rec_rst             : std_logic;
     signal rec_polarity        : std_logic_vector(1 downto 0);
@@ -198,7 +178,9 @@ END COMPONENT;
     signal tx_deskew           : std_logic;
     signal tx_dc_balance       : std_logic;
     signal tx_muli             : std_logic_vector(15 downto 0);
+    signal tx_muli_wr          : std_logic;
     signal tx_mulq             : std_logic_vector(15 downto 0);
+    signal tx_mulq_wr          : std_logic;
     signal tx_toggle_buf       : std_logic;
     signal tx_toggled          : std_logic;
     signal tx_frame_offset     : std_logic_vector(15 downto 0);
@@ -207,9 +189,8 @@ END COMPONENT;
     signal tx_ovfl             : std_logic;
     signal tx_ovfl_ack         : std_logic;
     signal tx_shift            : std_logic_vector(1 downto 0);
+    signal tx_shift_wr         : std_logic;
     signal tx_sat              : std_logic;
-    signal mem_req             : std_logic;
-    signal mem_ack             : std_logic;
 
     signal mem_dinia           : std_logic_vector(15 downto 0);
     signal mem_addria          : std_logic_vector(15 downto 0);
@@ -234,9 +215,6 @@ END COMPONENT;
     signal mem_addroa          : std_logic_vector(15 downto 0);
     signal mem_doutoa          : std_logic_vector(31 downto 0);
     signal mem_enoa            : std_logic;
-
-    signal core_clk            : std_logic;
-    signal sample_clk          : std_logic;
 
     signal fpga2bus_intr       : std_logic_vector(15 downto 0);
     signal reg_wrack           : std_logic;
@@ -267,19 +245,7 @@ END COMPONENT;
     signal bus2fpga_reset      : std_logic;
     signal bus2fpga_clk        : std_logic;
 
---    attribute KEEP_HIERARCHY : string;
---    attribute KEEP_HIERARCHY of Structural: architecture is "yes";
 begin
-
-    sync_inbuf_trigger: entity work.flag
-    generic map(
-        name        => "inbuf_trigger"
-    )
-    port map(
-        flag_in     => inbuf_trigger,
-        flag_out    => inbuf_trigger_synced,
-        clk         => sample_clk
-    );
 
     main_inst: entity work.main
     port map(
@@ -301,7 +267,7 @@ begin
         rec_stream_valid    => rec_stream_valid,
         trig_rst            => trig_rst,
         trig_arm            => trig_arm,
-        trig_ext            => inbuf_trigger_synced,
+        trig_ext            => inbuf_trigger,
         trig_int            => trig_int,
         trig_type           => trig_type,
         trig_armed          => trig_armed,
@@ -334,7 +300,9 @@ begin
         tx_deskew           => tx_deskew,
         tx_dc_balance       => tx_dc_balance,
         tx_muli             => tx_muli,
+        tx_muli_wr          => tx_muli_wr,
         tx_mulq             => tx_mulq,
+        tx_mulq_wr          => tx_mulq_wr,
         tx_toggle_buf       => tx_toggle_buf,
         tx_toggled          => tx_toggled,
         tx_frame_offset     => tx_frame_offset,
@@ -344,10 +312,9 @@ begin
         tx_ovfl_ack         => tx_ovfl_ack,
         tx_sat              => tx_sat,
         tx_shift            => tx_shift,
-        mem_req             => mem_req,
-        mem_ack             => mem_ack,
+        tx_shift_wr         => tx_shift_wr,
 
-        mem_clk             => bus2fpga_clk,
+        sys_clk             => bus2fpga_clk,
         mem_dinia           => mem_dinia,
         mem_addria          => mem_addria,
         mem_weaia           => mem_weaia,
@@ -370,68 +337,64 @@ begin
         mem_enoi            => mem_enoi,
         mem_addroa          => mem_addroa,
         mem_doutoa          => mem_doutoa,
-        mem_enoa            => mem_enoa,
-        sample_clk          => sample_clk,
-        core_clk            => core_clk
+        mem_enoa            => mem_enoa
     );
 
 
     inst_proc_register: entity work.proc_register
     port map(
+        avg_active          => avg_active,
+        avg_done            => avg_done,
+        avg_err             => avg_err,
+        avg_rst             => avg_rst,
+        avg_width           => avg_width,
+        core_L              => core_L,
+        core_busy           => core_busy,
+        core_circular       => core_circular,
+        core_done           => core_done,
+        core_iq             => core_iq,
+        core_n              => core_n,
+        core_ov_cmul        => core_ov_cmul,
+        core_ov_fft         => core_ov_fft,
+        core_ov_ifft        => core_ov_ifft,
+        core_rst            => core_rst,
+        core_scale_cmul     => core_scale_cmul,
+        core_scale_sch      => core_scale_sch,
+        core_scale_schi     => core_scale_schi,
+        core_start          => core_start,
         depth               => depth,
-        rec_rst             => rec_rst,
-        rec_polarity        => rec_polarity,
-        rec_descramble      => rec_descramble,
-        rec_rxeqmix         => rec_rxeqmix,
         rec_data_valid      => rec_data_valid,
+        rec_descramble      => rec_descramble,
         rec_enable          => rec_enable,
         rec_input_select    => rec_input_select,
         rec_input_select_changed => rec_input_select_changed,
+        rec_polarity        => rec_polarity,
+        rec_rst             => rec_rst,
+        rec_rxeqmix         => rec_rxeqmix,
         rec_stream_valid    => rec_stream_valid,
-        trig_rst            => trig_rst,
         trig_arm            => trig_arm,
-        trig_int            => trig_int,
-        trig_type           => trig_type,
         trig_armed          => trig_armed,
+        trig_int            => trig_int,
+        trig_rst            => trig_rst,
         trig_trigd          => trig_trigd,
-        avg_rst             => avg_rst,
-        avg_width           => avg_width,
-        avg_done            => avg_done,
-        avg_active          => avg_active,
-        avg_err             => avg_err,
-        core_rst            => core_rst,
-        core_start          => core_start,
-        core_n              => core_n,
-        core_scale_sch      => core_scale_sch,
-        core_scale_schi     => core_scale_schi,
-        core_scale_cmul     => core_scale_cmul,
-        core_L              => core_L,
-        core_iq             => core_iq,
-        core_circular       => core_circular,
-        core_ov_fft         => core_ov_fft,
-        core_ov_ifft        => core_ov_ifft,
-        core_ov_cmul        => core_ov_cmul,
-        core_busy           => core_busy,
-        core_done           => core_done,
-        tx_rst              => tx_rst,
-        tx_deskew           => tx_deskew,
-        tx_dc_balance       => tx_dc_balance,
-        tx_muli             => tx_muli,
-        tx_mulq             => tx_mulq,
-        tx_toggle_buf       => tx_toggle_buf,
-        tx_toggled          => tx_toggled,
-        tx_frame_offset     => tx_frame_offset,
-        tx_resync           => tx_resync,
+        trig_type           => trig_type,
         tx_busy             => tx_busy,
+        tx_dc_balance       => tx_dc_balance,
+        tx_deskew           => tx_deskew,
+        tx_frame_offset     => tx_frame_offset,
+        tx_muli             => tx_muli,
+        tx_muli_wr          => tx_muli_wr,
+        tx_mulq             => tx_mulq,
+        tx_mulq_wr          => tx_mulq_wr,
         tx_ovfl             => tx_ovfl,
         tx_ovfl_ack         => tx_ovfl_ack,
+        tx_resync           => tx_resync,
+        tx_rst              => tx_rst,
         tx_sat              => tx_sat,
         tx_shift            => tx_shift,
-        mem_req             => mem_req,
-        mem_ack             => mem_ack,
-
-        sample_clk          => sample_clk,
-        core_clk            => core_clk,
+        tx_shift_wr         => tx_shift_wr,
+        tx_toggle_buf       => tx_toggle_buf,
+        tx_toggled          => tx_toggled,
 
     ----- proc interface
         fpga2bus_intr       => fpga2bus_intr,

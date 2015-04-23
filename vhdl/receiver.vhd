@@ -25,12 +25,12 @@ port(
 	rxclk               : out std_logic_vector(1 downto 0);
     rst_out             : out std_logic_vector(1 downto 0);
 	data                : out t_data_array(1 downto 0);
+	cdr_valid           : out std_logic_vector(1 downto 0);
 
 -- settings
 	polarity            : in std_logic_vector(1 downto 0);
 	descramble          : in std_logic_vector(1 downto 0);
 	rxeqmix             : in t_cfg_array(1 downto 0);
-	data_valid          : out std_logic_vector(1 downto 0);
 	enable              : in std_logic_vector(1 downto 0)
 );
 end receiver;
@@ -264,6 +264,8 @@ begin
     );
 
 
+    -- TILE0 (X0Y3) has our data inputs, but we need TILE1+2, because
+    -- TILE2 has the connected clock input
 	gtx_i : GTX
 	port map
 	(
@@ -459,30 +461,21 @@ begin
             O          => rxrecclk_i(i)
         );
 
-    -- rec_enable
+        -- rec_enable
     
         rec_enable_i: entity work.flag
-        generic map(
-            name        => "rec_enable" & integer'image(i)
-        )
         port map(
             flag_in     => enable(i),
             flag_out    => enable_synced,
             clk         => rxrecclk_i(i)
         );
         rec_polarity_i: entity work.flag
-        generic map(
-            name        => "rec_polarity" & integer'image(i)
-        )
         port map(
             flag_in     => polarity(i),
             flag_out    => polarity_synced(i),
             clk         => rxrecclk_i(i)
         );
         rec_descramble_i: entity work.flag
-        generic map(
-            name        => "rec_descramble" & integer'image(i)
-        )
         port map(
             flag_in     => descramble(i),
             flag_out    => descramble_synced,
@@ -490,17 +483,15 @@ begin
         );
 
 
-		-- reset delay
-		reset_delay_process: process(rxrecclk_i(i))
+		-- reset delay + synchronizing
+		reset_delay_process: process(rxrecclk_i(i), resetdone_i(i))
 		begin
-			if rising_edge(rxrecclk_i(i)) then
-                if resetdone_i(i) = '0' then
-                    resetdone_r(i)  <= '0';
-                    resetdone_r2(i) <= '0';
-                else
-                    resetdone_r(i)  <= resetdone_i(i);
-                    resetdone_r2(i) <= resetdone_r(i);
-                end if;
+            if resetdone_i(i) = '0' then
+                resetdone_r(i)  <= '0';
+                resetdone_r2(i) <= '0';
+			elsif rising_edge(rxrecclk_i(i)) then
+                resetdone_r(i)  <= '1';
+                resetdone_r2(i) <= resetdone_r(i);
 			end if;
 		end process;
 
@@ -518,15 +509,13 @@ begin
 		);
 
         flag: entity work.flag
-        generic map(
-            name        => "send_sync" & integer'image(i)
-        )
         port map(
             flag_in     => tx,
             flag_out    => tx_synced,
             clk         => txclk_i
         );
 
+        -- clock to adc; get's blanked for synch request
         txdata_i(i) <= "11111111110000000000" when tx_synced = '1' else
                        (others => '0');
 
@@ -560,9 +549,10 @@ begin
 
 		-- wire troughs
 		data(i)             <= rxdataD_i(i) when descramble_synced = '1' else rxdataR_i(i);
-		data_valid(i)       <= datavalidaligned_r(i) and datavalidaligned_i(i);
+		cdr_valid(i)        <= datavalidaligned_r(i) and datavalidaligned_i(i);
 
         rst_out(i) <= not resetdone_r2(i);
+        -- rxclk is only valid when cdr_valid(i) == '1'
         rxclk(i) <= rxrecclk_i(i);
 	end generate syncs;
 

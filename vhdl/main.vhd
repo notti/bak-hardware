@@ -13,6 +13,8 @@ use work.procedures.all;
 
 entity main is
 port(
+	sys_clk				: in  std_logic;
+
 -- signals for gtx transciever
     rx_refclk_n         : in  std_logic;
     rx_refclk_p         : in  std_logic;
@@ -81,7 +83,9 @@ port(
     tx_deskew           : in  std_logic;
     tx_dc_balance       : in  std_logic;
     tx_muli             : in  std_logic_vector(15 downto 0);
+    tx_muli_wr          : in  std_logic;
     tx_mulq             : in  std_logic_vector(15 downto 0);
+    tx_mulq_wr          : in  std_logic;
     tx_toggle_buf       : in  std_logic;
     tx_toggled          : out std_logic;
     tx_frame_offset     : in  std_logic_vector(15 downto 0);
@@ -91,13 +95,9 @@ port(
     tx_ovfl_ack         : in  std_logic;
     tx_sat              : in  std_logic;
     tx_shift            : in  std_logic_vector(1 downto 0);
+    tx_shift_wr         : in  std_logic;
 
 -- mem
-	mem_req				: in  std_logic;
-	mem_ack				: out std_logic;
-
-	mem_clk				: in  std_logic;
-
 	mem_dinia			: in  std_logic_vector(15 downto 0);
 	mem_addria			: in  std_logic_vector(15 downto 0);
 	mem_weaia			: in  std_logic_vector(1 downto 0);
@@ -123,22 +123,11 @@ port(
 
 	mem_addroa			: in  std_logic_vector(15 downto 0);
 	mem_doutoa			: out std_logic_vector(31 downto 0);
-    mem_enoa            : in  std_logic;
-
--- clk out
-    sample_clk          : out std_logic;
-    core_clk            : out std_logic
+    mem_enoa            : in  std_logic
 );
 end main;
 
 architecture Structural of main is
-
-	signal mem_extern		   : std_logic;
-	signal mem_extern1		   : std_logic;
-	signal mem_extern2		   : std_logic;
-    signal mem_extern_synced   : std_logic;
-    signal mem_en_i            : std_logic;
-	signal mem_clk_i		   : std_logic;
 
 	signal core_mem_dinx	   : std_logic_vector(15 downto 0);
 	signal core_mem_addrx	   : std_logic_vector(15 downto 0);
@@ -165,121 +154,76 @@ architecture Structural of main is
     signal sample_rst          : std_logic;
 	signal frame_clk_i		   : std_logic;
 	signal wave_index		   : std_logic_vector(3 downto 0);
-	signal trig_armed_i		   : std_logic;
-	signal trig_trigd_i		   : std_logic;
 	signal avg_active_i		   : std_logic;
 	signal trig_arm_i		   : std_logic;
 
---    signal clk_fb              : std_logic; -- feedback clk DCM
-    signal core_clk_i          : std_logic; -- sample_clk_i*2
---    signal core_clku           : std_logic;
---	signal dcm_locked		   : std_logic;
-
 	signal core_start_i		   : std_logic;
-	signal core_rst_i		   : std_logic;
 	signal core_busy_i		   : std_logic;
 
+    signal tx_muli_synced      : std_logic_vector(15 downto 0);
+    signal tx_mulq_synced      : std_logic_vector(15 downto 0);
+
+    signal tx_deskew_synced    : std_logic;
+    signal tx_dc_balance_synced: std_logic;
+    signal tx_toggle_buf_synced: std_logic;
+    signal tx_resync_synced    : std_logic;
+    signal tx_sat_synced       : std_logic;
+    signal tx_shift_synced     : std_logic_vector(1 downto 0);
+
 	signal tx_rst_i			   : std_logic;
+    signal tx_rst_gen          : std_logic;
 	signal tx_toggle_buf_i	   : std_logic;
 	signal tx_busy_i		   : std_logic;
+    signal tx_ovfl_unsynced    : std_logic;
+    signal tx_ovfl_ack_synced  : std_logic;
+    signal tx_toggled_unsynced : std_logic;
+    signal tx_toggled_i        : std_logic;
+    signal tx_busy_unsynced    : std_logic;
 
-    signal mem_extern_inbuf    : std_logic;
     signal mem_allowed         : std_logic;
-    signal mem_allowed_synced  : std_logic;
 begin
 
 	-- mem access handling
 
-    mem_allowed <= not or_many(trig_armed_i & trig_trigd_i & avg_active_i & core_busy_i & tx_busy_i);
+    mem_allowed <= not or_many(avg_active_i & core_busy_i & tx_busy_i);
 
-    mem_allowed_syncer: entity work.flag
-    generic map(
-        name        => "mem_allowed"
-    )
-    port map(
-        flag_in      => mem_allowed,
-        flag_out     => mem_allowed_synced,
-        clk          => mem_clk 
-    );
-
-	mem_extern_process: process(mem_clk)
-	begin
-		if rising_edge(mem_clk) then
-            mem_extern1 <= mem_extern;
-            mem_extern2 <= mem_extern1;
-			if sample_rst = '1' then
-				mem_extern <= '0';
-            elsif mem_allowed_synced = '1' then
-                mem_extern <= mem_req;
-			end if;
-		end if;
-	end process mem_extern_process;
-
-    mem_extern_syncer: entity work.flag
-    generic map(
-        name        => "mem_extern"
-    )
-    port map(
-        flag_in      => mem_extern,
-        flag_out     => mem_extern_synced,
-        clk          => sample_clk_i
-    );
-
-	mem_ack <= mem_extern2;
-
-    mem_clk_mux : BUFGCTRL
-    port map (
-        O           => mem_clk_i,
-        I0          => core_clk_i,
-        I1          => mem_clk,
-        CE0         => '1',
-        CE1         => '1',
-        S0          => not mem_extern,
-        S1          => mem_extern,
-        IGNORE0     => '1',
-        IGNORE1     => '1'
-    );
-
-    mem_en_i <= '0' when mem_extern = '0' else
-                mem_extern2;
-
-    mem_enia_i<= mem_enia when mem_en_i = '1' else
-                 core_busy_i;
-    mem_enib_i<= mem_enib when mem_en_i = '1' else
-                 core_busy_i;
-    mem_enoi_i<= mem_enoi when mem_en_i = '1' else
-                 core_busy_i;
-    mem_enoa_i<= mem_enoa when mem_en_i = '1' else
-                 core_busy_i;
+    mem_enia_i  <= mem_enia when mem_allowed = '1' else
+                   core_busy_i;
+    mem_enib_i  <= mem_enib when mem_allowed = '1' else
+                   core_busy_i;
+    mem_enoi_i  <= mem_enoi when mem_allowed = '1' else
+                   core_busy_i;
+    mem_enoa_i  <= mem_enoa when mem_allowed = '1' else
+                   core_busy_i;
 
 	core_mem_dinx <= mem_doutia_i;
 	mem_doutia    <= mem_doutia_i;
-	mem_weaia_i   <= mem_weaia when mem_en_i = '1' else
+	mem_weaia_i   <= mem_weaia when mem_allowed = '1' else
 				     (others => '0');
-	mem_addria_i  <= mem_addria when mem_en_i = '1' else
+	mem_addria_i  <= mem_addria when mem_allowed = '1' else
 					 core_mem_addrx;
-	mem_weaib_i   <= mem_weaib when mem_en_i = '1' else
+	mem_weaib_i   <= mem_weaib when mem_allowed = '1' else
 				     (others => '0');
 
 	core_mem_diny <= mem_doutoi_i;
-	mem_dinoi_i   <= mem_dinoi when mem_en_i = '1' else
+	mem_dinoi_i   <= mem_dinoi when mem_allowed = '1' else
 					 core_mem_douty ;
-	mem_addroi_i  <= mem_addroi when mem_en_i = '1' else
+	mem_addroi_i  <= mem_addroi when mem_allowed = '1' else
 					 core_mem_addry ;
-	mem_weoi_i    <= mem_weoi when mem_en_i = '1' else
+	mem_weoi_i    <= mem_weoi when mem_allowed = '1' else
 					 (others => core_mem_wey);
 	mem_doutoi    <= mem_doutoi_i;
 	mem_addroa_i  <= mem_addroa;
 	mem_doutoa    <= mem_doutoa_i;
-    mem_extern_inbuf <= mem_extern_synced or core_busy_i;
     
 	-- entities
 
-	trig_arm_i <= trig_arm when mem_extern_synced = '0' and core_busy_i = '0' else
+	trig_arm_i <= trig_arm when core_busy_i = '0' else
 				  '0';
 
 	inbuf_inst: entity work.inbuf
 	port map(
+		sys_clk             => sys_clk,
 		refclk_n            => rx_refclk_n,
 		refclk_p            => rx_refclk_p,
 		rxn                 => rx_rxn,
@@ -302,8 +246,8 @@ begin
 		trig_ext            => trig_ext,
 		trig_int            => trig_int,
 		trig_type		    => trig_type,
-		trig_armed          => trig_armed_i,
-		trig_trigd          => trig_trigd_i,
+		trig_armed          => trig_armed,
+		trig_trigd          => trig_trigd,
 		avg_rst             => avg_rst,
 		avg_depth           => depth,
 		avg_width           => avg_width,
@@ -313,8 +257,6 @@ begin
 		frame_index         => open, -- don't we need this?
 		frame_clk           => frame_clk_i,
 		wave_index          => wave_index,
-		mem_en              => mem_extern_inbuf,
-		mem_clk             => mem_clk_i,
 		mem_dina            => mem_dinia,
 		mem_addra           => mem_addria_i,
 		mem_wea             => mem_weaia_i,
@@ -327,63 +269,16 @@ begin
         mem_enb             => mem_enib_i
 	);
 
-
-	trig_armed <= trig_armed_i;
-	trig_trigd <= trig_trigd_i;
 	avg_active <= avg_active_i;
 	frame_clk  <= frame_clk_i;
-    sample_clk <= sample_clk_i;
 
---    core_clk_gen: DCM_BASE
---    generic map (
---        CLKIN_DIVIDE_BY_2     => FALSE,
---        CLKIN_PERIOD          => 10.0,
---        CLK_FEEDBACK          => "1X",
---        DCM_PERFORMANCE_MODE  => "MAX_SPEED",
---        DFS_FREQUENCY_MODE    => "LOW",
---        DLL_FREQUENCY_MODE    => "LOW",
---        DUTY_CYCLE_CORRECTION => TRUE,
---        FACTORY_JF            => X"F0F0",
---        PHASE_SHIFT           => 0,
---        STARTUP_WAIT          => FALSE
---	)
---	port map (
---        CLK0                  => clk_fb,
---        CLK180                => open,
---        CLK270                => open,
---        CLK2X                 => core_clku,
---        CLK2X180              => open,
---        CLK90                 => open,
---        CLKDV                 => open,
---        CLKFX                 => open,
---        CLKFX180              => open,
---        LOCKED                => dcm_locked,
---        CLKFB                 => clk_fb,
---        CLKIN                 => sample_clk_i,
---        RST                   => sample_rst
---    );
---
---    core_clk_buf: BUFG
---    port map
---    (
---        I            => core_clku,
---        O            => core_clk_i
---    );
---
---    core_clk <= core_clk_i;
-    core_clk_i <= sample_clk_i;
-
-    core_clk <= core_clk_i;
-    core_rst_i <= core_rst or sample_rst;
-
---	core_rst_i   <= core_rst or not dcm_locked;
-	core_start_i <= core_start when mem_extern_synced = '0' and trig_armed_i = '0' and trig_trigd_i = '0' and avg_active_i = '0' and tx_busy_i = '0' else
+	core_start_i <= core_start when mem_allowed = '1' else
 					'0';
 
 	core_inst: entity work.core
 	port map(
-		clk             => core_clk_i,
-		rst             => core_rst_i,
+		clk             => sys_clk,
+		rst             => core_rst,
 
 		core_start      => core_start_i,
 		core_n          => core_n,
@@ -412,7 +307,6 @@ begin
 		mem_douty       => core_mem_douty,
 		mem_wey         => core_mem_wey,
 
-		mem_clkh        => mem_clk, -- always external no need for mux
 		mem_dinh        => mem_dinh,
 		mem_addrh       => mem_addrh,
 		mem_weh         => mem_weh,
@@ -422,9 +316,95 @@ begin
 
 	core_busy <= core_busy_i;
 
-	tx_rst_i <= sample_rst or tx_rst;
-	tx_toggle_buf_i <= tx_toggle_buf when mem_extern_synced = '0' and core_busy_i = '0' else
+    tx_rst_generate: entity work.async_rst
+    port map (
+        clk => sample_clk_i,
+        rst_in => tx_rst,
+        rst_out => tx_rst_gen
+    );
+	tx_rst_i <= sample_rst or tx_rst_gen;
+	tx_toggle_buf_i <= tx_toggle_buf when mem_allowed = '1' else
 					   '0';
+
+    tx_busy_gen: process(sys_clk)
+    begin
+        if rising_edge(sys_clk) then
+            if tx_rst = '1' or tx_toggled_i = '1' then
+                tx_busy_i <= '0';
+            else
+                if tx_toggle_buf_i = '1' then
+                    tx_busy_i <= '1';
+                end if;
+            end if;
+        end if;
+    end process tx_busy_gen;
+
+    sync_tx_muli: entity work.value
+    port map(
+        value_in    => tx_muli,
+        value_out   => tx_muli_synced,
+        value_wr    => tx_muli_wr,
+        clk_from    => sys_clk,
+        clk_to      => sample_clk_i
+    );
+    sync_tx_mulq: entity work.value
+    port map(
+        value_in    => tx_mulq,
+        value_out   => tx_mulq_synced,
+        value_wr    => tx_mulq_wr,
+        clk_from    => sys_clk,
+        clk_to      => sample_clk_i
+    );
+
+    sync_tx_deskew: entity work.toggle
+    port map(
+        toggle_in   => tx_deskew,
+        toggle_out  => tx_deskew_synced,
+        clk_from    => sys_clk,
+        clk_to      => sample_clk_i
+    );
+    sync_tx_dc_balance: entity work.flag
+    port map(
+        flag_in     => tx_dc_balance,
+        flag_out    => tx_dc_balance_synced,
+        clk         => sample_clk_i
+    );
+    sync_tx_toggle: entity work.toggle
+    port map(
+        toggle_in   => tx_toggle_buf,
+        toggle_out  => tx_toggle_buf_synced,
+        clk_from    => sys_clk,
+        clk_to      => sample_clk_i
+    );
+    sync_tx_resync: entity work.toggle
+    port map(
+        toggle_in   => tx_resync,
+        toggle_out  => tx_resync_synced,
+        clk_from    => sys_clk,
+        clk_to      => sample_clk_i
+    );
+    sync_tx_sat: entity work.flag
+    port map(
+        flag_in     => tx_sat,
+        flag_out    => tx_sat_synced,
+        clk         => sample_clk_i
+    );
+    sync_tx_shift: entity work.value
+    port map(
+        value_in    => tx_shift,
+        value_out   => tx_shift_synced,
+        value_wr    => tx_shift_wr,
+        clk_from    => sys_clk,
+        clk_to      => sample_clk_i
+    );
+
+    sync_ovfl_ack: entity work.toggle
+    port map(
+        toggle_in   => tx_ovfl_ack,
+        toggle_out  => tx_ovfl_ack_synced,
+        clk_from    => sys_clk,
+        clk_to      => sample_clk_i
+    );
 
 	outbuf_inst: entity work.outbuf
 	port map(
@@ -438,21 +418,21 @@ begin
 		txclkp          => tx_txclkp,
 
 		depth           => depth,
-		tx_deskew       => tx_deskew,
-		dc_balance      => tx_dc_balance,
-		muli            => tx_muli,
-		mulq            => tx_mulq,
-		toggle_buf      => tx_toggle_buf_i,
-		toggled         => tx_toggled,
+		tx_deskew       => tx_deskew_synced,
+		dc_balance      => tx_dc_balance_synced,
+		muli            => tx_muli_synced,
+		mulq            => tx_mulq_synced,
+		toggle_buf      => tx_toggle_buf_synced,
+		toggled         => tx_toggled_unsynced,
 		frame_offset    => tx_frame_offset,
-		resync          => tx_resync,
-		busy			=> tx_busy_i,
-        ovfl            => tx_ovfl,
-        ovfl_ack        => tx_ovfl_ack,
-        sat             => tx_sat,
-        shift           => tx_shift,
+		resync          => tx_resync_synced,
+		busy			=> tx_busy_unsynced,
+        ovfl            => tx_ovfl_unsynced,
+        ovfl_ack        => tx_ovfl_ack_synced,
+        sat             => tx_sat_synced,
+        shift           => tx_shift_synced,
 
-		mem_clk         => mem_clk_i,
+		mem_clk         => sys_clk,
 		mem_dini        => mem_dinoi_i,
 		mem_addri       => mem_addroi_i,
 		mem_wei         => mem_weoi_i,
@@ -463,7 +443,29 @@ begin
         mem_ena         => mem_enoa_i
 	);
 
-	tx_busy <= tx_busy_i;
+    sync_tx_busy: entity work.flag
+    port map(
+        flag_in     => tx_busy_unsynced,
+        flag_out    => tx_busy,
+        clk         => sys_clk
+    );
+
+    sync_ovfl: entity work.flag
+    port map(
+        flag_in     => tx_ovfl_unsynced,
+        flag_out    => tx_ovfl,
+        clk         => sys_clk
+    );
+
+    sync_tx_toggled: entity work.toggle
+    port map(
+        toggle_in   => tx_toggled_unsynced,
+        toggle_out  => tx_toggled_i,
+        clk_from    => sample_clk_i,
+        clk_to      => sys_clk
+    );
+
+    tx_toggled <= tx_toggled_i;
 
 end Structural;
 

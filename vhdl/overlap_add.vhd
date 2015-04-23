@@ -149,7 +149,7 @@ end component;
     attribute box_type of fft : component is "black_box";
 
 begin
-    fsm_p1: process(clk, rst)
+    fsm_p1: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -199,7 +199,7 @@ begin
           "0001000000000000" when nfft = "01100" else 
           "0000000000000000";
 
-    prepare_p: process(clk, state)
+    prepare_p: process(clk)
     begin
         if rising_edge(clk) then
             if state = PREPARE then

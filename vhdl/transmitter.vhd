@@ -118,7 +118,7 @@ architecture Structural of transmitter is
 
 	
 begin
-    in_start_p: process(ckf, locked_i)
+    in_start_p: process(ckf)
     begin
         if rising_edge(ckf) then
             if locked_i = '0' then
@@ -128,7 +128,7 @@ begin
             end if;
         end if;
     end process in_start_p;
-    frame_scan_p: process(clk, in_start, buf_cycle)
+    frame_scan_p: process(clk)
     begin
         if rising_edge(clk) and buf_cycle = "11" then
             if in_start = '0' then
@@ -138,7 +138,7 @@ begin
             end if;
         end if;
     end process;
-    frame_sync_p: process(clk, ckf, rst)
+    frame_sync_p: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -149,7 +149,7 @@ begin
         end if;
     end process;
     frame_sync <= ckf and not ckf_dly;
-    buf_cycle_p: process(clk, in_start)
+    buf_cycle_p: process(clk)
     begin
         if rising_edge(clk) then
             if in_start = '0' then
@@ -159,7 +159,7 @@ begin
             end if;
         end if;
     end process buf_cycle_p;
-    out_run_p: process(ckf, rst, in_start)
+    out_run_p: process(ckf)
     begin
         if rising_edge(ckf) then
             if rst = '1' then
@@ -169,7 +169,7 @@ begin
             end if;
         end if;
     end process out_run_p;
-    out_cycle_p: process(ckm, out_run, out_cycle)
+    out_cycle_p: process(ckm)
     begin
         if rising_edge(ckm) then
             if out_run = '0' then
@@ -179,13 +179,13 @@ begin
             end if;
         end if;
     end process;
-    rst_r_p: process(clk, rst)
+    rst_r_p: process(clk)
     begin
         if rising_edge(clk) then
             rst_r <= rst;
         end if;
     end process;
-    out_en_p: process(ckm, rst, out_run)
+    out_en_p: process(ckm)
     begin
         if rising_edge(ckm) then
             if rst_r = '1' then -- registered reset signal to prevent timing errors
@@ -195,7 +195,7 @@ begin
             end if;
         end if;
     end process;
-    deskew_cnt_p: process(clk, deskew_state)
+    deskew_cnt_p: process(clk)
     begin
         if rising_edge(clk) then
             if not (deskew_state = OUT_DESKEW) then
@@ -205,7 +205,7 @@ begin
             end if;
         end if;
     end process;
-    deskew_p: process(clk, rst, frame_scan, dc_balance, deskew_cnt, deskew, deskew_state, in_start)
+    deskew_p: process(clk)
     begin
         if rising_edge(clk) then
             if rst = '1' or dc_balance = '0' then
@@ -276,14 +276,14 @@ begin
                          "1110000" when deskew_out = '1' and buf_cycle(0) = '0' else
                          outdata_balanced when dc_balance = '1' else
                          outdata_nobalanced(i);
-        long_buf_p: process(clk, buf_cycle, frame_scan, outdata_final)
+        long_buf_p: process(clk)
         begin
             if rising_edge(clk) and frame_scan = '1' then
                 outdata_long(conv_integer(buf_cycle)) <= outdata_final;
             end if;
         end process long_buf_p;
 
-        outdata_short_p: process(ckm, out_run, out_cycle, outdata_long)
+        outdata_short_p: process(ckm)
         begin
             if rising_edge(ckm) then
                 if out_run = '0' then
@@ -402,14 +402,14 @@ begin
                          "1100000" when deskew_out = '1' and buf_cycle(0) = '0' else
                          "1100011" when deskew_out = '0' and buf_cycle(0) = '1' else
                          "1000011";
-        long_buf_p: process(clk, buf_cycle, frame_scan, outdata_final)
+        long_buf_p: process(clk)
         begin
             if rising_edge(clk) and frame_scan = '1' then
                 outdata_long(conv_integer(buf_cycle)) <= outdata_final;
             end if;
         end process long_buf_p;
 
-        outdata_short_p: process(ckm, out_run, out_cycle, outdata_long)
+        outdata_short_p: process(ckm)
         begin
             if rising_edge(ckm) then
                 if out_run = '0' then

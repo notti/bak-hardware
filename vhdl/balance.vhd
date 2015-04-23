@@ -93,7 +93,7 @@ begin
     -- overall zero: inv
     -- inv: overall += 1 - cur
     -- norm: overall += cur - 1
-    dcb_p: process(clk, en, rst, bal, overall_balance, inv)
+    dcb_p: process(clk, bal, overall_balance)
     begin
         if overall_balance > 0 then
             if bal > 0 then
@@ -125,4 +125,3 @@ begin
     balanced <= unbalanced & "0" when inv = '0' else
                 not (unbalanced & "0");
 end Structural;
-
