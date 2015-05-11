@@ -19,7 +19,7 @@ FPGA_ARCH = virtex5
 
 DEVICE = xc5vfx70tff1136-1
 
-INTSTYLE = ise
+INTSTYLE = default
 
 XPS_HDL_LANG = vhdl
 GLOBAL_SEARCHPATHOPT = 
@@ -47,17 +47,17 @@ BRAMINIT_ELF_IMP_FILE_ARGS = -pe ppc440_0 $(PPC440_0_BOOTLOOP)
 BRAMINIT_ELF_SIM_FILES = $(PPC440_0_BOOTLOOP)
 BRAMINIT_ELF_SIM_FILE_ARGS = -pe ppc440_0 $(PPC440_0_BOOTLOOP)
 
-SIM_CMD = vsim
+SIM_CMD = isim_processor
 
-BEHAVIORAL_SIM_SCRIPT = simulation/behavioral/$(SYSTEM)_setup.do
+BEHAVIORAL_SIM_SCRIPT = simulation/behavioral/$(SYSTEM)_setup.tcl
 
-STRUCTURAL_SIM_SCRIPT = simulation/structural/$(SYSTEM)_setup.do
+STRUCTURAL_SIM_SCRIPT = simulation/structural/$(SYSTEM)_setup.tcl
 
-TIMING_SIM_SCRIPT = simulation/timing/$(SYSTEM)_setup.do
+TIMING_SIM_SCRIPT = simulation/timing/$(SYSTEM)_setup.tcl
 
 DEFAULT_SIM_SCRIPT = $(BEHAVIORAL_SIM_SCRIPT)
 
-SIMGEN_OPTIONS = -p $(DEVICE) -lang $(XPS_HDL_LANG) -intstyle $(INTSTYLE) $(SEARCHPATHOPT) $(BRAMINIT_ELF_SIM_FILE_ARGS) -msg __xps/ise/xmsgprops.lst -s mgm -X D:/Projekte/bak-hardware/processor/
+SIMGEN_OPTIONS = -p $(DEVICE) -lang $(XPS_HDL_LANG) -intstyle $(INTSTYLE) $(SEARCHPATHOPT) $(BRAMINIT_ELF_SIM_FILE_ARGS) -msg __xps/ise/xmsgprops.lst -s isim -X D:/Projekte/bak-hardware/processor/
 
 
 CORE_STATE_DEVELOPMENT_FILES = 
@@ -68,8 +68,6 @@ implementation/processor_xps_bram_if_cntlr_1_wrapper.ngc \
 implementation/processor_xps_bram_if_cntlr_1_bram_wrapper.ngc \
 implementation/processor_leds_8bit_wrapper.ngc \
 implementation/processor_leds_positions_wrapper.ngc \
-implementation/processor_push_buttons_5bit_wrapper.ngc \
-implementation/processor_dip_switches_8bit_wrapper.ngc \
 implementation/processor_ddr2_sdram_wrapper.ngc \
 implementation/processor_sysace_compactflash_wrapper.ngc \
 implementation/processor_rs232_uart_1_wrapper.ngc \

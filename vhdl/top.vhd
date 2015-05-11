@@ -29,8 +29,6 @@ port(
 -- signals for processor
     fpga_0_LEDs_8Bit_GPIO_IO_pin : inout std_logic_vector(0 to 7);
     fpga_0_LEDs_Positions_GPIO_IO_pin : inout std_logic_vector(0 to 4);
-    fpga_0_Push_Buttons_5Bit_GPIO_IO_pin : inout std_logic_vector(0 to 4);
-    fpga_0_DIP_Switches_8Bit_GPIO_IO_pin : inout std_logic_vector(0 to 7);
     fpga_0_DDR2_SDRAM_DDR2_DQ_pin : inout std_logic_vector(63 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_DQS_pin : inout std_logic_vector(7 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_DQS_N_pin : inout std_logic_vector(7 downto 0);
@@ -77,8 +75,6 @@ COMPONENT processor
 PORT(
     fpga_0_LEDs_8Bit_GPIO_IO_pin : inout std_logic_vector(0 to 7);
     fpga_0_LEDs_Positions_GPIO_IO_pin : inout std_logic_vector(0 to 4);
-    fpga_0_Push_Buttons_5Bit_GPIO_IO_pin : inout std_logic_vector(0 to 4);
-    fpga_0_DIP_Switches_8Bit_GPIO_IO_pin : inout std_logic_vector(0 to 7);
     fpga_0_DDR2_SDRAM_DDR2_DQ_pin : inout std_logic_vector(63 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_DQS_pin : inout std_logic_vector(7 downto 0);
     fpga_0_DDR2_SDRAM_DDR2_DQS_N_pin : inout std_logic_vector(7 downto 0);
@@ -249,21 +245,91 @@ END COMPONENT;
     signal bus2fpga_reset      : std_logic;
     signal bus2fpga_clk        : std_logic;
 
+    signal inbuf_trigger_b : std_logic;
+    signal frame_clk_b : std_logic;
+
+    signal gtx_rxn_b : std_logic_vector(5 downto 0);
+    signal gtx_rxp_b : std_logic_vector(5 downto 0);
+    signal gtx_txn_b : std_logic_vector(5 downto 0);
+    signal gtx_txp_b : std_logic_vector(5 downto 0);
+
+    signal fpga_0_Hard_Ethernet_MAC_PHY_MII_INT_pin_b : std_logic;
+    signal fpga_0_DDR2_SDRAM_DDR2_A_pin_b : std_logic_vector(12 downto 0);
+    signal fpga_0_DDR2_SDRAM_DDR2_BA_pin_b : std_logic_vector(1 downto 0);
+    signal fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin_b : std_logic;
+    signal fpga_0_DDR2_SDRAM_DDR2_CKE_pin_b : std_logic;
+    signal fpga_0_DDR2_SDRAM_DDR2_CS_N_pin_b : std_logic;
+    signal fpga_0_DDR2_SDRAM_DDR2_ODT_pin_b : std_logic_vector(1 downto 0);
+    signal fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin_b : std_logic;
+    signal fpga_0_DDR2_SDRAM_DDR2_WE_N_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin_b : std_logic_vector(7 downto 0);
+    signal fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin_b : std_logic_vector(7 downto 0);
+    signal fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_MDC_0_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin_b : std_logic;
+    signal fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin_b : std_logic;
+    signal fpga_0_RS232_Uart_1_sin_pin_b : std_logic;
+    signal fpga_0_RS232_Uart_1_sout_pin_b : std_logic;
+    signal fpga_0_SysACE_CompactFlash_SysACE_CEN_pin_b : std_logic;
+    signal fpga_0_SysACE_CompactFlash_SysACE_CLK_pin_b : std_logic;
+    signal fpga_0_SysACE_CompactFlash_SysACE_MPA_pin_b : std_logic_vector(6 downto 0);
+    signal fpga_0_SysACE_CompactFlash_SysACE_OEN_pin_b : std_logic;
+    signal fpga_0_SysACE_CompactFlash_SysACE_WEN_pin_b : std_logic;
+    signal fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin_b : std_logic;
+    signal fpga_0_clk_1_sys_clk_pin_b : std_logic;
+    signal fpga_0_rst_1_sys_rst_pin_b : std_logic;
+
 begin
+
+    IBUF_inbuf_trigger: IBUF
+    port map (
+        I => inbuf_trigger,
+        O => inbuf_trigger_b
+    );
+    OBUF_frame_clk: OBUF
+    port map (
+        O => frame_clk,
+        I => frame_clk_b
+    );
+    gtx_buffer_gen: for i in 0 to 5 generate
+    begin
+        IBUF_gtx_rxn: IBUF
+        port map (
+            I => gtx_rxn(i),
+            O => gtx_rxn_b(i)
+        );
+        IBUF_gtx_rxp: IBUF
+        port map (
+            I => gtx_rxp(i),
+            O => gtx_rxp_b(i)
+        );
+        OBUF_gtx_txn: OBUF
+        port map (
+            O => gtx_txn(i),
+            I => gtx_txn_b(i)
+        );
+        OBUF_gtx_txp: OBUF
+        port map (
+            O => gtx_txp(i),
+            I => gtx_txp_b(i)
+        );
+    end generate;
+
 
     main_inst: entity work.main
     port map(
         rx_refclk_n         => gtx_refclk_n,
         rx_refclk_p         => gtx_refclk_p,
-        rx_rxn              => gtx_rxn,
-        rx_rxp              => gtx_rxp,
-        rx_txn              => gtx_txn,
-        rx_txp              => gtx_txp,
+        rx_rxn              => gtx_rxn_b,
+        rx_rxp              => gtx_rxp_b,
+        rx_txn              => gtx_txn_b,
+        rx_txp              => gtx_txp_b,
         depth               => depth,
-        auto_rst            => auto_rst,
-        auto_run            => auto_run,
-        auto_active         => auto_active,
-        auto_stop           => auto_stop,
         rec_rst             => rec_rst,
         rec_polarity        => rec_polarity,
         rec_descramble      => rec_descramble,
@@ -275,12 +341,12 @@ begin
         rec_stream_valid    => rec_stream_valid,
         trig_rst            => trig_rst,
         trig_arm            => trig_arm,
-        trig_ext            => inbuf_trigger,
+        trig_ext            => inbuf_trigger_b,
         trig_int            => trig_int,
         trig_type           => trig_type,
         trig_armed          => trig_armed,
         trig_trigd          => trig_trigd,
-        frame_clk           => frame_clk,
+        frame_clk           => frame_clk_b,
         avg_rst             => avg_rst,
         avg_width           => avg_width,
         avg_done            => avg_done,
@@ -472,49 +538,221 @@ begin
                       (others => '0');
     fpga2bus_error <= mem_error or reg_error; 
 
+    DDR2_A_loop: for i in 0 to 12 generate
+    begin
+        OBUF_DDR2_A: OBUF
+        port map (
+            O => fpga_0_DDR2_SDRAM_DDR2_A_pin(i),
+            I => fpga_0_DDR2_SDRAM_DDR2_A_pin_b(i)
+        );
+    end generate;
+    DDR2_BA_loop: for i in 0 to 1 generate
+    begin
+        OBUF_DDR2_BA: OBUF
+        port map (
+            O => fpga_0_DDR2_SDRAM_DDR2_BA_pin(i),
+            I => fpga_0_DDR2_SDRAM_DDR2_BA_pin_b(i)
+        );
+    end generate;
+    OBUF_DDR2_CAS_N: OBUF
+    port map (
+        O => fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin,
+        I => fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin_b
+    );
+    OBUF_DDR2_CKE: OBUF
+    port map (
+        O => fpga_0_DDR2_SDRAM_DDR2_CKE_pin,
+        I => fpga_0_DDR2_SDRAM_DDR2_CKE_pin_b
+    );
+    OBUF_DDR2_CS_N: OBUF
+    port map (
+        O => fpga_0_DDR2_SDRAM_DDR2_CS_N_pin,
+        I => fpga_0_DDR2_SDRAM_DDR2_CS_N_pin_b
+    );
+    DDR_ODT_loop: for i in 0 to 1 generate
+    begin
+        OBUF_DDR2_ODT: OBUF
+        port map (
+            O => fpga_0_DDR2_SDRAM_DDR2_ODT_pin(i),
+            I => fpga_0_DDR2_SDRAM_DDR2_ODT_pin_b(i)
+        );
+    end generate;
+    OBUF_DDR2_RAS_N: OBUF
+    port map (
+        O => fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin,
+        I => fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin_b
+    );
+    OBUF_DDR2_WE_N: OBUF
+    port map (
+        O => fpga_0_DDR2_SDRAM_DDR2_WE_N_pin,
+        I => fpga_0_DDR2_SDRAM_DDR2_WE_N_pin_b
+    );
+
+    IBUF_MII_INT: IBUF
+    port map (
+        O => fpga_0_Hard_Ethernet_MAC_PHY_MII_INT_pin_b,
+        I => fpga_0_Hard_Ethernet_MAC_PHY_MII_INT_pin
+    );
+    MAC_GMII_RXD_0_loop: for i in 0 to 7 generate
+    begin
+        IBUF_MAC_GMII_RXD_0: IBUF
+        port map (
+            O => fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin_b(i),
+            I => fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin(i)
+        );
+    end generate;
+    IBUF_MAC_GMII_RX_CLK_0: IBUF
+    port map (
+        O => fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin_b,
+        I => fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin
+    );
+    IBUF_MAC_GMII_RX_DV_0: IBUF
+    port map (
+        O => fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin_b,
+        I => fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin
+    );
+    IBUF_MAC_GMII_RX_ER_0: IBUF
+    port map (
+        O => fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin_b,
+        I => fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin
+    );
+    MAC_GMII_TX_0_loop: for i in 0 to 7 generate
+    begin
+        OBUF_MAC_GMII_TXD_0: OBUF
+        port map (
+            I => fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin_b(i),
+            O => fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin(i)
+        );
+    end generate;
+    OBUF_MAC_GMII_TX_CLK_0: OBUF
+    port map (
+        I => fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin_b,
+        O => fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin
+    );
+    OBUF_MAC_GMII_TX_EN_0: OBUF
+    port map (
+        I => fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin_b,
+        O => fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin
+    );
+    OBUF_MAC_GMII_TX_ER_0: OBUF
+    port map (
+        I => fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin_b,
+        O => fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin
+    );
+
+    OBUF_MAC_MDC_0: OBUF
+    port map (
+        I => fpga_0_Hard_Ethernet_MAC_MDC_0_pin_b,
+        O => fpga_0_Hard_Ethernet_MAC_MDC_0_pin
+    );
+    IBUF_MAC_MII_TX_CLK_0: IBUF
+    port map (
+        O => fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin_b,
+        I => fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin
+    );
+    OBUF_MAC_TemacPhy_RST_n: OBUF
+    port map (
+        I => fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin_b,
+        O => fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin
+    );
+
+    OBUF_Uart_1_sout: OBUF
+    port map (
+        I => fpga_0_RS232_Uart_1_sout_pin_b,
+        O => fpga_0_RS232_Uart_1_sout_pin
+    );
+    IBUF_Uart_1_sin: IBUF
+    port map (
+        O => fpga_0_RS232_Uart_1_sin_pin_b,
+        I => fpga_0_RS232_Uart_1_sin_pin
+    );
+
+    OBUF_SysACE_CEN: OBUF
+    port map (
+        I => fpga_0_SysACE_CompactFlash_SysACE_CEN_pin_b,
+        O => fpga_0_SysACE_CompactFlash_SysACE_CEN_pin
+    );
+    IBUF_SysACE_CLK: IBUF
+    port map (
+        O => fpga_0_SysACE_CompactFlash_SysACE_CLK_pin_b,
+        I => fpga_0_SysACE_CompactFlash_SysACE_CLK_pin
+    );
+    SysACE_MPA_loop: for i in 0 to 6 generate
+    begin
+        OBUF_SysACE_MPA: OBUF
+        port map (
+            I => fpga_0_SysACE_CompactFlash_SysACE_MPA_pin_b(i),
+            O => fpga_0_SysACE_CompactFlash_SysACE_MPA_pin(i)
+        );
+    end generate;
+    OBUF_SysACE_OEN: OBUF
+    port map (
+        I => fpga_0_SysACE_CompactFlash_SysACE_OEN_pin_b,
+        O => fpga_0_SysACE_CompactFlash_SysACE_OEN_pin
+    );
+    OBUF_SysACE_WEN: OBUF
+    port map (
+        I => fpga_0_SysACE_CompactFlash_SysACE_WEN_pin_b,
+        O => fpga_0_SysACE_CompactFlash_SysACE_WEN_pin
+    );
+    IBUF_SysACE_MPIRQ: IBUF
+    port map (
+        O => fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin_b,
+        I => fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin
+    );
+
+    IBUF_sys_clk: IBUFG
+    port map (
+        O => fpga_0_clk_1_sys_clk_pin_b,
+        I => fpga_0_clk_1_sys_clk_pin
+    );
+    IBUF_sys_rst: IBUF
+    port map (
+        O => fpga_0_rst_1_sys_rst_pin_b,
+        I => fpga_0_rst_1_sys_rst_pin
+    );
+
     Inst_processor: processor PORT MAP(
-		fpga_0_Hard_Ethernet_MAC_PHY_MII_INT_pin    => fpga_0_Hard_Ethernet_MAC_PHY_MII_INT_pin,
-		fpga_0_RS232_Uart_1_sin_pin                 => fpga_0_RS232_Uart_1_sin_pin,
-		fpga_0_RS232_Uart_1_sout_pin                => fpga_0_RS232_Uart_1_sout_pin,
+		fpga_0_Hard_Ethernet_MAC_PHY_MII_INT_pin    => fpga_0_Hard_Ethernet_MAC_PHY_MII_INT_pin_b,
+		fpga_0_RS232_Uart_1_sin_pin                 => fpga_0_RS232_Uart_1_sin_pin_b,
+		fpga_0_RS232_Uart_1_sout_pin                => fpga_0_RS232_Uart_1_sout_pin_b,
 		fpga_0_LEDs_8Bit_GPIO_IO_pin                => fpga_0_LEDs_8Bit_GPIO_IO_pin,
 		fpga_0_LEDs_Positions_GPIO_IO_pin           => fpga_0_LEDs_Positions_GPIO_IO_pin,
-		fpga_0_Push_Buttons_5Bit_GPIO_IO_pin        => fpga_0_Push_Buttons_5Bit_GPIO_IO_pin,
-		fpga_0_DIP_Switches_8Bit_GPIO_IO_pin        => fpga_0_DIP_Switches_8Bit_GPIO_IO_pin,
-		fpga_0_DDR2_SDRAM_DDR2_ODT_pin              => fpga_0_DDR2_SDRAM_DDR2_ODT_pin,
-		fpga_0_DDR2_SDRAM_DDR2_A_pin                => fpga_0_DDR2_SDRAM_DDR2_A_pin,
-		fpga_0_DDR2_SDRAM_DDR2_BA_pin               => fpga_0_DDR2_SDRAM_DDR2_BA_pin,
-		fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin            => fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin,
-		fpga_0_DDR2_SDRAM_DDR2_CKE_pin              => fpga_0_DDR2_SDRAM_DDR2_CKE_pin,
-		fpga_0_DDR2_SDRAM_DDR2_CS_N_pin             => fpga_0_DDR2_SDRAM_DDR2_CS_N_pin,
-		fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin            => fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin,
-		fpga_0_DDR2_SDRAM_DDR2_WE_N_pin             => fpga_0_DDR2_SDRAM_DDR2_WE_N_pin,
+		fpga_0_DDR2_SDRAM_DDR2_ODT_pin              => fpga_0_DDR2_SDRAM_DDR2_ODT_pin_b,
+		fpga_0_DDR2_SDRAM_DDR2_A_pin                => fpga_0_DDR2_SDRAM_DDR2_A_pin_b,
+		fpga_0_DDR2_SDRAM_DDR2_BA_pin               => fpga_0_DDR2_SDRAM_DDR2_BA_pin_b,
+		fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin            => fpga_0_DDR2_SDRAM_DDR2_CAS_N_pin_b,
+		fpga_0_DDR2_SDRAM_DDR2_CKE_pin              => fpga_0_DDR2_SDRAM_DDR2_CKE_pin_b,
+		fpga_0_DDR2_SDRAM_DDR2_CS_N_pin             => fpga_0_DDR2_SDRAM_DDR2_CS_N_pin_b,
+		fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin            => fpga_0_DDR2_SDRAM_DDR2_RAS_N_pin_b,
+		fpga_0_DDR2_SDRAM_DDR2_WE_N_pin             => fpga_0_DDR2_SDRAM_DDR2_WE_N_pin_b,
 		fpga_0_DDR2_SDRAM_DDR2_CK_pin               => fpga_0_DDR2_SDRAM_DDR2_CK_pin,
 		fpga_0_DDR2_SDRAM_DDR2_CK_N_pin             => fpga_0_DDR2_SDRAM_DDR2_CK_N_pin,
 		fpga_0_DDR2_SDRAM_DDR2_DM_pin               => fpga_0_DDR2_SDRAM_DDR2_DM_pin,
 		fpga_0_DDR2_SDRAM_DDR2_DQS_pin              => fpga_0_DDR2_SDRAM_DDR2_DQS_pin,
 		fpga_0_DDR2_SDRAM_DDR2_DQS_N_pin            => fpga_0_DDR2_SDRAM_DDR2_DQS_N_pin,
 		fpga_0_DDR2_SDRAM_DDR2_DQ_pin               => fpga_0_DDR2_SDRAM_DDR2_DQ_pin,
-		fpga_0_SysACE_CompactFlash_SysACE_CLK_pin   => fpga_0_SysACE_CompactFlash_SysACE_CLK_pin,
-		fpga_0_SysACE_CompactFlash_SysACE_MPA_pin   => fpga_0_SysACE_CompactFlash_SysACE_MPA_pin,
+		fpga_0_SysACE_CompactFlash_SysACE_CLK_pin   => fpga_0_SysACE_CompactFlash_SysACE_CLK_pin_b,
+		fpga_0_SysACE_CompactFlash_SysACE_MPA_pin   => fpga_0_SysACE_CompactFlash_SysACE_MPA_pin_b,
 		fpga_0_SysACE_CompactFlash_SysACE_MPD_pin   => fpga_0_SysACE_CompactFlash_SysACE_MPD_pin,
-		fpga_0_SysACE_CompactFlash_SysACE_CEN_pin   => fpga_0_SysACE_CompactFlash_SysACE_CEN_pin,
-		fpga_0_SysACE_CompactFlash_SysACE_OEN_pin   => fpga_0_SysACE_CompactFlash_SysACE_OEN_pin,
-		fpga_0_SysACE_CompactFlash_SysACE_WEN_pin   => fpga_0_SysACE_CompactFlash_SysACE_WEN_pin,
-		fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin => fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin,
-		fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin => fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin,
-		fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin     => fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin,
-		fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin   => fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin,
-		fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin  => fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin,
-		fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin   => fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin,
-		fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin   => fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin,
-		fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin  => fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin,
-		fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin   => fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin,
-		fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin     => fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin,
-		fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin   => fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin,
-		fpga_0_Hard_Ethernet_MAC_MDC_0_pin          => fpga_0_Hard_Ethernet_MAC_MDC_0_pin,
+		fpga_0_SysACE_CompactFlash_SysACE_CEN_pin   => fpga_0_SysACE_CompactFlash_SysACE_CEN_pin_b,
+		fpga_0_SysACE_CompactFlash_SysACE_OEN_pin   => fpga_0_SysACE_CompactFlash_SysACE_OEN_pin_b,
+		fpga_0_SysACE_CompactFlash_SysACE_WEN_pin   => fpga_0_SysACE_CompactFlash_SysACE_WEN_pin_b,
+		fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin => fpga_0_SysACE_CompactFlash_SysACE_MPIRQ_pin_b,
+		fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin => fpga_0_Hard_Ethernet_MAC_TemacPhy_RST_n_pin_b,
+		fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin     => fpga_0_Hard_Ethernet_MAC_GMII_TXD_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin   => fpga_0_Hard_Ethernet_MAC_GMII_TX_EN_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin  => fpga_0_Hard_Ethernet_MAC_GMII_TX_CLK_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin   => fpga_0_Hard_Ethernet_MAC_GMII_TX_ER_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin   => fpga_0_Hard_Ethernet_MAC_GMII_RX_ER_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin  => fpga_0_Hard_Ethernet_MAC_GMII_RX_CLK_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin   => fpga_0_Hard_Ethernet_MAC_GMII_RX_DV_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin     => fpga_0_Hard_Ethernet_MAC_GMII_RXD_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin   => fpga_0_Hard_Ethernet_MAC_MII_TX_CLK_0_pin_b,
+		fpga_0_Hard_Ethernet_MAC_MDC_0_pin          => fpga_0_Hard_Ethernet_MAC_MDC_0_pin_b,
 		fpga_0_Hard_Ethernet_MAC_MDIO_0_pin         => fpga_0_Hard_Ethernet_MAC_MDIO_0_pin,
-		fpga_0_clk_1_sys_clk_pin                    => fpga_0_clk_1_sys_clk_pin,
-		fpga_0_rst_1_sys_rst_pin                    => fpga_0_rst_1_sys_rst_pin,
+		fpga_0_clk_1_sys_clk_pin                    => fpga_0_clk_1_sys_clk_pin_b,
+		fpga_0_rst_1_sys_rst_pin                    => fpga_0_rst_1_sys_rst_pin_b,
 		proc2fpga_0_fpga2bus_intr_pin               => fpga2bus_intr,
 		proc2fpga_0_fpga2bus_error_pin              => fpga2bus_error,
 		proc2fpga_0_fpga2bus_wrack_pin              => fpga2bus_wrack,

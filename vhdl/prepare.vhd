@@ -36,6 +36,7 @@ architecture Structural of prepare is
 
     signal avg_finished_synced : std_logic;
     signal clk_is_sys      : std_logic;
+    signal clk_is_sys_n    : std_logic;
 begin
     -- on arm:
     --          set en to 0
@@ -143,6 +144,8 @@ begin
         end case;
     end process;
 
+    clk_is_sys_n <= not clk_is_sys;
+
     mem_clk_mux : BUFGCTRL
     port map (
         O                       => avg_clk,
@@ -150,7 +153,7 @@ begin
         I1                      => sys_clk,
         CE0                     => '1',
         CE1                     => '1',
-        S0                      => not clk_is_sys,
+        S0                      => clk_is_sys_n,
         S1                      => clk_is_sys,
         IGNORE0                 => '1',
         IGNORE1                 => '1'

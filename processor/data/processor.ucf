@@ -12,21 +12,6 @@ Net fpga_0_LEDs_Positions_GPIO_IO_pin<1> LOC=AF23  |  IOSTANDARD=LVCMOS33  |  PU
 Net fpga_0_LEDs_Positions_GPIO_IO_pin<2> LOC=AG12  |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
 Net fpga_0_LEDs_Positions_GPIO_IO_pin<3> LOC=AG23  |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
 Net fpga_0_LEDs_Positions_GPIO_IO_pin<4> LOC=AF13  |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<0> LOC = AJ6  |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<1> LOC = AJ7  |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<2> LOC = V8  |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<3> LOC = AK7  |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_Push_Buttons_5Bit_GPIO_IO_pin<4> LOC = U8  |  IOSTANDARD=LVCMOS33  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<0> LOC=U25  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<1> LOC=AG27  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<2> LOC=AF25  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<3> LOC=AF26  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<4> LOC=AE27  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<5> LOC=AE26  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<6> LOC=AC25  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_DIP_Switches_8Bit_GPIO_IO_pin<7> LOC=AC24  |  IOSTANDARD=LVCMOS18  |  PULLDOWN  |  SLEW=SLOW  |  DRIVE=2;
-Net fpga_0_IIC_EEPROM_Sda_pin LOC=F8  |  SLEW = SLOW  |  DRIVE = 6  |  IOSTANDARD=LVCMOS33;
-Net fpga_0_IIC_EEPROM_Scl_pin LOC=F9  |  SLEW = SLOW  |  DRIVE = 6  |  IOSTANDARD=LVCMOS33;
 Net fpga_0_DDR2_SDRAM_DDR2_DQ_pin<0> LOC=AF30  |  IOSTANDARD = SSTL18_II;
 Net fpga_0_DDR2_SDRAM_DDR2_DQ_pin<1> LOC=AK31  |  IOSTANDARD = SSTL18_II;
 Net fpga_0_DDR2_SDRAM_DDR2_DQ_pin<2> LOC=AF31  |  IOSTANDARD = SSTL18_II;
@@ -357,7 +342,7 @@ INST "DDR2_SDRAM/*/*gen_wdf[1]*u_wdf" LOC = RAMB36_X0Y16;
 
 ###############################################################################
 
-AREA_GROUP "DDR_CAPTURE_FFS" GROUP = CLOSED;
+# AREA_GROUP "DDR_CAPTURE_FFS" GROUP = CLOSED;
 
  
 INST "*/gen_dq[*].u_iob_dq/gen*.u_iddr_dq" TIG ;
@@ -460,5 +445,4 @@ TIMESPEC "TS_RX_CLIENT_CLK0_2_REF_CLK"  = FROM clk_client_rx0 TO REFCLK 5000 ps 
 
 net "*/hrst*" TIG;
 net "*/V5HARD_SYS.I_TEMAC/speed_vector_0_i*" TIG;
-
 

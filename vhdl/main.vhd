@@ -256,8 +256,7 @@ begin
 
 	-- mem access handling
 
-    mem_allowed <= not or_many(avg_active_i & core_busy_i & tx_busy_i) when auto = AUTO_OFF else
-                   '0';
+    mem_allowed <= not or_many(avg_active_i & core_busy_i & tx_busy_i);
 
     mem_enia_i  <= mem_enia when mem_allowed = '1' else
                    core_busy_i;
@@ -454,7 +453,7 @@ begin
     );
     sync_tx_toggle: entity work.toggle
     port map(
-        toggle_in   => tx_toggle_buf,
+        toggle_in   => tx_toggle_buf_i,
         toggle_out  => tx_toggle_buf_synced,
         clk_from    => sys_clk,
         clk_to      => sample_clk_i

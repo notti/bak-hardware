@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="1.7" >
  <header>
-  <DateModified>2015-04-23T12:23:22</DateModified>
+  <DateModified>2015-05-11T15:25:57</DateModified>
   <ModuleName>top</ModuleName>
-  <SummaryTimeStamp>2015-04-23T11:16:50</SummaryTimeStamp>
+  <SummaryTimeStamp>2015-05-11T10:16:43</SummaryTimeStamp>
   <DateInitialized>2012-08-23T10:12:06</DateInitialized>
   <ImplementationReportsDirectory>D:/Projekte/bak-hardware/ise/main\</ImplementationReportsDirectory>
   <SavedFilePath>D:/Projekte/bak-hardware/ise/main/iseconfig/top.xreport</SavedFilePath>
@@ -25,7 +25,7 @@
    <view inputState="Translated" program="map" locator="MAP_IOB_TABLE" contextTags="FPGA_ONLY" type="IOBProperties" file="top_map.xrpt" label="IOB Properties" />
    <view inputState="Translated" program="map" type="Module_Utilization" file="top_map.mrp" label="Module Level Utilization" />
    <view inputState="Mapped" program="par" locator="CONSTRAINT_TABLE" contextTags="FPGA_ONLY" type="ConstraintsData" file="top.ptwx" showConstraints="0" label="Timing Constraints" translator="ptwxToTableXML.xslt" />
-   <view inputState="Mapped" program="par" locator="PAR_PINOUT_BY_PIN_NUMBER" contextTags="FPGA_ONLY" type="PinoutData" file="top_par.xrpt" label="Pinout Report" />
+   <view inputState="Mapped" program="par" locator="PAR_PINOUT_BY_PIN_NUMBER" contextTags="FPGA_ONLY" type="PinoutData" file="top_par.xrpt" showConstraints="0" label="Pinout Report" />
    <view inputState="Mapped" program="par" locator="PAR_CLOCK_TABLE" contextTags="FPGA_ONLY" type="ClocksData" file="top_par.xrpt" label="Clock Report" />
   </viewgroup>
   <viewgroup label="Errors and Warnings" >

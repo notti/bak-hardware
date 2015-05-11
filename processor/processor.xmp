@@ -1,7 +1,7 @@
 #Please do not modify this file by hand
 XmpVersion: 14.7
 VerMgmt: 14.7
-IntStyle: ise
+IntStyle: default
 Flow: ise
 MHS File: processor.mhs
 Architecture: virtex5
