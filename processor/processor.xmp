@@ -1,7 +1,7 @@
 #Please do not modify this file by hand
 XmpVersion: 14.7
 VerMgmt: 14.7
-IntStyle: default
+IntStyle: ise
 Flow: ise
 MHS File: processor.mhs
 Architecture: virtex5
@@ -12,7 +12,6 @@ UserCmd1:
 UserCmd1Type: 0
 UserCmd2: 
 UserCmd2Type: 0
-ClockInfo: USE_UNIQUE_CLOCK_PRIMS=FALSE|
 GenSimTB: 0
 SdkExportBmmBit: 0
 SdkExportDir: SDK/SDK_Export
@@ -25,10 +24,6 @@ UcfFile: data/processor.ucf
 EnableParTimingError: 1
 ShowLicenseDialog: 0
 BInfo: 
-ICacheAddr: DDR2_SDRAM,
-ICacheAddr: xps_bram_if_cntlr_1,
-DCacheAddr: DDR2_SDRAM,
-DCacheAddr: xps_bram_if_cntlr_1,
 Processor: ppc440_0
 ElfImp: 
 ElfSim: 

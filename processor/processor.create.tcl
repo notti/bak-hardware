@@ -6,7 +6,7 @@ xset arch virtex5
 xset dev xc5vfx70t
 xset package ff1136
 xset speedgrade -1
-xset simulator mgm
+xset simulator isim
 if { [xset hier sub] != 0 } {
   exit -1
 }

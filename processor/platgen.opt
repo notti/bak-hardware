@@ -3,7 +3,7 @@ xc5vfx70tff1136-1
 -lang
 vhdl
 -intstyle
-default
+ise
 -toplevel
 no
 -ti

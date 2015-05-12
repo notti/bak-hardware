@@ -240,6 +240,7 @@ END COMPONENT;
     signal bus2fpga_addr       : std_logic_vector(15 downto 0);
     signal bus2fpga_reset      : std_logic;
     signal bus2fpga_clk        : std_logic;
+    
 begin
 
     main_inst: entity work.main

@@ -342,7 +342,7 @@ INST "DDR2_SDRAM/*/*gen_wdf[1]*u_wdf" LOC = RAMB36_X0Y16;
 
 ###############################################################################
 
-# AREA_GROUP "DDR_CAPTURE_FFS" GROUP = CLOSED;
+AREA_GROUP "DDR_CAPTURE_FFS" GROUP = CLOSED;
 
  
 INST "*/gen_dq[*].u_iob_dq/gen*.u_iddr_dq" TIG ;
@@ -445,4 +445,5 @@ TIMESPEC "TS_RX_CLIENT_CLK0_2_REF_CLK"  = FROM clk_client_rx0 TO REFCLK 5000 ps 
 
 net "*/hrst*" TIG;
 net "*/V5HARD_SYS.I_TEMAC/speed_vector_0_i*" TIG;
+
 

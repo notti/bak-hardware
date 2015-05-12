@@ -55,7 +55,7 @@ NET "main_inst/outbuf_inst/transmitter_i/CLKOUT1" TNM_NET = "main_inst/outbuf_in
 TIMESPEC TS_main_inst_outbuf_inst_transmitter_i_CLKOUT1 = PERIOD "main_inst/outbuf_inst/transmitter_i/CLKOUT1" 175 MHz HIGH 50 %;
 NET "main_inst/outbuf_inst/transmitter_i/outdata_long*" TNM_NET = "outdata_long";
 NET "main_inst/outbuf_inst/transmitter_i/outdata_short*" TNM_NET = "outdata_short";
-TIMESPEC TS_outdata = FROM "outdata_long" TO "outdata_short" TS_main_inst_inbuf_inst_receiver_i_refclkout_i * 4 DATAPATHONLY;
+TIMESPEC TS_outdata = FROM "outdata_long" TO "outdata_short" TS_main_inst_outbuf_inst_transmitter_i_CLKOUT1 * 2 DATAPATHONLY;
 
 
 #  Virtex 5 ML507 Evaluation Platform
@@ -248,7 +248,6 @@ TIMESPEC TS_sys_clk_pin = PERIOD sys_clk_pin 100000 kHz;
 Net fpga_0_clk_1_sys_clk_pin LOC = AH15  |  IOSTANDARD=LVCMOS33;
 Net fpga_0_rst_1_sys_rst_pin TIG;
 Net fpga_0_rst_1_sys_rst_pin LOC = E9  |  IOSTANDARD=LVCMOS33  |  PULLUP;
-
 
 ###### DDR2_SDRAM
 ############################################################################

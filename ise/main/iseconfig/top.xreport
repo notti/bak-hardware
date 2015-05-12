@@ -1,14 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="1.7" >
  <header>
-  <DateModified>2015-05-12T12:38:45</DateModified>
+  <DateModified>2015-05-12T21:09:19</DateModified>
   <ModuleName>top</ModuleName>
-  <SummaryTimeStamp>2015-05-12T12:30:33</SummaryTimeStamp>
+  <SummaryTimeStamp>2015-05-12T20:58:26</SummaryTimeStamp>
   <DateInitialized>2012-08-23T10:12:06</DateInitialized>
   <ImplementationReportsDirectory>D:/Projekte/bak-hardware/ise/main\</ImplementationReportsDirectory>
   <SavedFilePath>D:/Projekte/bak-hardware/ise/main/iseconfig/top.xreport</SavedFilePath>
-  <XMP_File>D:/Projekte/bak-hardware/processor/processor.xmp</XMP_File>
+  <XMP_File/>
   <EnableMessageFiltering>false</EnableMessageFiltering>
+  <XMP_File>D:/Projekte/bak-hardware/processor/processor.xmp</XMP_File>
  </header>
  <body>
   <viewgroup label="Design Overview" >

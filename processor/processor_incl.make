@@ -19,7 +19,7 @@ FPGA_ARCH = virtex5
 
 DEVICE = xc5vfx70tff1136-1
 
-INTSTYLE = default
+INTSTYLE = ise
 
 XPS_HDL_LANG = vhdl
 GLOBAL_SEARCHPATHOPT = 
