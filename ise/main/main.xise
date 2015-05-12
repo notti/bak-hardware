@@ -158,7 +158,7 @@
     </file>
     <file xil_pn:name="../../processor/processor.xmp" xil_pn:type="FILE_XPS">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="314"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="314"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="33"/>
     </file>
     <file xil_pn:name="../../wizard/fft.xise" xil_pn:type="FILE_COREGENISE">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
@@ -171,7 +171,7 @@
   <properties>
     <property xil_pn:name="AES Initial Vector virtex5" xil_pn:value="" xil_pn:valueState="default"/>
     <property xil_pn:name="AES Key (Hex String)" xil_pn:value="" xil_pn:valueState="default"/>
-    <property xil_pn:name="Add I/O Buffers" xil_pn:value="false" xil_pn:valueState="non-default" xil_pn:x_locked="true"/>
+    <property xil_pn:name="Add I/O Buffers" xil_pn:value="true" xil_pn:valueState="default" xil_pn:x_locked="true"/>
     <property xil_pn:name="Allow Logic Optimization Across Hierarchy" xil_pn:value="true" xil_pn:valueState="non-default" xil_pn:x_locked="true"/>
     <property xil_pn:name="Allow SelectMAP Pins to Persist" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Allow Unexpanded Blocks" xil_pn:value="false" xil_pn:valueState="default"/>
@@ -240,8 +240,8 @@
     <property xil_pn:name="Enable Hardware Co-Simulation" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable Internal Done Pipe" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable Message Filtering" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Enable Multi-Threading" xil_pn:value="Off" xil_pn:valueState="default" xil_pn:x_locked="true"/>
-    <property xil_pn:name="Enable Multi-Threading par virtex5" xil_pn:value="Off" xil_pn:valueState="default" xil_pn:x_locked="true"/>
+    <property xil_pn:name="Enable Multi-Threading" xil_pn:value="2" xil_pn:valueState="non-default" xil_pn:x_locked="true"/>
+    <property xil_pn:name="Enable Multi-Threading par virtex5" xil_pn:value="4" xil_pn:valueState="non-default" xil_pn:x_locked="true"/>
     <property xil_pn:name="Enable Outputs (Output Events)" xil_pn:value="Default (5)" xil_pn:valueState="default"/>
     <property xil_pn:name="Encrypt Bitstream" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Equivalent Register Removal" xil_pn:value="true" xil_pn:valueState="default" xil_pn:x_locked="true"/>

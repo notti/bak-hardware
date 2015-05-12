@@ -25,10 +25,6 @@ port(
 
 -- overall settings
 	depth				: in  std_logic_vector(15 downto 0);
-    auto_rst            : in  std_logic;
-    auto_run            : in  std_logic;
-    auto_active         : out std_logic;
-    auto_stop           : out std_logic;
 
 -- control signals receiver
     rec_rst             : in  std_logic;
@@ -133,11 +129,6 @@ end main;
 
 architecture Structural of main is
 
-    type auto_t is (AUTO_OFF, AUTO_ARM, AUTO_WAIT_AVG, AUTO_CORE_START,
-        AUTO_WAIT_CORE, AUTO_TX_TOGGLE, AUTO_WAIT_TX, AUTO_ERROR);
-
-    signal auto                : auto_t;
-
     signal avg_done_i          : std_logic;
 
 	signal core_mem_dinx	   : std_logic_vector(15 downto 0);
@@ -200,60 +191,6 @@ architecture Structural of main is
     signal mem_allowed         : std_logic;
 begin
 
-    auto_fsm: process(sys_clk)
-    begin
-        if rising_edge(sys_clk) then
-            if auto_rst = '1' then
-                auto <= AUTO_OFF;
-            else
-                case auto is
-                    when AUTO_OFF =>
-                        if auto_run = '1' then
-                            auto <= AUTO_ARM;
-                        end if;
-                    when AUTO_ARM => 
-                        auto <= AUTO_WAIT_AVG;
-                    when AUTO_WAIT_AVG =>
-                        if avg_done_i = '1' then
-                            if avg_err_i = '1' then
-                                auto <= AUTO_ERROR;
-                            else
-                                auto <= AUTO_CORE_START;
-                            end if;
-                        end if;
-                    when AUTO_CORE_START => 
-                        auto <= AUTO_WAIT_CORE;
-                    when AUTO_WAIT_CORE => 
-                        if core_done_i = '1' then
-                            if core_ov_i = '1' then
-                                auto <= AUTO_ERROR;
-                            else
-                                auto <= AUTO_TX_TOGGLE;
-                            end if;
-                        end if;
-                    when AUTO_TX_TOGGLE => 
-                        auto <= AUTO_WAIT_TX;
-                    when AUTO_WAIT_TX => 
-                        if tx_toggled_i = '1' then
-                            if auto_run = '1' then
-                                auto <= AUTO_ARM;
-                            else
-                                auto <= AUTO_OFF;
-                            end if;
-                        end if;
-                    when AUTO_ERROR =>
-                        auto <= AUTO_OFF;
-                end case;
-            end if;
-        end if;
-    end process auto_fsm;
-
-    auto_active <= '0' when auto = AUTO_OFF else
-                   '1';
-
-    auto_stop   <= '1' when auto = AUTO_ERROR else
-                   '0';
-
 	-- mem access handling
 
     mem_allowed <= not or_many(avg_active_i & core_busy_i & tx_busy_i);
@@ -289,8 +226,7 @@ begin
     
 	-- entities
 
-    trig_arm_i <= '1' when auto = AUTO_ARM else
-                  trig_arm when mem_allowed = '1' else
+    trig_arm_i <= trig_arm when mem_allowed = '1' else
 				  '0';
 
 	inbuf_inst: entity work.inbuf
@@ -346,8 +282,7 @@ begin
 	avg_active <= avg_active_i;
 	frame_clk  <= frame_clk_i;
 
-    core_start_i <= '1' when auto = AUTO_CORE_START else
-                    core_start when mem_allowed = '1' else
+    core_start_i <= core_start when mem_allowed = '1' else
 					'0';
 
 	core_inst: entity work.core
@@ -404,8 +339,7 @@ begin
         rst_out => tx_rst_gen
     );
 	tx_rst_i <= sample_rst or tx_rst_gen;
-    tx_toggle_buf_i <= '1' when auto = AUTO_TX_TOGGLE else
-                       tx_toggle_buf when mem_allowed = '1' else
+    tx_toggle_buf_i <= tx_toggle_buf when mem_allowed = '1' else
 					   '0';
 
     tx_busy_gen: process(sys_clk)

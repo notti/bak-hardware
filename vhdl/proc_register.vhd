@@ -12,10 +12,6 @@ use work.procedures.all;
 
 entity proc_register is
 port(
-    auto_rst            : out std_logic;
-    auto_run            : out std_logic;
-    auto_active         : in  std_logic;
-    auto_stop           : in  std_logic;
     avg_active          : in  std_logic;
     avg_done            : in  std_logic;
     avg_err             : in  std_logic;
@@ -89,8 +85,6 @@ architecture Structural of proc_register is
 
     type reg is array(5 downto 0) of std_logic_vector(31 downto 0);
     signal slv_reg                  : reg;
-
-    signal auto_run_i               : std_logic;
 
     signal rec_input_select_i       : std_logic_vector(0 downto 0);
     signal rec_input_select_r       : std_logic_vector(0 downto 0);
@@ -285,8 +279,8 @@ begin
 -- 0  0                                0 5
 -- 0  0                                0 6
 -- t  tx_rst                           0 7
--- w  auto_run                         0 0  r  auto_active
--- t  auto_rst                         0 1
+-- 0  0                                0 0
+-- 0  0                                0 1
 -- 0  0                                0 2
 -- 0  0                                0 3
 -- x  tx_sat                           1 4
@@ -520,9 +514,6 @@ begin
     tx_rst          <= bus2fpga_data(23) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
                      '1' when bus2fpga_reset = '1' else
                      '0';
-    auto_rst        <= bus2fpga_data(25) when bus2fpga_wrce = "000001" and bus2fpga_be(3) = '1' else
-                     '1' when bus2fpga_reset = '1' else
-                     '0';
     tx_sat          <= slv_reg(5)(28);
 
     tx_shift_wr     <= '1' when (bus2fpga_wrce = "000001" and bus2fpga_be(3) = '1') or bus2fpga_reset = '1' else
@@ -535,7 +526,6 @@ begin
             if bus2fpga_reset = '1' then
                 slv_reg(5)(15 downto 0) <= (others => '0');
                 slv_reg(5)(17) <= '0';
-                auto_run_i <= '0';
                 slv_reg(5)(28) <= '1';
                 slv_reg(5)(31 downto 30) <= (others => '0');
             else
@@ -550,28 +540,20 @@ begin
                         slv_reg(5)(17) <= bus2fpga_data(17);
                     end if;
                     if bus2fpga_be(3) = '1' then
-                        auto_run_i <= bus2fpga_data(24);
                         slv_reg(5)(28) <= bus2fpga_data(28);
                         slv_reg(5)(31 downto 30) <= bus2fpga_data(31 downto 30);
                     end if;
                 end if;
             end if;
-            if auto_stop = '1' then
-                auto_run_i <= '0';
-            end if;
         end if;
     end process write_proc5;
-
-    auto_run <= auto_run_i;
 
     tx_ovfl_ack <= '1' when bus2fpga_wrce = "000001" and bus2fpga_be(3) = '1' and bus2fpga_data(29) = '0' else
                    '0';
 
     slv_reg(5)(16) <= '0';
     slv_reg(5)(18) <= tx_busy;
-    slv_reg(5)(22 downto 19) <= (others => '0');
-    slv_reg(5)(24) <= auto_active;
-    slv_reg(5)(27 downto 25) <= (others => '0');
+    slv_reg(5)(27 downto 19) <= (others => '0');
     slv_reg(5)(29) <= tx_ovfl;
 --=============================================================================
     slave_reg_read_proc: process(bus2fpga_rdce, slv_reg)
@@ -599,7 +581,6 @@ begin
         8  => core_done,
         9  => tx_toggled,
         10 => slv_reg(5)(29),
-        11 => not auto_run_i,
         others => '0');
 
     fpga2bus_rdack <= or_many(bus2fpga_rdce);
