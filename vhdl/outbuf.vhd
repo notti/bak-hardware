@@ -90,6 +90,8 @@ architecture Structural of outbuf is
 
     signal ovfl_i            : std_logic;
 
+    signal mem_active        : std_logic;
+
 begin
 
     depth_r_proc: process(clk)
@@ -191,26 +193,34 @@ begin
         doutb               => mem_out1,
         enb                 => mem_en1
     );
-    
-    mem_addr0 <= mem_addra when active = '0' else
+
+
+    sync_active: entity work.flag
+    port map(
+        flag_in     => active,
+        flag_out    => mem_active,
+        clk         => mem_clk
+    );
+ 
+    mem_addr0 <= mem_addra when mem_active = '0' else
                  mem_addri;
-    mem_addr1 <= mem_addra when active = '1' else
+    mem_addr1 <= mem_addra when mem_active = '1' else
                  mem_addri;
-    mem_en0(31 downto 0) <= (others => mem_ena) when active = '0' else
+    mem_en0(31 downto 0) <= (others => mem_ena) when mem_active = '0' else
                  (others => mem_eni);
-    mem_en1(31 downto 0) <= (others => mem_ena) when active = '1' else
+    mem_en1(31 downto 0) <= (others => mem_ena) when mem_active = '1' else
                  (others => mem_eni);
     we_gen: for i in 0 to 3 generate
     begin
-        mem_we0((i+1)*8-1 downto i*8) <= (others => mem_wei(i)) when active = '1' else
+        mem_we0((i+1)*8-1 downto i*8) <= (others => mem_wei(i)) when mem_active = '1' else
             (others => '0');
-        mem_we1((i+1)*8-1 downto i*8) <= (others => mem_wei(i)) when active = '0' else
+        mem_we1((i+1)*8-1 downto i*8) <= (others => mem_wei(i)) when mem_active = '0' else
             (others => '0');
     end generate;
 
-    mem_douti <= mem_out0 when active = '1' else
+    mem_douti <= mem_out0 when mem_active = '1' else
                  mem_out1;
-    mem_douta <= mem_out1 when active = '1' else
+    mem_douta <= mem_out1 when mem_active = '1' else
                  mem_out0;
 
     mem_enactive0 <= (others => '1') when active = '0' else

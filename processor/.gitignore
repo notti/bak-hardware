@@ -3,3 +3,6 @@ __xps/
 hdl/
 implementation/
 synthesis/
+simulation/
+processor.makebehavdo.tcl
+simgen.opt
