@@ -19,7 +19,6 @@ entity prepare is
         arm                 : in  std_logic;
         avg_finished        : in  std_logic;
 
-        sys_enable          : out std_logic;
         sample_enable       : out std_logic;
         do_arm              : out std_logic;
         avg_done            : out std_logic;
@@ -30,13 +29,14 @@ entity prepare is
 end prepare;
 
 architecture Structural of prepare is
-    type prepare_state_t is (RESET, WAIT_ARM, DISABLE, SWITCH2SAMPLE, ENABLE_MEM,
-        ARM_TRIGGER, WAIT_DONE, DISABLE_MEM, SWITCH2SYS, ENABLE);
+    type prepare_state_t is (RESET, WAIT_ARM, SWITCH2SAMPLE, SWITCH2SAMPLE1, SWITCH2SAMPLE2, SWITCH2SAMPLE3, ARM_TRIGGER,
+        WAIT_DONE, SWITCH2SYS, SWITCH2SYS1, SWITCH2SYS2, SWITCH2SYS3);
     signal prepare_state : prepare_state_t;
 
     signal avg_finished_synced : std_logic;
-    signal clk_is_sys      : std_logic;
-    signal clk_is_sys_n    : std_logic;
+    signal avg_finished_synced_1 : std_logic;
+    signal avg_finished_rise : std_logic;
+    signal sample_enable_i : std_logic;
 begin
     -- on arm:
     --          set en to 0
@@ -49,45 +49,60 @@ begin
     --          reset en
     --    done,err & idle
 
-    avg_finished_syncer: entity work.toggle
+    avg_finished_syncer: entity work.flag
     port map(
-        toggle_in => avg_finished,
-        toggle_out => avg_finished_synced,
-        clk_from => sample_clk,
-        clk_to => sys_clk
+        flag_in => avg_finished,
+        flag_out => avg_finished_synced,
+        clk => sys_clk
     );
+
+    process(sys_clk)
+    begin
+        if rising_edge(sys_clk) then
+            avg_finished_synced_1 <= avg_finished_synced;
+        end if;
+    end process;
+
+    avg_finished_rise <= avg_finished_synced and not avg_finished_synced_1;
 
     prepare_fsm: process(sys_clk)
     begin
         if rising_edge(sys_clk) then
             if rst = '1' then
                 prepare_state <= RESET;
+                avg_done <= '0';
             else
                 case prepare_state is
                     when RESET =>
                         prepare_state <= WAIT_ARM;
                     when WAIT_ARM =>
                         if arm = '1' then
-                            prepare_state <= DISABLE;
+                            prepare_state <= SWITCH2SAMPLE;
+                            avg_done <= '0';
                         end if;
-                    when DISABLE =>
-                        prepare_state <= SWITCH2SAMPLE;
                     when SWITCH2SAMPLE =>
-                        prepare_state <= ENABLE_MEM;
-                    when ENABLE_MEM =>
+                        prepare_state <= SWITCH2SAMPLE1;
+                    when SWITCH2SAMPLE1 =>
+                        prepare_state <= SWITCH2SAMPLE2;
+                    when SWITCH2SAMPLE2 =>
+                        prepare_state <= SWITCH2SAMPLE3;
+                    when SWITCH2SAMPLE3 =>
                         prepare_state <= ARM_TRIGGER;
                     when ARM_TRIGGER =>
                         prepare_state <= WAIT_DONE;
                     when WAIT_DONE =>
-                        if avg_finished_synced = '1' then
-                            prepare_state <= DISABLE_MEM;
+                        if avg_finished_rise = '1' then
+                            prepare_state <= SWITCH2SYS ;
                         end if;
-                    when DISABLE_MEM =>
-                        prepare_state <= SWITCH2SYS;
                     when SWITCH2SYS =>
-                        prepare_state <= ENABLE;
-                    when ENABLE =>
+                        prepare_state <= SWITCH2SYS1;
+                    when SWITCH2SYS1 =>
+                        prepare_state <= SWITCH2SYS2;
+                    when SWITCH2SYS2 =>
+                        prepare_state <= SWITCH2SYS3;
+                    when SWITCH2SYS3 =>
                         prepare_state <= WAIT_ARM;
+                        avg_done <= '1';
                 end case;
             end if;
         end if;
@@ -95,69 +110,51 @@ begin
 
     prepare_out: process(prepare_state)
     begin
-        clk_is_sys <= '1';
-        sys_enable <= '1';
-        sample_enable <= '0';
+        sample_enable_i <= '0';
         do_arm <= '0';
-        avg_done <= '0';
         active <= '0';
 
         case prepare_state is
             when RESET =>
             when WAIT_ARM =>
-            when DISABLE =>
-                sys_enable <= '0';
-                active <= '1';
             when SWITCH2SAMPLE =>
-                sys_enable <= '0';
-                clk_is_sys <= '0';
+                sample_enable_i <= '1';
                 active <= '1';
-            when ENABLE_MEM =>
-                sys_enable <= '0';
-                clk_is_sys <= '0';
-                sample_enable <= '1';
+            when SWITCH2SAMPLE1 =>
+                sample_enable_i <= '1';
+                active <= '1';
+            when SWITCH2SAMPLE2 =>
+                sample_enable_i <= '1';
+                active <= '1';
+            when SWITCH2SAMPLE3 =>
+                sample_enable_i <= '1';
                 active <= '1';
             when ARM_TRIGGER =>
-                sys_enable <= '0';
-                clk_is_sys <= '0';
-                sample_enable <= '1';
+                sample_enable_i <= '1';
                 do_arm <= '1';
                 active <= '1';
             when WAIT_DONE =>
-                sys_enable <= '0';
-                clk_is_sys <= '0';
-                sample_enable <= '1';
-                active <= '1';
-            when DISABLE_MEM =>
-                sys_enable <= '0';
-                clk_is_sys <= '0';
-                sample_enable <= '0';
+                sample_enable_i <= '1';
                 active <= '1';
             when SWITCH2SYS =>
-                sys_enable <= '0';
-                clk_is_sys <= '1';
                 active <= '1';
-            when ENABLE =>
-                sys_enable <= '1';
-                avg_done <= '1';
-                active <= '0';
+            when SWITCH2SYS1 =>
+                active <= '1';
+            when SWITCH2SYS2 =>
+                active <= '1';
+            when SWITCH2SYS3 =>
+                active <= '1';
         end case;
     end process;
 
-    clk_is_sys_n <= not clk_is_sys;
-
-    mem_clk_mux : BUFGCTRL
+    mem_clk_mux : BUFGMUX_CTRL
     port map (
         O                       => avg_clk,
         I0                      => sample_clk,
         I1                      => sys_clk,
-        CE0                     => '1',
-        CE1                     => '1',
-        S0                      => clk_is_sys_n,
-        S1                      => clk_is_sys,
-        IGNORE0                 => '1',
-        IGNORE1                 => '1'
-
+        S                       => not sample_enable_i
     );
+
+    sample_enable <= sample_enable_i;
 
 end Structural;

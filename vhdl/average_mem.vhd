@@ -69,6 +69,7 @@ architecture Structural of average_mem is
 
     signal data0        : signed(18 downto 0);
     signal dataadd      : signed(18 downto 0);
+    signal data_r       : std_logic_vector(15 downto 0);
 begin
 
     width_i2 <= "001" when width_i = "01" else
@@ -76,9 +77,16 @@ begin
                 "111" when width_i = "11" else
                 "000";
 
-    status: process(clk)
+    process(memclk)
     begin
-        if rising_edge(clk) then
+        if rising_edge(memclk) then
+            data_r <= data;
+        end if;
+    end process;
+
+    status: process(memclk)
+    begin
+        if rising_edge(memclk) then
             if (state = IDLE and trig = '1') or rst = '1' then
                 err <= '0';
                 done <= '0';
@@ -93,9 +101,9 @@ begin
         end if;
     end process status;
 
-    reg: process (clk, state, depth, width, trig)
+    reg: process (memclk, state, depth, width, trig)
     begin
-        if rising_edge(clk) then
+        if rising_edge(memclk) then
             if state = IDLE and trig = '1' then
                 max <= depth - 1;
                 max_1 <= depth - 3;
@@ -104,9 +112,9 @@ begin
         end if;
     end process reg;
 
-    process (clk)
+    process (memclk)
     begin
-        if rising_edge(clk) then
+        if rising_edge(memclk) then
             if rst = '1' then
                 state <= IDLE;
             else
@@ -149,9 +157,9 @@ begin
         end case;
     end process fsm_b;
 
-    counter: process (clk)
+    counter: process (memclk)
     begin
-        if rising_edge(clk) then
+        if rising_edge(memclk) then
             if state = IDLE or frame_cnt = max then
                 frame_cnt <= (others => '0');
             elsif state = FIRST or state = RUN then
@@ -198,8 +206,8 @@ begin
     enb_i  <= (others => enb) when sample_enable = '0' else
               (others => '1') when state = FIRST or state = RUN else
               (others => '0');
-    data0   <= resize(signed(data), 19);
-    dataadd <= resize(signed(data), 19) + signed(doutb_i);
+    data0   <= resize(signed(data_r), 19);
+    dataadd <= resize(signed(data_r), 19) + signed(doutb_i);
     dina_i <= std_logic_vector(data0) when sample_enable = '1' and cycle_cnt = "00" else
               std_logic_vector(dataadd) when sample_enable = '1' and cycle_cnt /= "00" else
               ("00" & dina & "0") when width_i = "01" else

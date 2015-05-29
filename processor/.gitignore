@@ -3,3 +3,5 @@ __xps/
 hdl/
 implementation/
 synthesis/
+simulation/
+simgen.opt

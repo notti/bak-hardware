@@ -1,0 +1,1 @@
+-intstyle "ise" -incremental -lib "secureip" -o "D:/Projekte/bak-hardware/ise/main/tb_prepare_isim_beh.exe" -prj "D:/Projekte/bak-hardware/ise/main/tb_prepare_beh.prj" "work.tb_prepare" 

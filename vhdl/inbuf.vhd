@@ -100,12 +100,7 @@ architecture Structural of inbuf is
 
     signal prepare_rst         : std_logic;
     signal avg_finished        : std_logic;
-    signal sys_enable          : std_logic;
     signal sample_enable       : std_logic;
-    signal mem_ena_i           : std_logic;
-    signal mem_enb_i           : std_logic;
-    signal mem_wea_i           : std_logic_vector(1 downto 0);
-    signal mem_web_i           : std_logic_vector(1 downto 0);
     signal arm_i               : std_logic;
     signal arm_i_synced        : std_logic;
     signal avg_clk             : std_logic;
@@ -301,7 +296,6 @@ begin
         arm         => trig_arm,
         avg_finished=> avg_finished,
 
-        sys_enable  => sys_enable,
         sample_enable => sample_enable, 
         do_arm      => arm_i,
         avg_done    => avg_done,
@@ -309,15 +303,6 @@ begin
         avg_clk     => avg_clk
     );
         
-
-    mem_ena_i <= mem_ena when sys_enable = '1' else
-                 '0';
-    mem_enb_i <= mem_enb when sys_enable = '1' else
-                 '0';
-    mem_wea_i <= mem_wea when sys_enable = '1' else
-                 (others => '0');
-    mem_web_i <= mem_web when sys_enable = '1' else
-                 (others => '0');
 
     average_mem_i: entity work.average_mem
     port map(
@@ -334,13 +319,13 @@ begin
         sample_enable           => sample_enable,
         dina                    => mem_dina,
         addra                   => mem_addra,
-        wea                     => mem_wea_i,
-        ena                     => mem_ena_i,
+        wea                     => mem_wea,
+        ena                     => mem_ena,
         douta                   => mem_douta,
         dinb                    => mem_dinb,
         addrb                   => mem_addrb,
-        web                     => mem_web_i,
-        enb                     => mem_enb_i,
+        web                     => mem_web,
+        enb                     => mem_enb,
         doutb                   => mem_doutb
     );
 
