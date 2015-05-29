@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version K.39
-# Date: Thu Sep  6 19:49:25 2012
+# Date: Fri May 29 12:17:12 2015
 #
 ##############################################################
 #
@@ -125,8 +125,8 @@ CSET gtp0_en_idle_reset_buf=true
 CSET gtp0_enable_dfe=false
 CSET gtp0_encoding=None
 CSET gtp0_errors_to_lose_sync=128
-CSET gtp0_fifo_lower_bounds=18
-CSET gtp0_fifo_upper_bounds=20
+CSET gtp0_fifo_lower_bounds=20
+CSET gtp0_fifo_upper_bounds=22
 CSET gtp0_highpass_pole_location=Use_RXEQPOLE_Port
 CSET gtp0_mcomma_detect=true
 CSET gtp0_minus_comma=1010000011
@@ -152,7 +152,7 @@ CSET gtp0_rx_status_fmt=PCIe
 CSET gtp0_rx_termination_voltage=TWO_3RDS
 CSET gtp0_rxlossofsyncport=false
 CSET gtp0_rxrundisp_indicates_cc=false
-CSET gtp0_rxusrclk_source=REFCLKOUT
+CSET gtp0_rxusrclk_source=RXRECCLK
 CSET gtp0_sata_burst_val=4
 CSET gtp0_sata_idle_val=4
 CSET gtp0_second_order_cdr_loop=false
@@ -184,7 +184,7 @@ CSET gtp0_use_port_rxlossofsync=false
 CSET gtp0_use_port_rxoversampleerr=false
 CSET gtp0_use_port_rxpolarity=true
 CSET gtp0_use_port_rxpowerdown=false
-CSET gtp0_use_port_rxrecclk=false
+CSET gtp0_use_port_rxrecclk=true
 CSET gtp0_use_port_rxreset=false
 CSET gtp0_use_port_rxrundisp=false
 CSET gtp0_use_port_rxslide=false
@@ -303,8 +303,8 @@ CSET gtp1_en_idle_reset_buf=true
 CSET gtp1_enable_dfe=false
 CSET gtp1_encoding=None
 CSET gtp1_errors_to_lose_sync=128
-CSET gtp1_fifo_lower_bounds=18
-CSET gtp1_fifo_upper_bounds=20
+CSET gtp1_fifo_lower_bounds=20
+CSET gtp1_fifo_upper_bounds=22
 CSET gtp1_highpass_pole_location=Use_RXEQPOLE_Port
 CSET gtp1_mcomma_detect=true
 CSET gtp1_minus_comma=1010000011
@@ -330,7 +330,7 @@ CSET gtp1_rx_status_fmt=PCIe
 CSET gtp1_rx_termination_voltage=TWO_3RDS
 CSET gtp1_rxlossofsyncport=false
 CSET gtp1_rxrundisp_indicates_cc=false
-CSET gtp1_rxusrclk_source=REFCLKOUT
+CSET gtp1_rxusrclk_source=RXRECCLK
 CSET gtp1_sata_burst_val=4
 CSET gtp1_sata_idle_val=4
 CSET gtp1_second_order_cdr_loop=false
@@ -362,7 +362,7 @@ CSET gtp1_use_port_rxlossofsync=false
 CSET gtp1_use_port_rxoversampleerr=false
 CSET gtp1_use_port_rxpolarity=true
 CSET gtp1_use_port_rxpowerdown=false
-CSET gtp1_use_port_rxrecclk=false
+CSET gtp1_use_port_rxrecclk=true
 CSET gtp1_use_port_rxreset=false
 CSET gtp1_use_port_rxrundisp=false
 CSET gtp1_use_port_rxslide=false
@@ -417,9 +417,9 @@ CSET refclk_x0_y1=CLK_Y1
 CSET refclk_x0_y10=------
 CSET refclk_x0_y11=------
 CSET refclk_x0_y2=CLK_Y2
-CSET refclk_x0_y3=GREFCLK
-CSET refclk_x0_y4=CLK_Y4
-CSET refclk_x0_y5=GREFCLK
+CSET refclk_x0_y3=CLK_Y5
+CSET refclk_x0_y4=CLK_Y5
+CSET refclk_x0_y5=CLK_Y5
 CSET refclk_x0_y6=CLK_Y6
 CSET refclk_x0_y7=CLK_Y7
 CSET refclk_x0_y8=------
@@ -437,7 +437,7 @@ CSET use_gtp_dual_x0_y10=false
 CSET use_gtp_dual_x0_y11=false
 CSET use_gtp_dual_x0_y2=false
 CSET use_gtp_dual_x0_y3=true
-CSET use_gtp_dual_x0_y4=false
+CSET use_gtp_dual_x0_y4=true
 CSET use_gtp_dual_x0_y5=true
 CSET use_gtp_dual_x0_y6=false
 CSET use_gtp_dual_x0_y7=false
@@ -452,5 +452,5 @@ CSET use_port_refclkpowerdown=false
 CSET use_txbuffer=true
 # END Parameters
 GENERATE
-# CRC: 767f72b5
+# CRC: ffda3da7
 
