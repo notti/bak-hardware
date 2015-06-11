@@ -13,6 +13,7 @@ ARCHITECTURE behavior OF tb_prepare IS
          rst : IN  std_logic;
          arm : IN  std_logic;
          avg_finished : IN  std_logic;
+         stream_valid : IN  std_logic;
          sys_enable : OUT  std_logic;
          sample_enable : OUT  std_logic;
          do_arm : OUT  std_logic;
@@ -28,6 +29,7 @@ ARCHITECTURE behavior OF tb_prepare IS
    signal rst : std_logic := '0';
    signal arm : std_logic := '0';
    signal avg_finished : std_logic := '0';
+   signal stream_valid : std_logic := '0';
 
    signal sys_enable : std_logic;
    signal sample_enable : std_logic;
@@ -49,6 +51,7 @@ BEGIN
           rst => rst,
           arm => arm,
           avg_finished => avg_finished,
+          stream_valid => stream_valid,
           sys_enable => sys_enable,
           sample_enable => sample_enable,
           do_arm => do_arm,
@@ -79,6 +82,8 @@ BEGIN
       rst <= '0';
 
       wait for sample_clk_period*10;
+
+      stream_valid <= '1';
 
       wait for sample_clk_period*10;
 

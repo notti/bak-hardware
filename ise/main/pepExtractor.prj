@@ -1,1 +1,4 @@
-work	"D:/Projekte/bak-hardware/processor/__xps/processor.vhd"
+work	"../../vhdl/flag.vhd"
+work	"../../vhdl/prepare.vhd"
+work	"../../vhdl/procedures.vhd"
+work	"../../wizard/gtx_tile.vhd"

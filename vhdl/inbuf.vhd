@@ -100,11 +100,24 @@ architecture Structural of inbuf is
 
     signal prepare_rst         : std_logic;
     signal avg_finished        : std_logic;
+    signal sys_enable          : std_logic;
     signal sample_enable       : std_logic;
+    signal mem_ena_i           : std_logic;
+    signal mem_enb_i           : std_logic;
+    signal mem_wea_i           : std_logic_vector(1 downto 0);
+    signal mem_web_i           : std_logic_vector(1 downto 0);
     signal arm_i               : std_logic;
     signal arm_i_synced        : std_logic;
     signal avg_clk             : std_logic;
     signal trig_ext_synced     : std_logic;
+
+    signal mem_dina_i          : std_logic_vector(15 downto 0);
+    signal mem_addra_i         : std_logic_vector(15 downto 0);
+    signal mem_dinb_i          : std_logic_vector(15 downto 0);
+    signal mem_addrb_i         : std_logic_vector(15 downto 0);
+
+    signal first               : std_logic;
+    signal wallclk_rst         : std_logic;
 begin
     receiver_i: entity work.receiver
     port map(
@@ -193,11 +206,12 @@ begin
     );
     
     avg_rst_i <= avg_rst_sync or sample_rst_i; 
+    wallclk_rst <= avg_rst_i or first;
 
     wallclk_i : entity work.wallclk
     port map(
        clk                      => sample_clk_i,
-       rst                      => avg_rst_i,
+       rst                      => wallclk_rst,
        n                        => avg_depth,
        wave_index               => wave_index_i,
        frame_clk                => frame_clk,
@@ -228,8 +242,8 @@ begin
     port map(
         toggle_in => arm_i,
         toggle_out => arm_i_synced,
-        clk_from => sample_clk_i,
-        clk_to => sys_clk
+        clk_from => sys_clk,
+        clk_to => sample_clk_i
     );
 
     sync_trig_type: entity work.flag
@@ -265,7 +279,8 @@ begin
         frame_trg   => frame_trg,
         arm         => arm_i_synced,
         armed       => trig_armed_unsynced,
-        trig        => trig
+        trig        => trig,
+        first       => first
     );
 
     sync_trig_armed: entity work.flag
@@ -295,7 +310,9 @@ begin
 
         arm         => trig_arm,
         avg_finished=> avg_finished,
+        stream_valid=> stream_valid_i,
 
+        sys_enable  => sys_enable,
         sample_enable => sample_enable, 
         do_arm      => arm_i,
         avg_done    => avg_done,
@@ -303,6 +320,23 @@ begin
         avg_clk     => avg_clk
     );
         
+    mem_ena_i <= mem_ena when sys_enable = '1' else
+                 '0';
+    mem_enb_i <= mem_enb when sys_enable = '1' else
+                 '0';
+    mem_wea_i <= mem_wea when sys_enable = '1' else
+                 (others => '0');
+    mem_web_i <= mem_web when sys_enable = '1' else
+                 (others => '0');
+
+    mem_addra_i <= mem_addra when sys_enable = '1' else
+                   (others => '0');
+    mem_addrb_i <= mem_addrb when sys_enable = '1' else
+                   (others => '0');
+    mem_dina_i <= mem_dina when sys_enable = '1' else
+                   (others => '0');
+    mem_dinb_i <= mem_dinb when sys_enable = '1' else
+                   (others => '0');
 
     average_mem_i: entity work.average_mem
     port map(
@@ -317,15 +351,15 @@ begin
         data_valid              => stream_valid_i,
         memclk                  => avg_clk,
         sample_enable           => sample_enable,
-        dina                    => mem_dina,
-        addra                   => mem_addra,
-        wea                     => mem_wea,
-        ena                     => mem_ena,
+        dina                    => mem_dina_i,
+        addra                   => mem_addra_i,
+        wea                     => mem_wea_i,
+        ena                     => mem_ena_i,
         douta                   => mem_douta,
-        dinb                    => mem_dinb,
-        addrb                   => mem_addrb,
-        web                     => mem_web,
-        enb                     => mem_enb,
+        dinb                    => mem_dinb_i,
+        addrb                   => mem_addrb_i,
+        web                     => mem_web_i,
+        enb                     => mem_enb_i,
         doutb                   => mem_doutb
     );
 

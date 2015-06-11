@@ -15,7 +15,8 @@ port(
     frame_trg   : in  std_logic;
     arm         : in  std_logic;
     armed       : out std_logic;
-    trig        : out std_logic
+    trig        : out std_logic;
+    first       : out std_logic
 );
 end trigger;
 
@@ -67,7 +68,9 @@ begin
            trigger_ext;
     trig <= '1' when state = TRIGD else
             '0';
-    armed <= '1' when state = WAIT_TRG else
+    armed <= '1' when state = WAIT_TRG or state = WAIT_FRM else
+             '0';
+    first <= '1' when state = WAIT_TRG or state = RESET else
              '0';
 
 end Structural;

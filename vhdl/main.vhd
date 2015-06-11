@@ -145,8 +145,6 @@ architecture Structural of main is
 	signal mem_addroi_i		   : std_logic_vector(15 downto 0);
 	signal mem_weoi_i		   : std_logic_vector(3 downto 0);
 	signal mem_doutoi_i		   : std_logic_vector(31 downto 0);
-	signal mem_addroa_i		   : std_logic_vector(15 downto 0);
-	signal mem_doutoa_i		   : std_logic_vector(31 downto 0);
     signal mem_enia_i          : std_logic;
     signal mem_enib_i          : std_logic;
     signal mem_enoi_i          : std_logic;
@@ -166,7 +164,6 @@ architecture Structural of main is
     signal core_ov_fft_i       : std_logic;
     signal core_ov_ifft_i      : std_logic;
     signal core_ov_cmul_i      : std_logic;
-    signal core_ov_i           : std_logic;
 
     signal tx_muli_synced      : std_logic_vector(15 downto 0);
     signal tx_mulq_synced      : std_logic_vector(15 downto 0);
@@ -221,8 +218,6 @@ begin
 	mem_weoi_i    <= mem_weoi when mem_allowed = '1' else
 					 (others => core_mem_wey);
 	mem_doutoi    <= mem_doutoi_i;
-	mem_addroa_i  <= mem_addroa;
-	mem_doutoa    <= mem_doutoa_i;
     
 	-- entities
 
@@ -329,8 +324,6 @@ begin
 	core_ov_cmul <= core_ov_cmul_i;
 	core_busy    <= core_busy_i;
     core_done    <= core_done_i;
-
-    core_ov_i <= or_many(core_ov_fft_i & core_ov_ifft_i & core_ov_cmul_i);
 
     tx_rst_generate: entity work.async_rst
     port map (
@@ -454,8 +447,8 @@ begin
 		mem_wei         => mem_weoi_i,
 		mem_douti       => mem_doutoi_i,
         mem_eni         => mem_enoi_i,
-		mem_addra       => mem_addroa_i,
-		mem_douta       => mem_doutoa_i,
+		mem_addra       => mem_addroa,
+		mem_douta       => mem_doutoa,
         mem_ena         => mem_enoa_i
 	);
 
