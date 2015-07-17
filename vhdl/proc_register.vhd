@@ -604,6 +604,7 @@ begin
 
     trig_trigd_i <= trig_trigd when auto_running = '0' else
                     '0';
+    -- this may generate a spurious interrupt after running stopped
     avg_done_i <= avg_done when auto_running = '0' else
                     '0';
     core_done_i <= core_done when auto_running = '0' else
