@@ -9,6 +9,9 @@ library work;
 use work.all;
 
 entity cmul is
+generic(
+    WIDTH_SHIFT : natural := 2
+);
 port(
     clk     : in std_logic;
     a_re    : in signed(15 downto 0);
@@ -17,7 +20,7 @@ port(
     b_im    : in signed(15 downto 0);
     c_re    : out signed(15 downto 0);
     c_im    : out signed(15 downto 0);
-    shift   : in std_logic_vector(1 downto 0);
+    shift   : in std_logic_vector(WIDTH_SHIFT-1 downto 0);
     ovfl    : out std_logic;
     sat     : in std_logic
 );
@@ -34,9 +37,9 @@ architecture Structural of cmul is
     signal c_im_out       : signed(15 downto 0);
     signal im_ovfl        : std_logic;
     signal re_ovfl        : std_logic;
-    signal shift_1        : std_logic_vector(1 downto 0);
-    signal shift_2        : std_logic_vector(1 downto 0);
-    signal shift_3        : std_logic_vector(1 downto 0);
+    signal shift_1        : std_logic_vector(WIDTH_SHIFT-1 downto 0);
+    signal shift_2        : std_logic_vector(WIDTH_SHIFT-1 downto 0);
+    signal shift_3        : std_logic_vector(WIDTH_SHIFT-1 downto 0);
 
 begin
     -- c_re = a_re*b_re - a_im*b_im 
@@ -87,6 +90,9 @@ begin
     end process shift_dly;
 
     c_re_round: entity work.convergent
+    generic map(
+        WIDTH_SHIFT => WIDTH_SHIFT
+    )
     port map(
         clk => clk,
         a   => c_re_big,
@@ -97,6 +103,9 @@ begin
     );
 
     c_im_round: entity work.convergent
+    generic map(
+        WIDTH_SHIFT => WIDTH_SHIFT
+    )
     port map(
         clk => clk,
         a   => c_im_big,

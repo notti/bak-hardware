@@ -12,6 +12,11 @@ use work.procedures.all;
 
 entity proc_register is
 port(
+    auto_rst            : out std_logic;
+    auto_run            : out std_logic;
+    auto_single         : out std_logic;
+    auto_running        : in  std_logic;
+    auto_clr            : in  std_logic;
     avg_active          : in  std_logic;
     avg_done            : in  std_logic;
     avg_err             : in  std_logic;
@@ -60,7 +65,7 @@ port(
     tx_resync           : out std_logic;
     tx_rst              : out std_logic;
     tx_sat              : out std_logic;
-    tx_shift            : out std_logic_vector(1 downto 0);
+    tx_shift            : out std_logic_vector(3 downto 0);
     tx_shift_wr         : out std_logic;
     tx_toggle_buf       : out std_logic;
     tx_toggled          : in  std_logic;
@@ -88,6 +93,12 @@ architecture Structural of proc_register is
 
     signal rec_input_select_i       : std_logic_vector(0 downto 0);
     signal rec_input_select_r       : std_logic_vector(0 downto 0);
+
+    signal trig_trigd_i             : std_logic;
+    signal avg_done_i               : std_logic;
+    signal core_done_i              : std_logic;
+    signal tx_toggled_i             : std_logic;
+
 begin
 
 -- x  rec_enable(0)                    1 0
@@ -143,9 +154,9 @@ begin
 -- 0                                   0 1
 -- t  trig_arm                         0 2  r  trig_armed
 -- t  trig_int                         0 3
--- 0  0                                0 4
--- 0  0                                0 5
--- 0  0                                0 6
+-- w  auto_run                         0 4  r  auto_running
+-- t  auto_single                      0 5
+-- t  auto_rst                         0 6
 -- t  rst                              0 7
 -- x  avg_width(0)                     0 0
 -- x  avg_width(1)                     0 1
@@ -279,14 +290,14 @@ begin
 -- 0  0                                0 5
 -- 0  0                                0 6
 -- t  tx_rst                           0 7
--- 0  0                                0 0
--- 0  0                                0 1
+-- x  tx_sat                           1 0
+-- w  tx_ovfl                          0 1  r  tx_ovfl
 -- 0  0                                0 2
 -- 0  0                                0 3
--- x  tx_sat                           1 4
--- w  tx_ovfl                          0 5  r  tx_ovfl
--- x  tx_shift(0)                      0 6
--- x  tx_shift(1)                      0 7
+-- x  tx_shift(0)                      0 4
+-- x  tx_shift(1)                      0 5
+-- x  tx_shift(2)                      0 6
+-- x  tx_shift(3)                      0 7
     
     reciever_gen: for i in 0 to 1 generate
         signal recv_reg          : std_logic_vector(4 downto 0);
@@ -349,6 +360,10 @@ begin
                  '0';
     trig_int  <= bus2fpga_data(19) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
                  '0';
+    auto_single <= bus2fpga_data(21) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
+                 '0';
+    auto_rst <= bus2fpga_data(22) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
+                 '0';
     trig_rst  <= bus2fpga_data(23) when bus2fpga_wrce = "010000" and bus2fpga_be(2) = '1' else
                  '1' when bus2fpga_reset = '1' else
                  '0';
@@ -357,6 +372,21 @@ begin
     avg_rst   <= bus2fpga_data(31) when bus2fpga_wrce = "010000" and bus2fpga_be(3) = '1' else
                  '1' when bus2fpga_reset = '1' else
                  '0';
+
+    auto_proc: process(bus2fpga_clk)
+    begin
+        if rising_edge(bus2fpga_clk) then
+            if bus2fpga_reset = '1' or auto_clr = '1' then
+                auto_run <= '0';
+            else
+                if bus2fpga_wrce = "010000" then
+                    if bus2fpga_be(2) = '1' then
+                        auto_run <= bus2fpga_data(20);
+                    end if;
+                end if;
+            end if;
+        end if;
+    end process auto_proc;
     
     write_proc1: process(bus2fpga_clk)
     begin
@@ -387,7 +417,9 @@ begin
     slv_reg(1)(26) <= avg_active;
     slv_reg(1)(27) <= avg_err;
 
-    slv_reg(1)(23 downto 19) <= (others => '0');
+    slv_reg(1)(19) <= '0';
+    slv_reg(1)(20) <= auto_running;
+    slv_reg(1)(23 downto 21) <= (others => '0');
     slv_reg(1)(31 downto 28) <= (others => '0');
 -------------------------------------------------------------------------------
     core_scale_sch  <= slv_reg(2)(11 downto 0);
@@ -514,11 +546,11 @@ begin
     tx_rst          <= bus2fpga_data(23) when bus2fpga_wrce = "000001" and bus2fpga_be(2) = '1' else
                      '1' when bus2fpga_reset = '1' else
                      '0';
-    tx_sat          <= slv_reg(5)(28);
+    tx_sat          <= slv_reg(5)(24);
 
     tx_shift_wr     <= '1' when (bus2fpga_wrce = "000001" and bus2fpga_be(3) = '1') or bus2fpga_reset = '1' else
                        '0';
-    tx_shift        <= slv_reg(5)(31 downto 30);
+    tx_shift        <= slv_reg(5)(31 downto 28);
 
     write_proc5: process(bus2fpga_clk)
     begin
@@ -526,8 +558,8 @@ begin
             if bus2fpga_reset = '1' then
                 slv_reg(5)(15 downto 0) <= (others => '0');
                 slv_reg(5)(17) <= '0';
-                slv_reg(5)(28) <= '1';
-                slv_reg(5)(31 downto 30) <= (others => '0');
+                slv_reg(5)(24) <= '1';
+                slv_reg(5)(31 downto 28) <= (others => '0');
             else
                 if bus2fpga_wrce = "000001" then
                     if bus2fpga_be(0) = '1' then
@@ -540,21 +572,22 @@ begin
                         slv_reg(5)(17) <= bus2fpga_data(17);
                     end if;
                     if bus2fpga_be(3) = '1' then
-                        slv_reg(5)(28) <= bus2fpga_data(28);
-                        slv_reg(5)(31 downto 30) <= bus2fpga_data(31 downto 30);
+                        slv_reg(5)(24) <= bus2fpga_data(24);
+                        slv_reg(5)(31 downto 28) <= bus2fpga_data(31 downto 28);
                     end if;
                 end if;
             end if;
         end if;
     end process write_proc5;
 
-    tx_ovfl_ack <= '1' when bus2fpga_wrce = "000001" and bus2fpga_be(3) = '1' and bus2fpga_data(29) = '0' else
+    tx_ovfl_ack <= '1' when bus2fpga_wrce = "000001" and bus2fpga_be(3) = '1' and bus2fpga_data(25) = '0' else
                    '0';
 
     slv_reg(5)(16) <= '0';
     slv_reg(5)(18) <= tx_busy;
-    slv_reg(5)(27 downto 19) <= (others => '0');
-    slv_reg(5)(29) <= tx_ovfl;
+    slv_reg(5)(23 downto 19) <= (others => '0');
+    slv_reg(5)(27 downto 26) <= (others => '0');
+    slv_reg(5)(25) <= tx_ovfl;
 --=============================================================================
     slave_reg_read_proc: process(bus2fpga_rdce, slv_reg)
     begin
@@ -569,6 +602,15 @@ begin
         end case;
     end process slave_reg_read_proc;
 
+    trig_trigd_i <= trig_trigd when auto_running = '0' else
+                    '0';
+    avg_done_i <= avg_done when auto_running = '0' else
+                    '0';
+    core_done_i <= core_done when auto_running = '0' else
+                    '0';
+    tx_toggled_i <= tx_toggled when auto_running = '0' else
+                    '0';
+
     fpga2bus_intr <= (
         0  => slv_reg(0)(5),
         1  => not slv_reg(0)(5),
@@ -576,11 +618,13 @@ begin
         3  => not slv_reg(0)(13),
         4  => slv_reg(0)(26),
         5  => not slv_reg(0)(26),
-        6  => trig_trigd,
-        7  => avg_done,
-        8  => core_done,
-        9  => tx_toggled,
-        10 => slv_reg(5)(29),
+        6  => trig_trigd_i,
+        7  => avg_done_i,
+        8  => core_done_i,
+        9  => tx_toggled_i,
+        10 => slv_reg(5)(25),
+        11 => auto_running,
+        12 => not auto_running,
         others => '0');
 
     fpga2bus_rdack <= or_many(bus2fpga_rdce);

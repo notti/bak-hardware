@@ -26,6 +26,13 @@ port(
 -- overall settings
 	depth				: in  std_logic_vector(15 downto 0);
 
+-- auto mode
+    auto_rst            : in  std_logic;
+    auto_run            : in  std_logic;
+    auto_single         : in  std_logic;
+    auto_running        : out std_logic;
+    auto_clr            : out std_logic;
+
 -- control signals receiver
     rec_rst             : in  std_logic;
     rec_polarity        : in  std_logic_vector(1 downto 0);
@@ -94,7 +101,7 @@ port(
     tx_ovfl             : out std_logic;
     tx_ovfl_ack         : in  std_logic;
     tx_sat              : in  std_logic;
-    tx_shift            : in  std_logic_vector(1 downto 0);
+    tx_shift            : in  std_logic_vector(3 downto 0);
     tx_shift_wr         : in  std_logic;
 
 -- mem
@@ -157,6 +164,7 @@ architecture Structural of main is
 	signal avg_active_i		   : std_logic;
     signal avg_err_i           : std_logic;
 	signal trig_arm_i		   : std_logic;
+	signal trig_arm_if		   : std_logic;
 
 	signal core_start_i		   : std_logic;
 	signal core_busy_i		   : std_logic;
@@ -173,11 +181,12 @@ architecture Structural of main is
     signal tx_toggle_buf_synced: std_logic;
     signal tx_resync_synced    : std_logic;
     signal tx_sat_synced       : std_logic;
-    signal tx_shift_synced     : std_logic_vector(1 downto 0);
+    signal tx_shift_synced     : std_logic_vector(3 downto 0);
 
 	signal tx_rst_i			   : std_logic;
     signal tx_rst_gen          : std_logic;
 	signal tx_toggle_buf_i	   : std_logic;
+	signal tx_toggle_buf_if	   : std_logic;
 	signal tx_busy_i		   : std_logic;
     signal tx_ovfl_unsynced    : std_logic;
     signal tx_ovfl_ack_synced  : std_logic;
@@ -186,7 +195,37 @@ architecture Structural of main is
     signal tx_busy_unsynced    : std_logic;
 
     signal mem_allowed         : std_logic;
+
+    signal auto_rst_i          : std_logic;
+    signal auto_arm            : std_logic;
+    signal rec_stream_valid_i  : std_logic;
+    signal auto_core_start     : std_logic;
+    signal core_start_if       : std_logic;
+    signal core_ov             : std_logic;
+    signal auto_tx_toggle_buf  : std_logic;
 begin
+
+    auto_rst_i <= auto_rst or core_rst or tx_rst;
+    core_ov <= core_ov_fft_i or core_ov_ifft_i or core_ov_cmul_i;
+    auto_clr <= auto_rst_i or core_ov;
+
+    auto_inst: entity work.automatic
+    port map(
+        clk          => sys_clk,
+        rst          => auto_rst_i,
+        single       => auto_single,
+        run          => auto_run,
+        running      => auto_running,
+        trig_arm     => auto_arm,
+        avg_done     => avg_done_i,
+        stream_valid => rec_stream_valid_i,
+        core_start   => auto_core_start,
+        core_ov      => core_ov,
+        core_done    => core_done_i,
+        tx_toggle    => auto_tx_toggle_buf,
+        tx_toggled   => tx_toggled_i
+    );
+        
 
 	-- mem access handling
 
@@ -223,6 +262,7 @@ begin
 
     trig_arm_i <= trig_arm when mem_allowed = '1' else
 				  '0';
+    trig_arm_if <= trig_arm_i or auto_arm;
 
 	inbuf_inst: entity work.inbuf
 	port map(
@@ -241,11 +281,11 @@ begin
 		rec_enable          => rec_enable,
 		rec_input_select    => rec_input_select,
 		rec_input_select_changed => rec_input_select_changed,
-		rec_stream_valid    => rec_stream_valid,
+		rec_stream_valid    => rec_stream_valid_i,
 		sample_clk          => sample_clk_i,
 		sample_rst          => sample_rst,
 		trig_rst            => trig_rst,
-		trig_arm            => trig_arm_i,
+		trig_arm            => trig_arm_if,
 		trig_ext            => trig_ext,
 		trig_int            => trig_int,
 		trig_type		    => trig_type,
@@ -276,16 +316,18 @@ begin
     avg_err    <= avg_err_i;
 	avg_active <= avg_active_i;
 	frame_clk  <= frame_clk_i;
+    rec_stream_valid <= rec_stream_valid_i;
 
     core_start_i <= core_start when mem_allowed = '1' else
 					'0';
+    core_start_if <= core_start_i or auto_core_start;
 
 	core_inst: entity work.core
 	port map(
 		clk             => sys_clk,
 		rst             => core_rst,
 
-		core_start      => core_start_i,
+		core_start      => core_start_if,
 		core_n          => core_n,
 		core_scale_sch  => core_scale_sch,
 		core_scale_schi => core_scale_schi,
@@ -334,6 +376,7 @@ begin
 	tx_rst_i <= sample_rst or tx_rst_gen;
     tx_toggle_buf_i <= tx_toggle_buf when mem_allowed = '1' else
 					   '0';
+    tx_toggle_buf_if <= tx_toggle_buf_i or auto_tx_toggle_buf;
 
     tx_busy_gen: process(sys_clk)
     begin
@@ -341,7 +384,7 @@ begin
             if tx_rst = '1' or tx_toggled_i = '1' then
                 tx_busy_i <= '0';
             else
-                if tx_toggle_buf_i = '1' then
+                if tx_toggle_buf_if = '1' then
                     tx_busy_i <= '1';
                 end if;
             end if;
@@ -380,7 +423,7 @@ begin
     );
     sync_tx_toggle: entity work.toggle
     port map(
-        toggle_in   => tx_toggle_buf_i,
+        toggle_in   => tx_toggle_buf_if,
         toggle_out  => tx_toggle_buf_synced,
         clk_from    => sys_clk,
         clk_to      => sample_clk_i

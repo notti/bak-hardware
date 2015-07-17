@@ -35,7 +35,7 @@ port(
     resync              : in  std_logic;
 	busy				: out std_logic;
     sat                 : in  std_logic;
-    shift               : in  std_logic_vector(1 downto 0);
+    shift               : in  std_logic_vector(3 downto 0);
     ovfl                : out std_logic;
     ovfl_ack            : in  std_logic;
 
@@ -247,6 +247,9 @@ begin
     a_im <= signed(dout(31 downto 16));
 
     cmul_i: entity work.cmul
+    generic map(
+        WIDTH_SHIFT => 4
+    )
     port map(
         clk          => clk,
         a_re         => a_re,
